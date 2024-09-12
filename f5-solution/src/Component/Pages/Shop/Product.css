@@ -1,0 +1,35 @@
+.product-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px;
+}
+
+.product-header h2 {
+    margin: 0;
+    font-size: 24px;
+}
+
+.filters {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.filter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Adjust the gap between label and dropdown */
+}
+
+.filter-item label {
+    margin: 0;
+    font-size: 14px;
+    width: 80px; /* Adjust the width as needed */
+    text-align: right; /* Aligns the label text to the right */
+}
+
+.filter-item select {
+    padding: 8px;
+    font-size: 14px;
+}

@@ -2,14 +2,42 @@ import React from 'react';
 import { Form, Input, Button, Row, Col } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import 'antd/dist/reset.css';
-import Logo from '../../../assets/images/Banner_Login.png';
 import BackgroundImage from '../../../assets/images/Back_Login.png'; // Đường dẫn tới hình nền
 import logo_v1 from '../../../assets/images/Logo.png';
+import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
-    const onFinish = async (values) => {
-        // Add your form submission logic here
+    const navigate = useNavigate();
+
+    const sampleUsers = [
+        { username: "tungdv", password: "tungdv1", role: "admin" },
+        { username: "doantung", password: "tungdv1", role: "nhanvien" },
+        { username: "doantung1", password: "tungdv1", role: null },
+    ];
+
+    const onFinish = (values) => {
+        // Kiểm tra thông tin đăng nhập với dữ liệu mẫu
+        const user = sampleUsers.find(user =>
+            user.username === values.username && user.password === values.password
+        );
+
+        if (user) {
+            // Kiểm tra phân quyền dựa trên role
+            if (user.role === "admin" || user.role === "nhanvien") {
+                localStorage.setItem('user', JSON.stringify(user));
+                // Chuyển hướng đến dashboard nếu là admin hoặc nhân viên
+                navigate('/dashboard');
+            } else if (user.role === null) {
+                localStorage.setItem('user', JSON.stringify(user));
+                // Chuyển hướng đến trang chủ nếu không có quyền
+                navigate('/');
+            }
+        } else {
+            // Thông báo đăng nhập thất bại
+            alert('Đăng nhập thất bại. Vui lòng kiểm tra thông tin và thử lại.');
+        }
     };
+
 
     const handleForgotPassword = () => {
         console.log('Forgot password clicked');
@@ -25,21 +53,20 @@ const Login = () => {
             backgroundImage: `url(${BackgroundImage})`,
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-            height: '100vh', // Đảm bảo chiều cao của phần tử bao quanh toàn bộ chiều cao của cửa sổ trình duyệt
+            height: '100vh',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
             overflow: 'hidden'
         }}>
-            {/* Lớp phủ mờ */}
             <div style={{
                 position: 'absolute',
                 top: 0,
                 left: 0,
                 right: 0,
                 bottom: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.1)', // Đặt màu nền với độ mờ khoảng 30%
-                zIndex: 1, // Đảm bảo lớp phủ nằm dưới nội dung chính
+                backgroundColor: 'rgba(0, 0, 0, 0.1)',
+                zIndex: 1,
             }} />
 
             <div style={{
@@ -55,27 +82,21 @@ const Login = () => {
             }}>
                 <div style={{ flex: '1', padding: '10px' }}>
                     <img
-                        src={Logo}
+                        src={logo_v1}
                         alt="Login Illustration"
                         style={{ width: '100%', height: 'auto', objectFit: 'cover' }}
                     />
                 </div>
                 <div style={{ flex: '1', padding: '20px', maxWidth: '700px' }}>
-                    {/* Sử dụng Flexbox để căn chỉnh logo và h1 trên cùng một hàng */}
                     <Row style={{ marginBottom: 30, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                            <img
-                                src={logo_v1}
-                                alt="Logo"
-                                style={{ width: '180px', height: '180px', marginRight: '5px' }} // Logo to hơn
-                            />
                             <h1 style={{
-                                fontSize: '30px', // Kích thước chữ lớn hơn
+                                fontSize: '30px',
                                 fontWeight: 'bold',
-                                fontFamily: "'Roboto', sans-serif", // Sử dụng font Roboto hiện đại
+                                fontFamily: "'Roboto', sans-serif",
                                 color: '#333',
                                 margin: 0,
-                                letterSpacing: '1px' // Tạo khoảng cách giữa các chữ
+                                letterSpacing: '1px'
                             }}>
                                 ĐĂNG NHẬP
                             </h1>
@@ -129,7 +150,6 @@ const Login = () => {
                             </Button>
                         </Form.Item>
 
-                        {/* Forgot Password Row */}
                         <Row style={{ textAlign: 'center', marginBottom: '20px' }}>
                             <Col span={24}>
                                 <a href="#" onClick={handleForgotPassword} style={{ color: 'blue' }}>
@@ -138,7 +158,6 @@ const Login = () => {
                             </Col>
                         </Row>
 
-                        {/* Register Button */}
                         <Form.Item style={{ textAlign: 'center' }}>
                             <Button
                                 type="default"

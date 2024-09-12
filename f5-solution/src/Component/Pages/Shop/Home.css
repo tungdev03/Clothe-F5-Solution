@@ -1,0 +1,78 @@
+/* Style cho phần Header */
+.home-header {
+    display: flex;
+    align-items: center;
+    background-color: #fff;
+    justify-content: space-between;
+    padding: 0 20px;
+}
+
+.logo-brand {
+    display: flex;
+    align-items: center;
+}
+
+.logo-brand img {
+    height: 100px;
+    margin-right: 8px;
+}
+
+.brand {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.brand span {
+    color: orange;
+}
+
+/* Style cho phần Menu */
+.home-menu {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+/* Style cho các button trong phần Header */
+.home-actions {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Style cho phần Content */
+.home-content {
+    padding: 0 48px;
+}
+
+/* Style cho Carousel */
+.home-carousel {
+    margin: 0 5%;
+}
+
+.home-carousel img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}
+
+/* Style cho phần sản phẩm nổi bật */
+.home-products {
+    margin-top: 24px;
+    text-align: center;
+}
+
+.home-products h2 {
+    margin-bottom: 24px;
+}
+
+/* Style cho các Card sản phẩm */
+.home-product-card {
+    padding: 0 10px;
+}
+
+.home-product-card img {
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+}

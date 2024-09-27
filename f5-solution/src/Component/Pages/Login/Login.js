@@ -40,11 +40,11 @@ const Login = () => {
 
 
     const handleForgotPassword = () => {
-        console.log('Forgot password clicked');
+        navigate('/resetPassword')
     };
 
     const handleRegister = () => {
-        console.log('Register button clicked');
+        navigate('/register')
     };
 
     return (

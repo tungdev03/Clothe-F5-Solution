@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UserOutlined, ShoppingCartOutlined, LogoutOutlined } from '@ant-design/icons';
-import { Layout, Menu, Button, Carousel, Card, Dropdown, Space, Input } from 'antd';
+import { Layout, Menu, Button, Carousel, Card, Dropdown, Space, Input, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import './Home.css';
 import logo_v1 from '../../../assets/images/Logo.png';
@@ -29,22 +29,13 @@ const metaStyle = {
   padding: '0', // Loại bỏ padding không cần thiết
 };
 const items1 = [
-  { key: '/home', label: 'Cửa hàng' },
+  { key: '/', label: 'Cửa hàng' },
   { key: '/Products', label: 'Sản phẩm' },
   { key: '/contact', label: 'Liên hệ' },
   { key: '/album', label: 'Bộ sưu tập' }
 ];
 
-const products = [
-  { id: 1, title: "ĐẦM ĐEN THIẾT KẾ", description: "1.800.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg" },
-  { id: 2, title: "Sản phẩm 2", description: "Mô tả sản phẩm 2", imgSrc: "https://product.hstatic.net/200000182297/product/3_546959316b5642f2a2ef2c3bbe0423f0_master.jpg" },
-  { id: 3, title: "Sản phẩm 3", description: "Mô tả sản phẩm 3", imgSrc: "https://product.hstatic.net/200000182297/product/11_7d07e90c8fee41629d02a837fd9a3e79_master.jpg" },
-  { id: 4, title: "Sản phẩm 4", description: "Mô tả sản phẩm 4", imgSrc: "https://product.hstatic.net/200000182297/product/2_01427c39fc824af3940e9ca334275070_master.jpg" },
-  { id: 5, title: "Sản phẩm 5", description: "Mô tả sản phẩm 5", imgSrc: "https://product.hstatic.net/200000182297/product/4_efc408a2620c47abb7bcd9d54f47c401_master.jpg" },
-  { id: 6, title: "Sản phẩm 6", description: "Mô tả sản phẩm 6", imgSrc: "https://product.hstatic.net/200000182297/product/20_95721a4d9bbb444cb5b941f7199dafd6_master.jpg" },
-  { id: 7, title: "Sản phẩm 7", description: "Mô tả sản phẩm 7", imgSrc: "https://product.hstatic.net/200000182297/product/6_d5e0224e09b348a08caa34d04a6fd1ec_master.jpg" },
-  { id: 8, title: "Sản phẩm 8", description: "Mô tả sản phẩm 8", imgSrc: "https://product.hstatic.net/200000182297/product/6_d5e0224e09b348a08caa34d04a6fd1ec_master.jpg" },
-];
+
 
 const winterProducts = [
   { id: 1, title: "MĂNG TÔ CAO CẤP AK13262", description: "2.200.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/12_14b69d65c3014d18a336f3d8beaee4cb_master.jpg" },
@@ -69,12 +60,23 @@ const Home = () => {
     if (storedUser) {
       const user = JSON.parse(storedUser);
       setUsername(user.username);
-      console.log(user.username)// Lấy tên người dùng từ thông tin đã lưu
     }
   }, []);
+
   const handleLoginClick = () => {
     navigate('/login');
   };
+  const handleOncartClick = () => {
+    const storedUser = localStorage.getItem('user');
+
+    // Kiểm tra nếu người dùng không đăng nhập
+    if (!storedUser || storedUser === "") {
+      message.info("Vui lòng đăng nhập để xem giỏ hàng");
+      navigate('/Login');
+    } else {
+      navigate('/Cart');
+    }
+  }
   const handleLogoutClick = () => {
     // Xử lý đăng xuất
     localStorage.removeItem('user');
@@ -82,7 +84,13 @@ const Home = () => {
     navigate('/'); // Điều hướng tới trang chủ sau khi đăng xuất
   };
   const handleProfileClick = () => {
-    navigate('/'); // Điều hướng đến trang thông tin cá nhân
+    const storedUser = localStorage.getItem('user');
+    const user = JSON.parse(storedUser);
+      setUsername(user.username);
+    console.log(user.username)
+    if (user.username) {
+      navigate(`/Profile/${user.username}`);
+    }
   };
   const handleMenuClick = ({ key }) => {
     navigate(key); // Điều hướng đến đường dẫn tương ứng với key
@@ -97,6 +105,99 @@ const Home = () => {
       </Menu.Item>
     </Menu>
   );
+  const products = [
+    {
+      id: 1,
+      maSp: 'FDDDDDsjdkadsdh465644',
+      title: "ĐẦM ĐEN THIẾT KẾ",
+      description: "1.800.000 Đ",
+      material: "Vải cotton",
+      color: ["black", "red"],
+      size: ["S", "M", "L"],
+      origin: "Việt Nam",
+      imgSrc: "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
+      imgGallery: [
+        "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
+        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__7__6d022f95d1004958a1066d9a71677d38_master.jpg",
+        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__5__c919c06696364fdb9ca49efa44155b74_master.jpg",
+        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__1__f697f759edda4db7bb7334e54df7d319_master.jpg"
+      ]
+    },
+    {
+      id: 2,
+      maSp: 'SP123856',
+      title: "ĐẦM XANH THIẾT KẾ",
+      description: "1.600.000 Đ",
+      material: "Vải cotton",
+      color: ["black", "red"],
+      size: ["S", "M", "L"],
+      origin: "Việt Nam",
+      imgSrc: "https://product.hstatic.net/200000182297/product/6_d5e0224e09b348a08caa34d04a6fd1ec_master.jpg",
+      imgGallery: [
+        "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
+        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__7__6d022f95d1004958a1066d9a71677d38_master.jpg",
+        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__5__c919c06696364fdb9ca49efa44155b74_master.jpg",
+        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__1__f697f759edda4db7bb7334e54df7d319_master.jpg"
+      ]
+
+    },
+    {
+      id: 3,
+      maSp: 'SP127456',
+      title: "ĐẦM XANH THIẾT KẾ",
+      description: "1.600.000 Đ",
+      material: "Vải cotton",
+      color: ["black", "red"],
+      size: ["S", "M", "L"],
+      origin: "Việt Nam",
+      imgSrc: "https://product.hstatic.net/200000182297/product/10_ff1fed504837495ea29706f50260af66_master.jpg",
+      imgGallery: [
+        "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
+        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__7__6d022f95d1004958a1066d9a71677d38_master.jpg",
+        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__5__c919c06696364fdb9ca49efa44155b74_master.jpg",
+        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__1__f697f759edda4db7bb7334e54df7d319_master.jpg"
+      ]
+    },
+    {
+      id: 4,
+      maSp: 'SP123458',
+      title: "ĐẦM XANH THIẾT KẾ",
+      description: "1.600.000 Đ",
+      material: "Vải cotton",
+      color: ["black", "red"],
+      size: ["S", "M", "L"],
+      origin: "Việt Nam",
+      imgSrc: "https://product.hstatic.net/200000182297/product/5_b7ad26ae5356495ea3d7ea7589ea1677_master.jpg",
+      imgGallery: [
+        "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
+        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__7__6d022f95d1004958a1066d9a71677d38_master.jpg",
+        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__5__c919c06696364fdb9ca49efa44155b74_master.jpg",
+        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__1__f697f759edda4db7bb7334e54df7d319_master.jpg"
+      ]
+    },
+    {
+      id: 5,
+      maSp: 'SP123856',
+      title: "ĐẦM XANH THIẾT KẾ",
+      description: "1.600.000 Đ",
+      material: "Vải cotton",
+      color: ["black", "red"],
+      size: ["S", "M", "L"],
+      origin: "Việt Nam",
+      imgSrc: "https://product.hstatic.net/200000182297/product/9_537a6b99fc7f486a9161bde9485cd0e0_master.jpg",
+      imgGallery: [
+        "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
+        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__7__6d022f95d1004958a1066d9a71677d38_master.jpg",
+        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__5__c919c06696364fdb9ca49efa44155b74_master.jpg",
+        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__1__f697f759edda4db7bb7334e54df7d319_master.jpg"
+      ]
+    }
+    // Các sản phẩm khác
+  ];
+  const handleViewMore = (id) => {
+    // Điều hướng đến trang chi tiết sản phẩm
+    navigate(`/Products/${id}`);
+  };
   return (
     <Layout>
       <Header
@@ -133,7 +234,7 @@ const Home = () => {
         </div>
 
         <div className="actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <Button type="link" icon={<ShoppingCartOutlined />} style={{ fontSize: '16px' }}>Giỏ hàng</Button>
+          <Button onClick={handleOncartClick} type="link" icon={<ShoppingCartOutlined />} style={{ fontSize: '16px' }}>Giỏ hàng</Button>
           {username ? (
             <Dropdown overlay={userMenu} placement="bottomRight">
               <Button type="link">
@@ -160,10 +261,10 @@ const Home = () => {
                 <img src='https://theme.hstatic.net/200000182297/1000887316/14/ms_banner_img2_master.jpg?v=1496' alt="Banner 1" style={{ width: '100%' }} />
               </div>
               <div>
-                <img src='https://theme.hstatic.net/200000182297/1000887316/14/ms_banner_img2_master.jpg?v=1496' alt="Banner 2" style={{ width: '100%' }} />
+                <img src='https://theme.hstatic.net/200000182297/1000887316/14/ms_banner_img1_master.jpg?v=1523' alt="Banner 2" style={{ width: '100%' }} />
               </div>
               <div>
-                <img src='https://theme.hstatic.net/200000182297/1000887316/14/ms_banner_img3_master.jpg?v=1497' alt="Banner 2" style={{ width: '100%' }} />
+                <img src='https://theme.hstatic.net/200000182297/1000887316/14/ms_banner_img2_master.jpg?v=1523' alt="Banner 2" style={{ width: '100%' }} />
               </div>
             </Carousel>
 
@@ -180,7 +281,7 @@ const Home = () => {
                   </Card>
                   {/* Lớp phủ khi hover */}
                   <div className="overlay">
-                    <button className="view-more-button">Xem thêm</button>
+                    <button className="view-more-button" onClick={() => handleViewMore(product.id)}>Xem thêm</button>
                   </div>
                 </div>
               ))}

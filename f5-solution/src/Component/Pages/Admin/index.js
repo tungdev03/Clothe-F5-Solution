@@ -6,10 +6,14 @@ import {
     ShoppingCartOutlined,
     FileTextOutlined,
     TeamOutlined,
-    TagsOutlined
+    TagsOutlined,
+    LogoutOutlined,
+    UserOutlined
 } from '@ant-design/icons';
-import { Avatar, Button, Layout, Menu, theme, ConfigProvider } from 'antd';
+import { Avatar, Button, Layout, Menu, theme, ConfigProvider, Dropdown, message } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import StatisticsPage from './StatisticsPage';
+import VoucherManagement from './VoucherManagement'; // Ensure correct casing
 import logo from '../../../assets/images/Logo.png';
 
 const { Header, Sider, Content } = Layout;
@@ -17,39 +21,69 @@ const { SubMenu } = Menu;
 
 function Dashboard() {
     const [collapsed, setCollapsed] = useState(false);
-    const [currentContent, setCurrentContent] = useState(<StatisticsPage />); // Mặc định hiển thị StatisticsPage
+    const [currentContent, setCurrentContent] = useState(<StatisticsPage />);
+    const [username, setUsername] = useState(null);
+    const navigate = useNavigate();
 
-    const {
-        token: { colorBgContainer, borderRadiusLG },
-    } = theme.useToken();
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            const user = JSON.parse(storedUser);
+            setUsername(user.username);
+        }
+    }, []);
 
     const handleMenuClick = (key) => {
         switch (key) {
             case '1-1':
                 setCurrentContent(<StatisticsPage />);
                 break;
-            // Thêm các case cho các trang khác mà bạn muốn hiển thị
-            // Ví dụ:
-            // case '2-1':
-            //     setCurrentContent(<ProductManagementPage />);
-            //     break;
-            // case '2-2':
-            //     setCurrentContent(<AddProductPage />);
-            //     break;
+            case '5-2':
+                setCurrentContent(<VoucherManagement />);
+                break;
             default:
                 break;
         }
     };
 
+    const handleLoginClick = () => {
+        navigate('/login');
+    };
+
+    const handleLogoutClick = () => {
+        localStorage.removeItem('user');
+        setUsername(null);
+        navigate('/'); 
+    };
+
+    const handleProfileClick = () => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            const user = JSON.parse(storedUser);
+            if (user.username) {
+                navigate(`/Profile/${user.username}`);
+            }
+        }
+    };
+
+    const userMenu = (
+        <Menu>
+            <Menu.Item key="1" onClick={handleProfileClick} icon={<UserOutlined />}>
+                Thông tin cá nhân
+            </Menu.Item>
+            <Menu.Item key="2" danger onClick={handleLogoutClick} icon={<LogoutOutlined />}>
+                Đăng xuất
+            </Menu.Item>
+        </Menu>
+    );
+
+    const {
+        token: { colorBgContainer, borderRadiusLG },
+    } = theme.useToken();
+
     return (
         <Layout>
-            <ConfigProvider
-                theme={{
-                    Layout: {
-                        siderBg: 'red'
-                    }
-                }}
-            />
+            <ConfigProvider theme={{ Layout: { siderBg: 'red' } }} />
             <Sider trigger={null} collapsible collapsed={collapsed}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column' }}>
                     <Avatar src={logo} size={200} />
@@ -62,7 +96,6 @@ function Dashboard() {
                             Thống kê
                         </Menu.Item>
                     </Menu.ItemGroup>
-
                     <Menu.ItemGroup key="g2" title="Sản phẩm" icon={<ShoppingCartOutlined />}>
                         <Menu.Item key="2-1" onClick={() => handleMenuClick('2-1')}>
                             Quản lý sản phẩm
@@ -82,7 +115,6 @@ function Dashboard() {
                             </Menu.Item>
                         </SubMenu>
                     </Menu.ItemGroup>
-
                     <Menu.ItemGroup key="g3" title="Hóa đơn" icon={<FileTextOutlined />}>
                         <Menu.Item key="3-1" onClick={() => handleMenuClick('3-1')}>
                             Quản lý hóa đơn
@@ -91,7 +123,6 @@ function Dashboard() {
                             Bán tại quầy
                         </Menu.Item>
                     </Menu.ItemGroup>
-
                     <Menu.ItemGroup key="g4" title="Tài khoản" icon={<TeamOutlined />}>
                         <Menu.Item key="4-1" onClick={() => handleMenuClick('4-1')}>
                             Nhân viên
@@ -100,7 +131,6 @@ function Dashboard() {
                             Khách hàng
                         </Menu.Item>
                     </Menu.ItemGroup>
-
                     <Menu.ItemGroup key="g5" title="Khuyến mại" icon={<TagsOutlined />}>
                         <Menu.Item key="5-1" onClick={() => handleMenuClick('5-1')}>
                             Quản lý sản phẩm giảm giá
@@ -112,12 +142,15 @@ function Dashboard() {
                 </Menu>
             </Sider>
             <Layout>
-                <Header style={{ padding: 0, background: colorBgContainer }}>
+                <Header style={{ padding: 0, background: colorBgContainer, display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingRight: '20px' }}>
                     <Button
                         type="text" icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
                         onClick={() => setCollapsed(!collapsed)}
                         style={{ fontSize: '16px', width: 64, height: 64 }}
                     />
+                    <Dropdown overlay={userMenu} placement="bottomRight">
+                        <Avatar style={{ cursor: 'pointer' }} size={40}>{username ? username[0].toUpperCase() : 'U'}</Avatar>
+                    </Dropdown>
                 </Header>
                 <Content
                     style={{
@@ -128,7 +161,6 @@ function Dashboard() {
                         borderRadius: borderRadiusLG,
                     }}
                 >
-                    {/* Hiển thị nội dung dựa trên lựa chọn menu */}
                     {currentContent}
                 </Content>
             </Layout>

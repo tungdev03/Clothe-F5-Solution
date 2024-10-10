@@ -68,9 +68,9 @@ const Home = () => {
   };
   const handleOncartClick = () => {
     const storedUser = localStorage.getItem('user');
-
+    console.log(storedUser)
     // Kiểm tra nếu người dùng không đăng nhập
-    if (!storedUser || storedUser === "") {
+    if (!storedUser.username || storedUser === "" || storedUser == null) {
       message.info("Vui lòng đăng nhập để xem giỏ hàng");
       navigate('/Login');
     } else {
@@ -86,7 +86,7 @@ const Home = () => {
   const handleProfileClick = () => {
     const storedUser = localStorage.getItem('user');
     const user = JSON.parse(storedUser);
-      setUsername(user.username);
+    setUsername(user.username);
     console.log(user.username)
     if (user.username) {
       navigate(`/Profile/${user.username}`);

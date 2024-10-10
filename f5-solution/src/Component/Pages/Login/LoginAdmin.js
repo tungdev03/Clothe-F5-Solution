@@ -6,25 +6,18 @@ import BackgroundImage from '../../../assets/images/Back_Login.png'; // Đườn
 import logo_v1 from '../../../assets/images/Logo.png';
 import { useNavigate } from 'react-router-dom';
 import { LoginService } from '../../../Service/LoginService';
-const Login = () => {
+const LoginAdmin = () => {
     const navigate = useNavigate();
 
     const onFinish = async (values) => {
         try {
-            // Gọi API đăng nhập thông qua LoginService
             const response = await LoginService(values.username, values.password);
-
-            // Kiểm tra phản hồi từ API
             if (response && response.token) {
-                // Lưu thông tin người dùng và token vào localStorage
                 localStorage.setItem('user', JSON.stringify(response));
 
-                // Kiểm tra xem phản hồi có chứa 'customer' hoặc 'employee' và điều hướng tương ứng
                 if (response.user && response.user.HoVaTenKh) {
-                    // Nếu là khách hàng (Customer), điều hướng về trang home
                     navigate('/');
                 } else if (response.user && response.user.HoVaTenNv) {
-                    // Nếu là nhân viên (Employee), điều hướng về trang dashboard
                     navigate('/dashboard');
                 } else {
                     // Nếu không rõ vai trò, điều hướng về trang chủ
@@ -183,4 +176,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default LoginAdmin;

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect} from 'react';
 import { UserOutlined, ShoppingCartOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Layout, Menu, Button, Carousel, Card, Dropdown, Space, Input, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
@@ -53,13 +53,14 @@ const f5Blogs = [
 
 const Home = () => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState(null);
+  const [TaiKhoan, setUsername] = useState(null);
   useEffect(() => {
     // Kiểm tra thông tin người dùng từ localStorage
     const storedUser = localStorage.getItem('user');
+    console.log(storedUser)
     if (storedUser) {
       const user = JSON.parse(storedUser);
-      setUsername(user.username);
+      setUsername(user.TaiKhoan);
     }
   }, []);
 
@@ -67,14 +68,15 @@ const Home = () => {
     navigate('/login');
   };
   const handleOncartClick = () => {
-    const storedUser = localStorage.getItem('user');
-    console.log(storedUser)
     // Kiểm tra nếu người dùng không đăng nhập
-    if (!storedUser.username || storedUser === "" || storedUser == null) {
+    const storedUser = JSON.parse(localStorage.getItem('user')); // Parse dữ liệu từ localStorage
+    // Kiểm tra nếu người dùng không đăng nhập
+    if (!storedUser || !storedUser.TaiKhoan) {
       message.info("Vui lòng đăng nhập để xem giỏ hàng");
       navigate('/Login');
     } else {
-      navigate('/Cart');
+      // Điều hướng đến giỏ hàng của người dùng đã đăng nhập
+      navigate(`/Cart/${storedUser.TaiKhoan}`);
     }
   }
   const handleLogoutClick = () => {
@@ -86,10 +88,10 @@ const Home = () => {
   const handleProfileClick = () => {
     const storedUser = localStorage.getItem('user');
     const user = JSON.parse(storedUser);
-    setUsername(user.username);
-    console.log(user.username)
-    if (user.username) {
-      navigate(`/Profile/${user.username}`);
+    setUsername(user.TaiKhoan);
+    console.log(user.TaiKhoan)
+    if (user.TaiKhoan) {
+      navigate(`/Profile/${user.TaiKhoan}`);
     }
   };
   const handleMenuClick = ({ key }) => {
@@ -235,11 +237,11 @@ const Home = () => {
 
         <div className="actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <Button onClick={handleOncartClick} type="link" icon={<ShoppingCartOutlined />} style={{ fontSize: '16px' }}>Giỏ hàng</Button>
-          {username ? (
+          {TaiKhoan ? (
             <Dropdown overlay={userMenu} placement="bottomRight">
               <Button type="link">
                 <Space>
-                  <span style={{ fontSize: '16px' }}>Xin chào, {username}</span>
+                  <span style={{ fontSize: '16px' }}>Xin chào, {TaiKhoan}</span>
                 </Space>
               </Button>
             </Dropdown>

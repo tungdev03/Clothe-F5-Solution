@@ -9,6 +9,7 @@ import ProductDetail from './Component/Pages/Shop/ProductDetail';
 import Dashboard from './Component/Pages/Admin';
 import Cart from './Component/Pages/Shop/Card';
 import Profile from './Component/Pages/Shop/Profile';
+import LoginAdmin from './Component/Pages/Login/LoginAdmin';
 import './App.css';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
           <Route path='/Dashboard' element={<Dashboard />} />
           <Route path='/cart' element={<Cart />} />
           <Route path="/Profile/:username" element={<Profile />} />
+          <Route path='/LoginAdmin' element={<LoginAdmin />} />
         </Routes>
       </div>
     </Router>

@@ -15,14 +15,14 @@ const items1 = [
 
 const Cart = () => {
     const navigate = useNavigate();
-    const [username, setUsername] = useState(null);
+    const [TaiKhoan, setUsername] = useState(null);
     const [loading, setLoading] = useState(false); // State for loading spinner
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             const user = JSON.parse(storedUser);
-            setUsername(user.username);
+            setUsername(user.TaiKhoan);
         }
     }, []);
     const handleContinueShopping = () => {
@@ -141,11 +141,11 @@ const Cart = () => {
 
                 <div className="actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                     <Button type="link" icon={<ShoppingCartOutlined />} style={{ fontSize: '16px' }}>Giỏ hàng</Button>
-                    {username ? (
+                    {TaiKhoan ? (
                         <Dropdown overlay={userMenu} placement="bottomRight">
                             <Button type="link">
                                 <Space>
-                                    <span style={{ fontSize: '16px' }}>Xin chào, {username}</span>
+                                    <span style={{ fontSize: '16px' }}>Xin chào, {TaiKhoan}</span>
                                 </Space>
                             </Button>
                         </Dropdown>

@@ -9,7 +9,17 @@ import ProductDetail from './Component/Pages/Shop/ProductDetail';
 import Dashboard from './Component/Pages/Admin';
 import Cart from './Component/Pages/Shop/Card';
 import Profile from './Component/Pages/Shop/Profile';
+<<<<<<< HEAD
 import LoginAdmin from './Component/Pages/Login/LoginAdmin';
+=======
+import ContactPage from './Component/Pages/Shop/ContactPage'; 
+import AlbumPage from './Component/Pages/Shop/AlbumPage';
+import AlbumDetail from './Component/Pages/Shop/AlbumPageDetail';
+// import ProductList from './Component/Pages/Shop/ProductList';
+import AlbumList from './Component/Pages/Shop/AlbumList';
+import AlbumListDetail from './Component/Pages/Shop/AlbumListDetail';
+
+>>>>>>> d6f2099ff05b2721265305bcb9aa2c2f0d54f458
 import './App.css';
 
 function App() {
@@ -23,10 +33,26 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/resetPassword" element={<ResetPassword />} />
           <Route path="/Products/:id" element={<ProductDetail />} />
-          <Route path='/Dashboard' element={<Dashboard />} />
-          <Route path='/cart' element={<Cart />} />
+          <Route path="/Dashboard" element={<Dashboard />} />
+          <Route path="/cart" element={<Cart />} />
           <Route path="/Profile/:username" element={<Profile />} />
+<<<<<<< HEAD
           <Route path='/LoginAdmin' element={<LoginAdmin />} />
+=======
+          <Route path="/contact" element={<ContactPage />} />
+          
+          {/* Route for AlbumPage */}
+          <Route path="/album" element={<AlbumPage />} />
+          
+          {/* Route for individual album details */}
+          <Route path="/album/:id" element={<AlbumDetail />} />
+          
+          {/* Route for AlbumList that uses collectionId as a dynamic parameter */}
+          <Route path="/album-list/:collectionId" element={<AlbumList />} />
+
+          {/* Route for individual album list details */}
+          <Route path="/album-detail/:id" element={<AlbumListDetail />} />
+>>>>>>> d6f2099ff05b2721265305bcb9aa2c2f0d54f458
         </Routes>
       </div>
     </Router>

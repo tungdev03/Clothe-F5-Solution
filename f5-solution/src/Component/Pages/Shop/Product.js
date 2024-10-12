@@ -5,17 +5,18 @@ import { Layout, Menu, Button, Dropdown, Space, Input, Breadcrumb, Carousel, Car
 import logo_v1 from '../../../assets/images/Logo.png';
 import './Home.css';
 import './Product.css';
-import {
-    AppstoreOutlined,
-} from '@ant-design/icons';
+import { AppstoreOutlined } from '@ant-design/icons';
+
 const { Header, Content, Sider } = Layout;
 const { Meta } = Card;
+
 const items1 = [
     { key: '/', label: 'Cửa hàng' },
     { key: '/Products', label: 'Sản phẩm' },
     { key: '/contact', label: 'Liên hệ' },
     { key: '/album', label: 'Bộ sưu tập' }
 ];
+
 const products = [
     { id: 1, title: "ĐẦM ĐEN THIẾT KẾ", description: "1.800.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg" },
     { id: 2, title: "Sản phẩm 2", description: "Mô tả sản phẩm 2", imgSrc: "https://product.hstatic.net/200000182297/product/3_546959316b5642f2a2ef2c3bbe0423f0_master.jpg" },
@@ -26,6 +27,7 @@ const products = [
     { id: 7, title: "Sản phẩm 7", description: "Mô tả sản phẩm 7", imgSrc: "https://product.hstatic.net/200000182297/product/6_d5e0224e09b348a08caa34d04a6fd1ec_master.jpg" },
     { id: 8, title: "Sản phẩm 8", description: "Mô tả sản phẩm 8", imgSrc: "https://product.hstatic.net/200000182297/product/6_d5e0224e09b348a08caa34d04a6fd1ec_master.jpg" },
 ];
+
 const winterProducts = [
     { id: 1, title: "MĂNG TÔ CAO CẤP AK13262", description: "2.200.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/12_14b69d65c3014d18a336f3d8beaee4cb_master.jpg" },
     { id: 2, title: "ÁO KHOÁC THIẾT KẾ AK13742", description: "1.500.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/14_664080a99a6f4cd6ab61b6e40a3cdb48_master.jpg" },
@@ -33,9 +35,22 @@ const winterProducts = [
     { id: 4, title: "MĂNG TÔ VAI CAPE AK11882", description: "3.000.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/1_b65595811f46450087d95f1b8ad33184_master.jpg" },
     { id: 5, title: "MĂNG TÔ VAI CAPE AK11882", description: "3.000.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/1_b65595811f46450087d95f1b8ad33184_master.jpg" },
 ];
+
 const ProductPage = () => {
     const navigate = useNavigate();
     const [username, setUsername] = useState(null);
+
+    // Tạo state cho từ khóa tìm kiếm và sản phẩm đã lọc
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filteredProducts, setFilteredProducts] = useState(products);
+
+    useEffect(() => {
+        // Lọc danh sách sản phẩm dựa trên từ khóa tìm kiếm
+        const result = products.filter(product =>
+            product.title.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+        setFilteredProducts(result);
+    }, [searchTerm]);
 
     useEffect(() => {
         // Check user info from localStorage
@@ -140,6 +155,11 @@ const ProductPage = () => {
         setSelectedCategory(key);
     };
 
+    // Hàm điều hướng đến trang chi tiết sản phẩm khi nhấn "Xem thêm"
+    const handleViewMore = (id) => {
+        navigate(`/Products/${id}`);
+    };
+
     return (
         <Layout style={{ minHeight: '100vh' }}>
             <Header
@@ -172,7 +192,12 @@ const ProductPage = () => {
                     }}
                 />
                 <div>
-                    <Input placeholder="Search" />
+                    {/* Ô tìm kiếm */}
+                    <Input 
+                        placeholder="Search"
+                        value={searchTerm} 
+                        onChange={(e) => setSearchTerm(e.target.value)} // Cập nhật từ khóa tìm kiếm
+                    />
                 </div>
 
                 <div className="actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -223,10 +248,10 @@ const ProductPage = () => {
                         boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)',
                     }}
                 >
-                    <div class="product-header">
+                    <div className="product-header">
                         <h2>TẤT CẢ SẢN PHẨM</h2>
-                        <div class="filters">
-                            <div class="filter-item">
+                        <div className="filters">
+                            <div className="filter-item">
                                 <label htmlFor="size">Size:</label>
                                 <select id="size" name="size">
                                     <option value="all">All Sizes</option>
@@ -236,7 +261,7 @@ const ProductPage = () => {
                                     <option value="xl">XL</option>
                                 </select>
                             </div>
-                            <div class="filter-item">
+                            <div className="filter-item">
                                 <label htmlFor="color">Color:</label>
                                 <select id="color" name="color">
                                     <option value="all">All Colors</option>
@@ -246,7 +271,7 @@ const ProductPage = () => {
                                     <option value="black">Black</option>
                                 </select>
                             </div>
-                            <div class="filter-item">
+                            <div className="filter-item">
                                 <label htmlFor="price">Price:</label>
                                 <select id="price" name="price">
                                     <option value="all">All Prices</option>
@@ -258,8 +283,9 @@ const ProductPage = () => {
                             </div>
                         </div>
                     </div>
+                    {/* Sử dụng filteredProducts thay vì products */}
                     <Carousel slidesToShow={4} dots={false} style={{ margin: '0 5%' }}>
-                        {products.map(product => (
+                        {filteredProducts.map(product => (
                             <div key={product.id} style={{ padding: '0 10px' }} className="product-card">
                                 <Card
                                     hoverable
@@ -269,7 +295,7 @@ const ProductPage = () => {
                                 </Card>
                                 {/* Lớp phủ khi hover */}
                                 <div className="overlay">
-                                    <button className="view-more-button">Xem thêm</button>
+                                    <button className="view-more-button" onClick={() => handleViewMore(product.id)}>Xem thêm</button>
                                 </div>
                             </div>
                         ))}
@@ -285,7 +311,7 @@ const ProductPage = () => {
                                 </Card>
                                 {/* Lớp phủ khi hover */}
                                 <div className="overlay">
-                                    <button className="view-more-button">Xem thêm</button>
+                                    <button className="view-more-button" onClick={() => handleViewMore(product.id)}>Xem thêm</button>
                                 </div>
                             </div>
                         ))}

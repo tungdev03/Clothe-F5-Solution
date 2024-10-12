@@ -1,0 +1,195 @@
+.album-container {
+    padding: 20px;
+    text-align: center;
+}
+
+/* Thiết lập phần banner */
+.banner-row {
+    margin-bottom: 40px;
+}
+
+.banner-image {
+    width: 100%;
+    height: 700px;
+    object-fit: cover;
+}
+
+.album-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.album-description {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.album-card {
+    margin-bottom: 20px;
+}
+
+.album-card-image-container {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+}
+
+.album-card-image {
+    width: 100%;
+    height: 700px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+/* Dải màu bao trùm hình ảnh */
+.color-overlay {
+    position: absolute;
+    top: 0;
+    left: -100%; /* Đặt ngoài màn hình bên trái */
+    width: 100%;
+    height: 100%;
+    background-color: rgba(82, 86, 86, 0.5); /* Màu dải */
+    transition: left 0.4s ease; /* Thời gian chuyển động */
+    z-index: 1;
+}
+
+/* Ẩn nút "Xem thêm" mặc định */
+.view-more-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    background-color: transparent; /* Nền trong suốt */
+    border: 1px solid white; /* Viền trắng */
+    padding: 10px 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 2; /* Đảm bảo nút luôn hiển thị trên dải màu */
+    font-size: 11px; /* Tăng kích thước font chữ */
+    text-transform: uppercase; /* In hoa chữ */
+    letter-spacing: 1px; /* Khoảng cách giữa các chữ */
+    border-radius: 0px;
+    opacity: 0; /* Ẩn nút xem thêm khi chưa hover */
+}
+
+/* Khi hover vào album card, dải màu di chuyển vào và nút xuất hiện */
+.album-card-image-container:hover .view-more-overlay {
+    opacity: 1; /* Hiện nút khi hover */
+}
+
+.album-card-image-container:hover .color-overlay {
+    left: 0; /* Dải màu di chuyển từ trái sang phải khi hover */
+}
+
+.album-card-image-container:hover .album-card-image {
+    transform: scale(1.1); /* Phóng to ảnh khi hover */
+}
+
+.view-more-btn:hover {
+    color: rgb(0, 0, 0);
+    background-color: rgb(255, 255, 255);
+}
+
+/* Phần mô tả bộ sưu tập */
+.collection-description {
+    margin: 40px 0;
+    text-align: center;
+}
+
+.collection-description h3 {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.collection-description p {
+    font-size: 16px;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Nút "Xem thêm bộ sưu tập" */
+.collection-button-container {
+    margin-top: 40px;
+    text-align: center;
+}
+
+.collection-btn {
+    font-size: 16px;
+    font-weight: bold;
+    padding: 10px 20px;
+    border: 2px solid black;
+    background-color: transparent;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.collection-btn:hover {
+    background-color: black;
+    color: white;
+}
+
+.ant-card-meta-description {
+    font-size: 18px; /* Tăng kích thước chữ */
+    font-weight: bold; /* Tăng độ đậm */
+    color: #010101; /* Màu đỏ nổi bật */
+    margin-top: 10px;
+}
+
+/* Phần mô tả bộ sưu tập */
+.collection-description {
+    margin: 40px 0;
+    text-align: left; /* Căn lề trái cho đoạn văn */
+    max-width: 800px; /* Giới hạn chiều rộng của đoạn văn */
+    margin-left: auto;
+    margin-right: auto; /* Căn giữa khối văn bản */
+}
+
+.collection-description h3 {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    text-align: center; /* Căn giữa tiêu đề */
+}
+
+.collection-description p {
+    font-size: 16px;
+    color: #333;
+    line-height: 1.8; /* Tăng khoảng cách giữa các dòng để đoạn văn thoáng hơn */
+    text-align: justify; /* Căn đều hai bên để đoạn văn gọn gàng hơn */
+}
+.transition-section {
+    text-align: center;
+    margin: 50px 0;
+    padding: 50px;
+    background: linear-gradient(to right, #e0c3fc, #8ec5fc);
+    border-radius: 10px;
+}
+
+.transition-section h2 {
+    font-size: 36px;
+    color: #fff;
+    margin-bottom: 20px;
+}
+
+.transition-section p {
+    font-size: 18px;
+    color: #fff;
+    margin-bottom: 30px;
+}
+
+.explore-btn {
+    background-color: #fff;
+    color: #8A2BE2;
+    border: none;
+    font-weight: bold;
+    padding: 10px 30px;
+    border-radius: 30px;
+    transition: background-color 0.3s ease;
+}
+
+.explore-btn:hover {
+    background-color: #fff5;
+    color: #8A2BE2;
+}

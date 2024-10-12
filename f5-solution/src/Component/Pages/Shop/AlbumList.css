@@ -1,0 +1,77 @@
+.album-list-container1 {
+    display: flex;
+    padding: 20px;
+    background-color: #f9f9f9;
+}
+
+.album-list-sidebar1 {
+    width: 256px;
+    margin-right: 16px;
+}
+
+.album-list-content1 {
+    flex-grow: 1;
+}
+
+.album-card-image-container1 {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px; /* Bo góc ảnh */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Hiệu ứng đổ bóng */
+    transition: transform 0.3s ease; /* Hiệu ứng khi hover */
+}
+
+.album-card-image-container1:hover {
+    transform: scale(1.05); /* Phóng to nhẹ khi hover */
+}
+
+.album-card-image1 {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 10px; /* Bo góc ảnh để trùng với container */
+}
+
+.album-card1 {
+    text-align: center;
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.color-overlay1 {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: rgba(150, 148, 145, 0.5); /* Dải màu cam trong suốt */
+    transition: all 0.6s ease; /* Hiệu ứng dải màu di chuyển */
+}
+
+.album-card-image-container1:hover .color-overlay1 {
+    left: 0; /* Di chuyển dải màu từ trái sang phải */
+}
+
+/* Nút "Xem thêm" chỉnh theo mẫu */
+.view-more-btn1 {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    background-color: transparent; /* Nền trong suốt */
+    border: 1px solid white; /* Viền trắng */
+    padding: 10px 20px;
+    
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 1; /* Đảm bảo nút luôn hiển thị trên dải màu */
+    font-size: 11px; /* Tăng kích thước font chữ */
+    text-transform: uppercase; /* In hoa chữ */
+    letter-spacing: 1px; /* Khoảng cách giữa các chữ */
+    border-radius: 0px;
+}
+
+.album-card-image-container1:hover .view-more-btn1 {
+    background-color: rgba(255, 255, 255, 0.1); /* Nền trắng mờ khi hover */
+}

@@ -3,7 +3,7 @@ import { Card, Col, Row, Button } from 'antd';
 import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
 import CustomHeader from '../../Layouts/Header/Header';
 import './Album.css';
-
+import './Home.css';
 const { Meta } = Card;
 
 export const albums = [
@@ -132,7 +132,7 @@ const AlbumPage = () => {
                                             className="album-card-image"
                                         />
                                         <div className="color-overlay"></div>
-                                       <Link to={`/album/${album.id}`}> <div className="view-more-overlay">
+                                        <Link to={`/album/${album.id}`}> <div>
                                             <Button type='light' className="view-more-btn">Xem thêm</Button>
                                         </div></Link>
                                     </div>
@@ -149,7 +149,7 @@ const AlbumPage = () => {
                 <div className="collection-description">
                     <h3>Giới thiệu về bộ sưu tập</h3>
                     <p>
-                        Bộ sưu tập LUXE GLOW PARTY COLLECTION 2024 là sự kết hợp hoàn hảo giữa nét sang trọng và hiện đại. 
+                        Bộ sưu tập LUXE GLOW PARTY COLLECTION 2024 là sự kết hợp hoàn hảo giữa nét sang trọng và hiện đại.
                         Lấy cảm hứng từ những bữa tiệc lấp lánh, mỗi thiết kế đều được chăm chút tỉ mỉ nhằm mang đến cho phái đẹp những bộ trang phục đẳng cấp.
                         Từ chất liệu cao cấp đến từng đường kim mũi chỉ, tất cả đều làm tôn lên vẻ đẹp kiêu sa và quyến rũ.
                     </p>
@@ -192,25 +192,27 @@ const AlbumPage = () => {
                 <Row gutter={[16, 16]}>
                     {albums1.map((album1) => (
                         <Col xs={24} sm={12} md={8} lg={6} key={album1.id}>
-                            <Card
-                                hoverable
-                                cover={
-                                    <div className="album-card-image-container">
-                                        <img
-                                            alt={album1.title}
-                                            src={album1.imgSrc}
-                                            className="album-card-image"
-                                        />
-                                        <div className="color-overlay"></div>
-                                       <Link to={`/album/${album1.id}`}> <div className="view-more-overlay">
-                                            <Button type='light' className="view-more-btn">Xem thêm</Button>
-                                        </div></Link>
-                                    </div>
-                                }
-                                className="album-card"
-                            >
-                                <Meta title={album1.title} description={album1.price} />
-                            </Card>
+                            <div className="product-card">
+                                <Card
+                                    hoverable
+                                    cover={
+                                        <div className="album-card-image-container">
+                                            <img
+                                                alt={album1.title}
+                                                src={album1.imgSrc}
+                                                className="album-card-image"
+                                            />
+                                            <div className="color-overlay"></div>
+                                            <Link to={`/album/${album1.id}`}> <div className="view-more-overlay">
+                                                <Button type='light' className="view-more-btn">Xem thêm</Button>
+                                            </div></Link>
+                                        </div>
+                                    }
+                                    className="album-card"
+                                >
+                                    <Meta title={album1.title} description={album1.price} />
+                                </Card>
+                            </div>
                         </Col>
                     ))}
                 </Row>

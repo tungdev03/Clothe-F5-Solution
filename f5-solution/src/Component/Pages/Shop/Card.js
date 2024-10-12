@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserOutlined, ShoppingCartOutlined, LogoutOutlined, DeleteTwoTone } from '@ant-design/icons';
-import { Layout, Menu, Button, Dropdown, Space, Input, Table, Row, Col, message, Image, Spin } from 'antd';
+import { Layout, Menu, Button, Dropdown, Space, Input, Table, Row, Col, message, Image, Spin, Modal, Form, Input as AntdInput } from 'antd';
 import logo_v1 from '../../../assets/images/Logo.png';
 import './Home.css';
 const { Header, Content } = Layout;
@@ -17,6 +17,8 @@ const Cart = () => {
     const navigate = useNavigate();
     const [username, setUsername] = useState(null);
     const [loading, setLoading] = useState(false); // State for loading spinner
+    const [checkoutVisible, setCheckoutVisible] = useState(false); // State to control modal visibility
+    const [form] = Form.useForm(); // Form control
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -25,13 +27,15 @@ const Cart = () => {
             setUsername(user.username);
         }
     }, []);
+
     const handleContinueShopping = () => {
-        message.success('Continue shopping')
+        message.success('Continue shopping');
         setLoading(true); // Start loading
         setTimeout(() => {
             navigate('/'); // Redirect after a short delay
         }, 2000); // Adjust delay as needed
-    }
+    };
+
     const handleLoginClick = () => {
         navigate('/login');
     };
@@ -99,10 +103,29 @@ const Cart = () => {
             title: 'Action',
             key: 'action',
             render: (_, record) => (
-                <Button type="danger" onClick={() => handleDelete(record.key)} ><DeleteTwoTone /></Button>
+                <Button type="danger" onClick={() => handleDelete(record.key)}><DeleteTwoTone /></Button>
             )
         }
     ];
+
+    const handleCheckoutClick = () => {
+        setCheckoutVisible(true); // Show the checkout form when the user clicks "Checkout"
+    };
+
+    const handleCheckoutCancel = () => {
+        setCheckoutVisible(false); // Hide the checkout form
+    };
+
+    const handleCheckoutSubmit = () => {
+        form.validateFields().then(values => {
+            message.success('Thanh toán thành công!');
+            form.resetFields(); // Clear form fields
+            setCheckoutVisible(false); // Hide the checkout form
+            setCartItems([]); // Clear the cart after checkout
+        }).catch(info => {
+            console.log('Validate Failed:', info);
+        });
+    };
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
@@ -204,13 +227,89 @@ const Cart = () => {
                         <Col>
                             <Button
                                 type="primary"
-                                onClick={() => message.info('Proceed to checkout')}
+                                onClick={handleCheckoutClick} // Hiển thị form thanh toán khi nhấn nút
                                 style={{ backgroundColor: 'black', borderColor: 'black', height: '50px', width: '200px' }}
                             >
                                 Checkout
                             </Button>
                         </Col>
                     </Row>
+
+                    {/* Modal Checkout Form */}
+                    <Modal
+                        title="Checkout"
+                        visible={checkoutVisible}
+                        onCancel={handleCheckoutCancel}
+                        footer={[
+                            <Space>
+                                <Button key="cancel" onClick={handleCheckoutCancel}>
+                                    Cancel
+                                </Button>,
+                                <Button key="submit" type="primary" onClick={handleCheckoutSubmit}>
+                                    Thanh toán
+                                </Button>
+                            </Space>
+                        ]}
+                    >
+                        {/* Hiển thị danh sách sản phẩm */}
+                        <Table
+                            dataSource={cartItems}
+                            columns={[
+                                { title: 'No.', dataIndex: 'key', key: 'key' },
+                                {
+                                    title: 'Image',
+                                    dataIndex: 'image',
+                                    key: 'image',
+                                    render: (image) => <Image width={50} src={image} alt="product" />
+                                },
+                                { title: 'Name', dataIndex: 'name', key: 'name' },
+                                { title: 'Price', dataIndex: 'price', key: 'price', render: (price) => `${price} VNĐ` },
+                                { title: 'Quantity', dataIndex: 'quantity', key: 'quantity' },
+                                {
+                                    title: 'Total Price',
+                                    key: 'total',
+                                    render: (_, record) => `${record.price * record.quantity} VNĐ`
+                                }
+                            ]}
+                            pagination={false}
+                            summary={() => (
+                                <Table.Summary.Row >
+                                    <Table.Summary.Cell colSpan={4} style={{ textAlign: 'right' }}>
+                                        <strong>Total:</strong>
+                                    </Table.Summary.Cell>
+                                    <Table.Summary.Cell colSpan={2}>
+                                        <strong>{getTotalPrice()} VNĐ</strong>
+                                    </Table.Summary.Cell>
+                                </Table.Summary.Row>
+                            )}
+                        />
+
+                        {/* Form điền thông tin khách hàng */}
+                        <Form form={form} layout="vertical" style={{ marginTop: '20px' }}>
+                            <Form.Item
+                                name="name"
+                                label="Họ và tên"
+                                rules={[{ required: true, message: 'Vui lòng nhập họ và tên!' }]}
+                            >
+                                <AntdInput placeholder="Nhập họ và tên" />
+                            </Form.Item>
+                            <Form.Item
+                                name="address"
+                                label="Địa chỉ giao hàng"
+                                rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
+                            >
+                                <AntdInput placeholder="Nhập địa chỉ giao hàng" />
+                            </Form.Item>
+                            <Form.Item
+                                name="phone"
+                                label="Số điện thoại"
+                                rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
+                            >
+                                <AntdInput placeholder="Nhập số điện thoại" />
+                            </Form.Item>
+                        </Form>
+                    </Modal>
+
                 </Content>
             </Layout>
         </Layout>

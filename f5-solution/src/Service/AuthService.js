@@ -35,7 +35,7 @@ const AuthService = {
     // Hàm đăng nhập nhân viên
     loginNhanVien: async (username, password) => {
         try {
-            const response = await http.post('Authentication/nhanvien/login', { Username: username, Password: password });
+            const response = await http.post(`Authentication/nhanvien/login?Username=${username}&Password=${password}`);
             return response.data;
         } catch (error) {
             throw error.response?.data || 'Lỗi không xác định';

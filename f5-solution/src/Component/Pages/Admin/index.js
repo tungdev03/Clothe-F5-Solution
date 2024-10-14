@@ -13,10 +13,12 @@ import StatisticsPage from './StatisticsPage';
 import VoucherManagement from './VoucherManagement';
 import logo from '../../../assets/images/Logo.png';
 import { useNavigate } from 'react-router-dom';
+import NhanVienPage from './NhanVienPage';
+import KhachHangPage from './KhachHangPage';
 const { Header, Sider, Content } = Layout;
 const { SubMenu } = Menu;
 
-function Dashboard() {
+const Dashboard = () => {
     const navigate = useNavigate();
     const [collapsed, setCollapsed] = useState(false);
     const [currentContent, setCurrentContent] = useState(<StatisticsPage />); // Mặc định hiển thị StatisticsPage
@@ -33,6 +35,12 @@ function Dashboard() {
                 break;
             case '5-2':
                 setCurrentContent(<VoucherManagement />);
+                break;
+            case '4-1':
+                setCurrentContent(<NhanVienPage />);
+                break;
+            case '4-2':
+                setCurrentContent(<KhachHangPage />);
                 break;
             default:
                 break;
@@ -129,9 +137,6 @@ function Dashboard() {
                         style={{ fontSize: '16px', width: 64, height: 64 }}
                     />
                     {/* Nút đăng nhập / đăng xuất */}
-                    <Button type="primary" onClick={handleLoginLogout}>
-                        {isAuthenticated ? 'Đăng xuất' : 'Đăng nhập'}
-                    </Button>
                 </Header>
                 <Content
                     style={{

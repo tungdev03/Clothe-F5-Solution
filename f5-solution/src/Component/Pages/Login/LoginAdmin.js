@@ -6,7 +6,7 @@ import BackgroundImage from '../../../assets/images/Back_Login.png'; // Đườn
 import logo_v1 from '../../../assets/images/Logo.png';
 import { useNavigate } from 'react-router-dom';
 import AuthService from '../../../Service/AuthService'; // Import AuthService
-
+import { jwtDecode } from 'jwt-decode';
 const LoginAdmin = () => {
     const [loading, setLoading] = useState(false); // Trạng thái tải
     const navigate = useNavigate();
@@ -14,18 +14,15 @@ const LoginAdmin = () => {
     const onFinish = async (values) => {
         setLoading(true);
         try {
-            const response = await AuthService.loginCustomer(values.username, values.password); // Sử dụng loginCustomer từ AuthService
+            const response = await AuthService.loginNhanVien(values.username, values.password);
             if (response && response.token) {
-                localStorage.setItem('user', JSON.stringify(response));
+                // Giải mã token JWT (nếu sử dụng JWT)
+                const decodedToken = jwtDecode(response.token)
+                // Lưu thông tin người dùng và token vào localStorage
+                localStorage.setItem('user', JSON.stringify(decodedToken));
+                localStorage.setItem('token', response.token);
 
-                // Điều hướng dựa trên vai trò người dùng
-                if (response.user && response.user.HoVaTenKh) {
-                    navigate('/'); // Khách hàng điều hướng về trang chủ
-                } else if (response.user && response.user.HoVaTenNv) {
-                    navigate('/dashboard'); // Nhân viên điều hướng về dashboard
-                } else {
-                    navigate('/'); // Nếu không rõ vai trò, điều hướng về trang chủ
-                }
+                navigate("/Dashboard")
 
                 message.success('Đăng nhập thành công!');
             } else {
@@ -157,24 +154,6 @@ const LoginAdmin = () => {
                             </a>
                         </Col>
                     </Row>
-
-                    <Form.Item style={{ textAlign: 'center' }}>
-                        <Button
-                            type="default"
-                            size="large"
-                            className="register-form-button"
-                            style={{
-                                width: '100%',
-                                backgroundColor: 'white',
-                                color: 'black',
-                                borderColor: 'black',
-                                borderRadius: '5px',
-                            }}
-                            onClick={handleRegister}
-                        >
-                            Đăng ký tài khoản
-                        </Button>
-                    </Form.Item>
                 </Form>
             </div>
         </div>

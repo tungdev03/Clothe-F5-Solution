@@ -41,7 +41,7 @@ const LoginAdmin = () => {
     };
 
     const handleRegister = () => {
-        navigate('/register');
+        navigate('/register')
     };
 
     return (
@@ -63,6 +63,7 @@ const LoginAdmin = () => {
                 right: 0,
                 bottom: 0,
                 backgroundColor: 'rgba(0, 0, 0, 0.6)',
+
                 zIndex: 1,
             }} />
 

@@ -1,23 +1,45 @@
 import React from 'react';
-import { Form, Input, Button, Row, Col, DatePicker, Select, Radio } from 'antd';
+import { Form, Input, Button, Row, Col, DatePicker, Radio } from 'antd';
 import { UserOutlined, LockOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
 import 'antd/dist/reset.css';
 import BackgroundImage from '../../../assets/images/Back_Login.png';
 import logo_v1 from '../../../assets/images/Logo.png';
 import { useNavigate } from 'react-router-dom';
-
-const { Option } = Select;
+import AuthService from '../../../Service/AuthService'; // Import AuthService
 
 const Register = () => {
     const navigate = useNavigate();
+
     const handleLogin = () => {
-        navigate('/login')
+        navigate('/login');
     };
-    const onFinish = (values) => {
-        console.log('Received values from form: ', values);
-        // Here you would send the form data to your backend API for registration
-        // Example:
-        // axios.post('/api/register', values).then(response => { ... })
+
+    const onFinish = async (values) => {
+        try {
+            // Thực hiện đăng ký khách hàng qua AuthService
+            const response = await AuthService.registerCustomer({
+                hoVaTenKh: values.hoVaTenKh,
+                taiKhoan: values.username,
+                matKhau: values.password,
+                email: values.email,
+                soDienThoai: values.soDienThoai,
+                gioiTinh: values.gioiTinh,
+                ngaySinh: values.ngaySinh.format('YYYY-MM-DD'), // Chuyển đổi ngày sinh về định dạng API cần
+            });
+
+            if (response && response.token) {
+                localStorage.setItem('user', JSON.stringify(response));
+                alert('Đăng ký thành công!');
+                navigate('/'); // Chuyển hướng sau khi đăng ký thành công
+            } else {
+                alert('Đăng ký thất bại. Vui lòng kiểm tra thông tin và thử lại.');
+            }
+        } catch (error) {
+            // Bắt và ném lỗi ra bên ngoài
+            console.error('Register error:', error);
+            alert('Đăng ký thất bại. Vui lòng kiểm tra thông tin và thử lại.');
+            throw new Error('Đăng ký thất bại: ' + error.message); // Ném lỗi ra ngoài
+        }
     };
 
     return (
@@ -175,6 +197,7 @@ const Register = () => {
                                 Đăng kí
                             </Button>
                         </Form.Item>
+
                         <Row style={{ textAlign: 'center', marginBottom: '20px' }}>
                             <Col span={24}>
                                 Bạn đã có tài khoản

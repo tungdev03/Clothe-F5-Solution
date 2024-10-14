@@ -10,14 +10,19 @@ import {
 } from '@ant-design/icons';
 import { Avatar, Button, Layout, Menu, theme, ConfigProvider } from 'antd';
 import StatisticsPage from './StatisticsPage';
+import VoucherManagement from './VoucherManagement';
 import logo from '../../../assets/images/Logo.png';
-
+import { useNavigate } from 'react-router-dom';
+import NhanVienPage from './NhanVienPage';
+import KhachHangPage from './KhachHangPage';
 const { Header, Sider, Content } = Layout;
 const { SubMenu } = Menu;
 
-function Dashboard() {
+const Dashboard = () => {
+    const navigate = useNavigate();
     const [collapsed, setCollapsed] = useState(false);
     const [currentContent, setCurrentContent] = useState(<StatisticsPage />); // Mặc định hiển thị StatisticsPage
+    const [isAuthenticated, setIsAuthenticated] = useState(false); // Trạng thái đăng nhập
 
     const {
         token: { colorBgContainer, borderRadiusLG },
@@ -28,21 +33,34 @@ function Dashboard() {
             case '1-1':
                 setCurrentContent(<StatisticsPage />);
                 break;
-            // Thêm các case cho các trang khác mà bạn muốn hiển thị
-            // Ví dụ:
-            // case '2-1':
-            //     setCurrentContent(<ProductManagementPage />);
-            //     break;
-            // case '2-2':
-            //     setCurrentContent(<AddProductPage />);
-            //     break;
+            case '5-2':
+                setCurrentContent(<VoucherManagement />);
+                break;
+            case '4-1':
+                setCurrentContent(<NhanVienPage />);
+                break;
+            case '4-2':
+                setCurrentContent(<KhachHangPage />);
+                break;
             default:
                 break;
         }
     };
 
+    const handleLoginLogout = () => {
+        if (isAuthenticated) {
+            // Thực hiện đăng xuất
+            setIsAuthenticated(false);
+        } else {
+            // Thực hiện đăng nhập (có thể là điều hướng tới trang đăng nhập hoặc hiển thị form)
+            // Giả sử đăng nhập thành công
+            navigate("/LoginAdmin")
+            setIsAuthenticated(true);
+        }
+    };
+
     return (
-        <Layout>
+        <Layout className='dashboard-layout'>
             <ConfigProvider
                 theme={{
                     Layout: {
@@ -112,12 +130,13 @@ function Dashboard() {
                 </Menu>
             </Sider>
             <Layout>
-                <Header style={{ padding: 0, background: colorBgContainer }}>
+                <Header style={{ padding: 0, background: colorBgContainer, display: 'flex', justifyContent: 'space-between' }}>
                     <Button
                         type="text" icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
                         onClick={() => setCollapsed(!collapsed)}
                         style={{ fontSize: '16px', width: 64, height: 64 }}
                     />
+                    {/* Nút đăng nhập / đăng xuất */}
                 </Header>
                 <Content
                     style={{
@@ -128,7 +147,6 @@ function Dashboard() {
                         borderRadius: borderRadiusLG,
                     }}
                 >
-                    {/* Hiển thị nội dung dựa trên lựa chọn menu */}
                     {currentContent}
                 </Content>
             </Layout>

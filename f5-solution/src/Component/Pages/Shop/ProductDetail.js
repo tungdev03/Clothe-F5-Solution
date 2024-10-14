@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Row, Col, Button, Layout, Menu, Dropdown, Input, Space, Card, Carousel } from 'antd';
 import { UpOutlined, DownOutlined, LogoutOutlined, UserOutlined, ShoppingCartOutlined, CheckOutlined } from '@ant-design/icons';
-import { useNavigate } from 'react-router-dom';
 import './Home.css';
 import logo_v1 from '../../../assets/images/Logo.png';
 import { Content } from 'antd/es/layout/layout';
+
 const { Meta } = Card;
 const { Header } = Layout;
+
 const items1 = [
     { key: '/', label: 'Cửa hàng' },
     { key: '/Products', label: 'Sản phẩm' },
@@ -102,9 +103,7 @@ const products = [
             "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__1__f697f759edda4db7bb7334e54df7d319_master.jpg"
         ]
     }
-    // Các sản phẩm khác
 ];
-
 
 const ProductDetail = () => {
     const navigate = useNavigate();
@@ -112,56 +111,59 @@ const ProductDetail = () => {
     const [product, setProduct] = useState(null);
     const [username, setUsername] = useState(null);
 
+    // State cho form mua hàng
+    const [showForm, setShowForm] = useState(false);
+    const [mainImage, setMainImage] = useState('');
+    const [selectedColor, setSelectedColor] = useState('');
+    const [selectedSize, setSelectedSize] = useState('');
+    const [startIndex, setStartIndex] = useState(0);
+
+    const galleryLength = product?.imgGallery.length || 0;
+    const visibleImages = 3;
+
     useEffect(() => {
-        console.log("Current ID:", id);
         const product = products.find((item) => item.id === parseInt(id));
         if (product) {
             setProduct(product);
             setMainImage(product.imgSrc);
         } else {
-            setProduct(null); // Xử lý trường hợp không tìm thấy sản phẩm
+            setProduct(null);
         }
     }, [id]);
+
     useEffect(() => {
-        // Kiểm tra thông tin người dùng từ localStorage
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             const user = JSON.parse(storedUser);
             setUsername(user.username);
-            console.log(user.username)// Lấy tên người dùng từ thông tin đã lưu
         }
     }, []);
-    const handleLoginClick = () => {
-        navigate('/login');
-    };
-    const handleLogoutClick = () => {
-        // Xử lý đăng xuất
-        localStorage.removeItem('user');
-        setUsername(null); // Reset lại state username
-        navigate('/'); // Điều hướng tới trang chủ sau khi đăng xuất
-    };
-    const handleProfileClick = () => {
-        navigate('/'); // Điều hướng đến trang thông tin cá nhân
-    };
-    const handleMenuClick = ({ key }) => {
-        navigate(key); // Điều hướng đến đường dẫn tương ứng với key
-    };
-    const handleViewMore = (id) => {
-        console.log(id)
-        navigate(`/Products/${id}`)
-    };
-    const [mainImage, setMainImage] = useState(product ? product.imgSrc : '');
-    const [startIndex, setStartIndex] = useState(0); // Chỉ mục đầu của ảnh nhỏ trong gallery
-    const [selectedColor, setSelectedColor] = useState('');
-    const [selectedSize, setSelectedSize] = useState('');
-    const galleryLength = product?.imgGallery.length || 0;
-    const visibleImages = 3; // Số lượng ảnh nhỏ muốn hiển thị cùng lúc
 
-    if (!product) {
-        return <div>Product not found</div>;
-    }
+    const handleAddToCart = () => {
+        if (!selectedColor || !selectedSize) {
+            alert("Vui lòng chọn màu sắc và size trước khi thêm vào giỏ hàng.");
+            return;
+        }
+        let cart = JSON.parse(localStorage.getItem('cart')) || [];
+        cart.push({ ...product, selectedColor, selectedSize });
+        localStorage.setItem('cart', JSON.stringify(cart));
+        navigate('/cart');
+    };
 
-    // Hàm điều hướng lên và xuống
+    const handleBuyNow = () => {
+        if (!selectedColor || !selectedSize) {
+            alert("Vui lòng chọn màu sắc và size trước khi mua.");
+            return;
+        }
+        setShowForm(true); // Hiển thị form mua hàng
+    };
+
+    const handleCloseForm = (e) => {
+        if (e.target.className === 'overlay') {
+            setShowForm(false);
+        }
+    };
+
     const handlePrev = () => {
         if (startIndex > 0) {
             setStartIndex(startIndex - 1);
@@ -173,27 +175,34 @@ const ProductDetail = () => {
             setStartIndex(startIndex + 1);
         }
     };
-    // Hàm xử lý chọn màu sắc
+
     const handleSelectColor = (color) => {
         setSelectedColor(color);
     };
 
-    // Hàm xử lý chọn size
     const handleSelectSize = (size) => {
         setSelectedSize(size);
     };
 
+    if (!product) {
+        return <div>Product not found</div>;
+    }
 
     const userMenu = (
         <Menu>
-            <Menu.Item key="1" onClick={handleProfileClick}>
+            <Menu.Item key="1" onClick={() => navigate('/profile')}>
                 Thông tin cá nhân
             </Menu.Item>
-            <Menu.Item key="2" danger onClick={handleLogoutClick} icon={<LogoutOutlined />}>
+            <Menu.Item key="2" danger onClick={() => { localStorage.removeItem('user'); setUsername(null); navigate('/'); }}>
                 Đăng xuất
             </Menu.Item>
         </Menu>
     );
+
+    const handleViewMore = (id) => {
+        navigate(`/Products/${id}`);
+    };
+
     return (
         <Layout>
             <Header
@@ -202,8 +211,8 @@ const ProductDetail = () => {
                     alignItems: 'center',
                     backgroundColor: '#fff',
                     justifyContent: 'space-between',
-                    padding: '20px 40px', // Tăng padding
-                    height: '120px', // Tăng chiều cao của header
+                    padding: '20px 40px',
+                    height: '120px', // Giữ nguyên chiều cao của header như bạn yêu cầu
                 }}
             >
                 <div className="logo-brand" style={{ display: 'flex', alignItems: 'center' }}>
@@ -217,7 +226,7 @@ const ProductDetail = () => {
                     theme="light"
                     mode="horizontal"
                     defaultSelectedKeys={[items1]}
-                    onClick={handleMenuClick}
+                    onClick={({ key }) => navigate(key)}
                     items={items1}
                     style={{
                         flex: 1,
@@ -240,7 +249,7 @@ const ProductDetail = () => {
                             </Button>
                         </Dropdown>
                     ) : (
-                        <Button type="link" icon={<UserOutlined />} style={{ fontSize: '16px' }} onClick={handleLoginClick}>
+                        <Button type="link" icon={<UserOutlined />} style={{ fontSize: '16px' }} onClick={() => navigate('/login')}>
                             Đăng nhập
                         </Button>
                     )}
@@ -250,7 +259,7 @@ const ProductDetail = () => {
             <Content>
                 <Layout>
                     <div style={{ padding: '10px', marginLeft: '15%', marginRight: '15%' }}>
-                        <Row gutter={16} >
+                        <Row gutter={16}>
                             {/* Cột chứa ảnh nhỏ với carousel dọc */}
                             <Col span={4} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0' }}>
                                 <Button
@@ -348,6 +357,7 @@ const ProductDetail = () => {
                                                 height: '40px',
                                                 fontSize: '16px'
                                             }}
+                                            onClick={handleAddToCart}
                                         >
                                             Thêm vào giỏ hàng
                                         </Button>
@@ -360,6 +370,7 @@ const ProductDetail = () => {
                                                 height: '40px',
                                                 fontSize: '16px'
                                             }}
+                                            onClick={handleBuyNow}
                                         >
                                             Mua ngay
                                         </Button>
@@ -390,6 +401,39 @@ const ProductDetail = () => {
                     </div>
                 </Layout>
             </Content>
+
+            {/* Hiển thị form khi nhấn "Mua ngay" */}
+            {showForm && (
+                <div className="overlay" onClick={handleCloseForm}>
+                    <div className="buy-now-form">
+                        <h2>Thông tin mua hàng</h2>
+                        <div className="buy-now-product-info">
+                            <img src={product.imgSrc} alt={product.title} className="buy-now-image" />
+                            <div className="buy-now-details">
+                                <p>Sản phẩm: {product.title}</p>
+                                <p className="price">Giá: {product.description}</p>
+                                <p>Màu sắc: {selectedColor}</p>
+                                <p>Size: {selectedSize}</p>
+                            </div>
+                        </div>
+                        <form>
+                            <label>
+                                Tên khách hàng:
+                                <input type="text" name="name" required />
+                            </label>
+                            <label>
+                                Địa chỉ giao hàng:
+                                <input type="text" name="address" required />
+                            </label>
+                            <label>
+                                Số điện thoại:
+                                <input type="text" name="phone" required />
+                            </label>
+                            <button type="submit">Xác nhận mua</button>
+                        </form>
+                    </div>
+                </div>
+            )}
         </Layout>
     );
 };

@@ -57,7 +57,6 @@ const Home = () => {
   useEffect(() => {
     // Kiểm tra thông tin người dùng từ localStorage
     const storedUser = localStorage.getItem('user');
-    console.log(storedUser)
     if (storedUser) {
       const user = JSON.parse(storedUser);
       setUsername(user.TaiKhoan);
@@ -89,7 +88,6 @@ const Home = () => {
     const storedUser = localStorage.getItem('user');
     const user = JSON.parse(storedUser);
     setUsername(user.TaiKhoan);
-    console.log(user.TaiKhoan)
     if (user.TaiKhoan) {
       navigate(`/Profile/${user.TaiKhoan}`);
     }

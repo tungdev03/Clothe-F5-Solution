@@ -132,7 +132,7 @@ const AlbumPage = () => {
                                             className="album-card-image"
                                         />
                                         <div className="color-overlay"></div>
-                                        <Link to={`/album/${album.id}`}> <div>
+                                        <Link to={`/album/${album.id}`}> <div className="view-more-overlay">
                                             <Button type='light' className="view-more-btn">Xem thêm</Button>
                                         </div></Link>
                                     </div>

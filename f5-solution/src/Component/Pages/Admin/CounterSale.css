@@ -1,0 +1,26 @@
+.counter-sale-container {
+    padding: 20px;
+}
+
+.top-banner {
+    background-color: #f0f2f5;
+    padding: 10px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.invoice-section, .invoice-details-section {
+    margin-bottom: 20px;
+}
+
+.info-card {
+    margin-bottom: 20px;
+}
+
+.add-product-btn {
+    margin-top: 10px;
+}
+
+button {
+    margin-top: 10px;
+}

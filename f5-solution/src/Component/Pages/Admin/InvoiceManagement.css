@@ -1,0 +1,44 @@
+.invoice-management-container {
+    padding: 20px;
+    background-color: #f9f9f9;
+}
+
+.header {
+    margin-bottom: 20px;
+}
+
+.status-cards {
+    margin-bottom: 20px;
+}
+
+.status-cards .ant-card {
+    background-color: #fafafa;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.filter-section {
+    margin-bottom: 20px;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.ant-table {
+    background-color: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.ant-input, .ant-select {
+    border-radius: 6px;
+}
+
+.ant-btn {
+    border-radius: 6px;
+}
+.seach {
+    margin-right: 10px;
+}

@@ -235,7 +235,7 @@ const InvoiceManagement = () => {
                     <Col span={4}>
                         <Select
                             defaultValue="Tất cả các đơn"
-                            style={{ width: '100%' }}
+                            style={{ width: '200px' }}
                             value={selectedStatus}
                             onChange={(value) => setSelectedStatus(value)}
                         >

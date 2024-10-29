@@ -229,13 +229,16 @@ const InvoiceManagement = () => {
                         <Input class name="search"
                             placeholder="Tìm kiếm theo mã hoá đơn, tên khách hàng..."
                             value={searchText}
+                            style={{ width: '300px' }}
                             onChange={(e) => setSearchText(e.target.value)}
                         />
                     </Col>
-                    <Col span={4}>
+
+                    </Row>
+                    <Col span={4}> 
                         <Select
                             defaultValue="Tất cả các đơn"
-                            style={{ width: '200px' }}
+                            style={{ width: '250px' }}
                             value={selectedStatus}
                             onChange={(value) => setSelectedStatus(value)}
                         >
@@ -252,7 +255,7 @@ const InvoiceManagement = () => {
                             Tạo hoá đơn
                         </Button>
                     </Col>
-                </Row>
+                
             </div>
 
             <Table columns={columns} dataSource={filteredInvoices} pagination={{ pageSize: 5 }} />

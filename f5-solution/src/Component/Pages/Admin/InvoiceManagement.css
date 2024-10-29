@@ -1,50 +1,48 @@
+/* Container chính */
 .invoice-management-container {
-    padding: 20px;
+    padding: 24px;
     background-color: #f4f6f9;
     font-family: Arial, sans-serif;
     color: #333;
+    max-width: 1200px; /* Cố định chiều rộng và căn giữa */
+    margin: 0 auto; /* Căn giữa nội dung */
 }
 
-.header {
-    margin-bottom: 20px;
-}
-
+/* Căn chỉnh thẻ trạng thái */
 .status-cards {
     display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
+    justify-content: space-around; /* Căn đều khoảng cách cho các thẻ */
+    margin-bottom: 24px;
     gap: 16px;
 }
 
 .status-cards .ant-card {
     background-color: #ffffff;
     text-align: center;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
     padding: 20px;
-    transition: transform 0.2s ease-in-out;
-    cursor: pointer;
+    transition: transform 0.3s ease-in-out;
     font-size: 16px;
+    flex: 1; /* Đảm bảo chiều rộng đồng đều cho tất cả thẻ */
 }
 
-.status-cards .ant-card:hover {
-    transform: scale(1.02);
-}
-
+/* Điều chỉnh khu vực lọc */
 .filter-section {
     display: flex;
     align-items: center;
-    gap: 12px; /* Increased spacing between elements */
-    margin-bottom: 20px;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
     background-color: #ffffff;
-    padding: 15px 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    width: 100%;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* Điều chỉnh các thành phần con trong khu vực lọc */
 .search-input {
-    flex: 1; /* Input takes available space */
+    flex: 1; /* Đảm bảo ô tìm kiếm chiếm hết khoảng trống còn lại */
     height: 40px;
     border-radius: 8px;
     padding: 8px 12px;
@@ -58,7 +56,7 @@
 }
 
 .status-select {
-    width: 180px; /* Fixed width for consistent alignment */
+    width: 200px;
     height: 40px;
     border-radius: 8px;
     font-size: 14px;
@@ -73,17 +71,17 @@
 }
 
 .add-button {
+    height: 40px;
     background-color: #1890ff;
     border-color: #1890ff;
     color: #fff;
     font-weight: bold;
     border-radius: 8px;
-    padding: 8px 16px;
-    height: 40px;
+    padding: 0 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    white-space: nowrap;
+    transition: background-color 0.3s;
 }
 
 .add-button:hover {
@@ -91,46 +89,35 @@
     border-color: #40a9ff;
 }
 
-.ant-btn-primary {
-    background-color: #1890ff;
-    border-color: #1890ff;
-    color: #fff;
-    font-weight: bold;
-    border-radius: 8px;
-    padding: 8px 16px;
-}
-
-.ant-btn-primary:hover {
-    background-color: #40a9ff;
-    border-color: #40a9ff;
-}
-
+/* Điều chỉnh container bảng để căn chỉnh tốt hơn */
 .ant-table {
     background-color: white;
-    border-radius: 8px;
+    border-radius: 10px;
     padding: 16px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.ant-table-thead > tr > th {
-    background-color: #fafafa;
-    font-weight: bold;
-    text-align: center;
-    padding: 12px;
-}
-
+/* Điều chỉnh tiêu đề và dòng của bảng để đồng bộ */
+.ant-table-thead > tr > th,
 .ant-table-tbody > tr > td {
     text-align: center;
     padding: 12px;
 }
 
-.ant-table-tbody > tr:hover > td {
+.ant-table-thead > tr > th {
     background-color: #fafafa;
+    font-weight: bold;
+    font-size: 15px;
 }
 
+.ant-table-tbody > tr:hover > td {
+    background-color: #f0f5ff;
+}
+
+/* Định dạng các thẻ trạng thái */
 .ant-tag {
     font-weight: bold;
-    padding: 5px 10px;
+    padding: 5px 12px;
     border-radius: 6px;
 }
 
@@ -154,32 +141,32 @@
     color: #fff;
 }
 
+/* Định dạng modal */
 .ant-modal-content {
-    border-radius: 8px;
-    padding: 20px;
+    border-radius: 10px;
+    padding: 24px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .ant-modal-footer {
     border-top: none;
     display: flex;
     justify-content: center;
-    gap: 10px;
+    gap: 12px;
 }
 
 .ant-modal-footer button {
-    width: 100px;
+    width: 120px;
 }
 
+/* Căn chỉnh các phần tử trong form */
 .ant-form-item {
-    margin-bottom: 16px;
+    margin-bottom: 20px;
 }
 
 input, select, .ant-input, .ant-select-selector, .ant-input-number-input {
     font-size: 14px;
-}
-
-.seach {
-    margin-right: 10px;
+    border-radius: 6px;
 }
 
 button {
@@ -187,5 +174,5 @@ button {
 }
 
 button:hover {
-    transform: scale(1.02);
+    transform: scale(1.05);
 }

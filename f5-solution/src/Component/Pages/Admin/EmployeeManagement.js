@@ -141,7 +141,10 @@ const EmployeeManagement = () => {
                     value={searchText}
                     onChange={(e) => handleSearch(e.target.value)}
                 />
-                <div className="filter-controls">
+                <div className="filter-controls"
+                    style={{ display: 'flex', alignItems: 'center' }}
+                       >
+                    
                     <Select
                         value={statusFilter}
                         onChange={handleFilterChange}
@@ -151,7 +154,7 @@ const EmployeeManagement = () => {
                         <Option value="active">Hoạt động</Option>
                         <Option value="inactive">Ngừng hoạt động</Option>
                     </Select>
-                    <Button type="primary" icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>
+                    <Button class name="ant-btn ant-btn-primary ant-btn-icon-only ant-btn-lg"  type="primary" icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>
                         Thêm mới nhân viên
                     </Button>
                 </div>

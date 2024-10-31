@@ -11,6 +11,14 @@ const AdminService = {
             throw error.response?.data || 'Lỗi không xác định'; // Bắt lỗi và trả về thông báo lỗi
         }
     },
+    GetNhanVien: async () => {
+        try {
+            const response = await http.get('NhanVien'); // Sử dụng http thay vì axios
+            return response.data; // Trả về dữ liệu từ API
+        } catch (error) {
+            throw error.response?.data || 'Lỗi không xác định'; // Bắt lỗi và trả về thông báo lỗi
+        }
+    },
 };
 
 // Export default object AuthService

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Row, Col, Button, Layout, Menu, Dropdown, Input, Space, Card, Carousel } from 'antd';
-import { UpOutlined, DownOutlined, LogoutOutlined, UserOutlined, ShoppingCartOutlined, CheckOutlined } from '@ant-design/icons';
+import { UpOutlined, DownOutlined, UserOutlined, ShoppingCartOutlined, CheckOutlined,PlusOutlined,MinusOutlined } from '@ant-design/icons';
 import './Home.css';
 import logo_v1 from '../../../assets/images/Logo.png';
 import { Content } from 'antd/es/layout/layout';
@@ -117,7 +117,7 @@ const ProductDetail = () => {
     const [selectedColor, setSelectedColor] = useState('');
     const [selectedSize, setSelectedSize] = useState('');
     const [startIndex, setStartIndex] = useState(0);
-
+    const [quantity, setQuantity] = useState(1);
     const galleryLength = product?.imgGallery.length || 0;
     const visibleImages = 3;
 
@@ -183,7 +183,13 @@ const ProductDetail = () => {
     const handleSelectSize = (size) => {
         setSelectedSize(size);
     };
+    const increaseQuantity = () => {
+        setQuantity(prevQuantity => prevQuantity + 1);
+    };
 
+    const decreaseQuantity = () => {
+        setQuantity(prevQuantity => (prevQuantity > 1 ? prevQuantity - 1 : 1));
+    };
     if (!product) {
         return <div>Product not found</div>;
     }
@@ -346,6 +352,26 @@ const ProductDetail = () => {
                                             </Button>
                                         ))}
                                     </div>
+                                    <p style={{ fontSize: '18px', marginTop: '20px' }}>
+                                        <strong>Số lượng:</strong>
+                                    </p>
+                                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                                        <Button
+                                            shape="circle"
+                                            icon={<MinusOutlined />}
+                                            onClick={decreaseQuantity}
+                                            disabled={quantity <= 1}
+                                        />
+                                        <div style={{ margin: '0 20px', fontSize: '18px', fontWeight: 'bold' }}>
+                                            {quantity}
+                                        </div>
+                                        <Button
+                                            shape="circle"
+                                            icon={<PlusOutlined />}
+                                            onClick={increaseQuantity}
+                                        />
+                                    </div>
+
                                     {/* Nút Thêm vào giỏ hàng và Mua ngay */}
                                     <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
                                         <Button

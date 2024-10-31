@@ -42,9 +42,9 @@ const Dashboard = () => {
             case '5-2':
                 setCurrentContent(<VoucherManagement />);
                 break;
-            // case '4-1':
-            //     setCurrentContent(<NhanVienPage />);
-            //     break;
+            case '4-1':
+                setCurrentContent(<NhanVienPage />);
+                break;
             case '4-2':
                 setCurrentContent(<KhachHangPage />);
                 break;

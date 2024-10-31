@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, message, Switch, Input, Row, Col } from 'antd';
+import { Table, Button, message, Switch, Input, Row, Col, Modal, Form, Space } from 'antd';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import AdminService from '../../../Service/AdminService';
 
@@ -9,40 +10,49 @@ const NhanVienPage = () => {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
-  const [nhanViens, setNhanViens] = useState([]); // Quản lý dữ liệu nhân viên
+  const [nhanViens, setNhanViens] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [editingNhanVien, setEditingNhanVien] = useState(null);
+  const [form] = Form.useForm();
 
-  // Hàm fetch dữ liệu nhân viên từ API
   const fetchNhanViens = async () => {
     setLoading(true);
     try {
-      const data = await AdminService.GetNhanVien(); // Lấy dữ liệu từ API
+      const data = await AdminService.GetNhanVien();
       if (Array.isArray(data)) {
-        setNhanViens(data); // Lưu dữ liệu nhân viên vào state
+        setNhanViens(data);
       } else {
         throw new Error("Dữ liệu không hợp lệ");
       }
       message.success('Lấy danh sách nhân viên thành công!');
     } catch (error) {
-      console.error(error); // Log lỗi
-      message.error('Lỗi khi lấy danh sách nhân viên.'); // Thông báo lỗi cho người dùng
-      setNhanViens([]); // Đặt lại danh sách nhân viên khi có lỗi
+      console.error(error);
+      message.error('Lỗi khi lấy danh sách nhân viên.');
+      setNhanViens([]);
     } finally {
-      setLoading(false); // Tắt trạng thái loading
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchNhanViens(); // Gọi hàm fetch dữ liệu khi component được mount
+    fetchNhanViens();
   }, []);
+
+  const handleEdit = (record) => {
+    setEditingNhanVien(record);
+    form.setFieldsValue(record);
+    setIsModalVisible(true);
+  };
 
   const handleStatusChange = async (nhanVien, newStatus) => {
     try {
       const updatedNhanVien = {
         ...nhanVien,
-        trangThai: newStatus ? 1 : 0, // Cập nhật trạng thái
+        trangThai: newStatus ? 1 : 0,
       };
+      await AdminService.UpdateNhanVienStatus(updatedNhanVien); // Giả sử có phương thức này trong AdminService
       message.success('Trạng thái nhân viên đã được cập nhật!');
-      fetchNhanViens(); // Cập nhật lại danh sách sau khi thay đổi trạng thái
+      fetchNhanViens();
     } catch (error) {
       message.error('Không thể cập nhật trạng thái nhân viên.');
     }
@@ -100,18 +110,19 @@ const NhanVienPage = () => {
       key: 'trangThai',
       render: (text, record) => (
         <Switch
-          checked={text === 1} // Kiểm tra trạng thái
+          checked={text === 1}
           onChange={(checked) => handleStatusChange(record, checked)}
         />
       ),
     },
     {
-      title: 'Hành Động',
-      key: 'actions',
+      title: 'Hành động',
+      key: 'action',
       render: (text, record) => (
-        <>
-          <Button type="link">Cập Nhật</Button>
-        </>
+        <Space size="middle">
+          <Button icon={<EditOutlined />} onClick={() => handleEdit(record)}>Sửa</Button>
+          <Button icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>Xóa</Button>
+        </Space>
       ),
     },
   ];
@@ -122,7 +133,40 @@ const NhanVienPage = () => {
 
   const onSearch = (value) => {
     console.log('Search Value:', value);
-    // Thực hiện tìm kiếm nếu cần
+  };
+
+  const handleModalOk = () => {
+    form.validateFields().then(async (values) => {
+      try {
+        if (editingNhanVien) {
+          await AdminService.UpdateNhanVien({ ...editingNhanVien, ...values });
+          message.success('Cập nhật nhân viên thành công!');
+        } else {
+          await AdminService.CreateNhanVien(values);
+          message.success('Thêm nhân viên thành công!');
+        }
+        setIsModalVisible(false);
+        fetchNhanViens();
+      } catch (error) {
+        message.error('Lỗi khi cập nhật dữ liệu nhân viên.');
+      }
+    });
+  };
+
+  const handleModalCancel = () => {
+    setIsModalVisible(false);
+    form.resetFields();
+    setEditingNhanVien(null);
+  };
+
+  const handleDelete = async (record) => {
+    try {
+      await AdminService.DeleteNhanVien(record.id);
+      message.success('Xóa nhân viên thành công!');
+      fetchNhanViens();
+    } catch (error) {
+      message.error('Lỗi khi xóa nhân viên.');
+    }
   };
 
   return (
@@ -137,7 +181,7 @@ const NhanVienPage = () => {
           />
         </Col>
         <Col span={6}>
-          <Button type="primary" onClick={() => message.info('Thêm nhân viên mới')}>
+          <Button type="primary" onClick={() => setIsModalVisible(true)}>
             Thêm nhân viên mới
           </Button>
         </Col>
@@ -146,7 +190,7 @@ const NhanVienPage = () => {
       <Table
         columns={columns}
         loading={loading}
-        dataSource={nhanViens} // Hiển thị dữ liệu nhân viên
+        dataSource={nhanViens}
         rowKey="id"
         pagination={{
           current: currentPage,
@@ -155,6 +199,37 @@ const NhanVienPage = () => {
           onChange: handleTableChange,
         }}
       />
+
+      <Modal
+        title={editingNhanVien ? "Sửa thông tin nhân viên" : "Thêm nhân viên"}
+        visible={isModalVisible}
+        onOk={handleModalOk}
+        onCancel={handleModalCancel}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item name="maNv" label="Mã NV" rules={[{ required: true, message: 'Nhập mã NV' }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="hoVaTenNv" label="Họ và Tên" rules={[{ required: true, message: 'Nhập họ và tên' }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="gioiTinh" label="Giới Tính">
+            <Input />
+          </Form.Item>
+          <Form.Item name="ngaySinh" label="Ngày Sinh">
+            <Input />
+          </Form.Item>
+          <Form.Item name="soDienThoai" label="Số Điện Thoại">
+            <Input />
+          </Form.Item>
+          <Form.Item name="email" label="Email">
+            <Input />
+          </Form.Item>
+          <Form.Item name="image" label="Hình Ảnh">
+            <Input />
+          </Form.Item>
+        </Form>
+      </Modal>
     </div>
   );
 };

@@ -7,7 +7,7 @@ import logo_v1 from '../../../assets/images/Logo.png';
 import { useNavigate } from 'react-router-dom';
 import AuthService from '../../../Service/AuthService'; // Import AuthService
 import {jwtDecode} from 'jwt-decode';  // Thêm thư viện jwt-decode để giải mã token
-import { LoginService } from '../../../Service/LoginService';
+
 const Login = () => {
     const [loading, setLoading] = useState(false); // Trạng thái tải
     const navigate = useNavigate();

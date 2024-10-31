@@ -1,41 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, message, Switch, App, Input, Row, Col, Dropdown, Space } from 'antd';
-import { EditTwoTone, UserOutlined, DownOutlined } from '@ant-design/icons';
+import { Table, Button, message, Switch, App, Input, Row, Col } from 'antd';
+import {EditTwoTone} from '@ant-design/icons'
 import moment from 'moment';
-import AdminService from '../../../Service/AdminService';
-
+import AdminService from '../../../Service/AdminService'; // Import AdminService
 const { Search } = Input;
 
-const onSearch = (value) => console.log('Search Value:', value);
+const onSearch = (value) => console.log('Search Value:', value); // Hàm tìm kiếm khách hàng
 const KhachHangPage = () => {
   const [loading, setLoading] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize] = useState(10);
-  const [khachHangs, setKhachHangs] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1); // Quản lý trạng thái trang hiện tại
+  const [pageSize] = useState(10); // Quản lý số lượng phần tử trên mỗi trang
+  const [khachHangs, setKhachHangs] = useState([]); // Quản lý dữ liệu khách hàng
 
-  const items = [
-    {
-      label: 'Hoạt động',
-      key: '1',
-      icon: <UserOutlined />,
-    },
-    {
-      label: 'Ngưng hoạt động',
-      key: '2',
-      icon: <UserOutlined />,
-    }
-  ];
-
-  const handleMenuClick = (e) => {
-    message.info('Click on menu item.');
-    console.log('click', e);
-  };
-
-  const menuProps = {
-    items,
-    onClick: handleMenuClick,
-  };
-
+  // Hàm fetch dữ liệu khách hàng từ API
   const fetchKhachHangs = async () => {
     setLoading(true);
     try {
@@ -43,7 +20,7 @@ const KhachHangPage = () => {
       setKhachHangs(data); // Lưu dữ liệu khách hàng vào state
       message.success('Lấy danh sách khách hàng thành công!');
     } catch (error) {
-      message.error(error);
+      message.error(error); // Hiển thị thông báo lỗi
     } finally {
       setLoading(false); // Tắt trạng thái loading
     }
@@ -143,30 +120,15 @@ const KhachHangPage = () => {
       <div>
         <h1>Quản lý khách hàng</h1>
         <Row gutter={16} style={{ marginBottom: '20px' }}>
-          <Col span={12}>
+          <Col span={16}>
             <Search
               placeholder="Nhập tên hoặc mã khách hàng"
               onSearch={onSearch}
               enterButton
-              style={{ height: '40px' }} // Đặt chiều cao cho ô tìm kiếm
             />
           </Col>
-          <Col span={5}>
-            <Dropdown menu={menuProps}>
-              <Button style={{ height: '40px' }}> {/* Đặt chiều cao cho nút lọc */}
-                <Space>
-                  Lọc theo trạng thái
-                  <DownOutlined />
-                </Space>
-              </Button>
-            </Dropdown>
-          </Col>
-          <Col span={6}>
-            <Button
-              type="primary"
-              onClick={() => message.info('Thêm khách hàng mới')}
-              style={{ height: '40px' }} // Đặt chiều cao cho nút thêm
-            >
+          <Col span={8}>
+            <Button type="primary" onClick={() => message.info('Thêm khách hàng mới')}>
               Thêm khách hàng mới
             </Button>
           </Col>

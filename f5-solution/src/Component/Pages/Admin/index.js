@@ -13,8 +13,14 @@ import StatisticsPage from './StatisticsPage';
 import VoucherManagement from './VoucherManagement';
 import logo from '../../../assets/images/Logo.png';
 import { useNavigate } from 'react-router-dom';
-import NhanVienPage from './NhanVienPage';
+// import NhanVienPage from './NhanVienPage';
 import KhachHangPage from './KhachHangPage';
+import ColorManager from './ColorManager';
+import SizeManagement from './SizeManagement';
+import MaterialManagement from './MaterialManagement';
+import InvoiceManagement from './InvoiceManagement';
+import CounterSale from './CounterSale';
+import EmployeeManagement from './EmployeeManagement';
 const { Header, Sider, Content } = Layout;
 const { SubMenu } = Menu;
 
@@ -36,12 +42,29 @@ const Dashboard = () => {
             case '5-2':
                 setCurrentContent(<VoucherManagement />);
                 break;
-            case '4-1':
-                setCurrentContent(<NhanVienPage />);
-                break;
+            // case '4-1':
+            //     setCurrentContent(<NhanVienPage />);
+            //     break;
             case '4-2':
                 setCurrentContent(<KhachHangPage />);
                 break;
+            case '2-3-1':
+                setCurrentContent(<ColorManager />);
+                break;
+            case '2-3-2':
+                setCurrentContent(<SizeManagement />);
+                break;
+            case '2-3-3':
+                setCurrentContent(<MaterialManagement />);
+                break;
+            case '3-1':
+                setCurrentContent(<InvoiceManagement />);
+                break;
+            case '3-2':
+                setCurrentContent(<CounterSale />);
+                break;
+            case '4-1':
+                setCurrentContent(<EmployeeManagement />);
             default:
                 break;
         }

@@ -36,9 +36,7 @@ const Register = () => {
             }
         } catch (error) {
             // Bắt và ném lỗi ra bên ngoài
-            console.error('Register error:', error);
             alert('Đăng ký thất bại. Vui lòng kiểm tra thông tin và thử lại.');
-            throw new Error('Đăng ký thất bại: ' + error.message); // Ném lỗi ra ngoài
         }
     };
 

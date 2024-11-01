@@ -3,6 +3,7 @@ import { Table, Button, message, Switch, App, Input, Row, Col, Dropdown, Space, 
 import { EditOutlined, DownOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import AdminService from '../../../Service/AdminService';
+import AuthService from '../../../Service/AuthService';
 
 const { Search } = Input;
 
@@ -59,7 +60,7 @@ const KhachHangPage = () => {
         message.success('Cập nhật khách hàng thành công!');
       } else {
         // Thêm mới người dùng
-        await AdminService.AddCustomer(formattedValues);
+        await AuthService.registerCustomer(formattedValues);
         message.success('Thêm khách hàng thành công!');
       }
       handleDrawerClose(); // Đóng Drawer sau khi thực hiện

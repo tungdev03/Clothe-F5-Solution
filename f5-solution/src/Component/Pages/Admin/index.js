@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
     MenuFoldOutlined,
@@ -142,6 +141,7 @@ const Dashboard = () => {
                             </Menu.Item>
                         </SubMenu>
                     </Menu.ItemGroup>
+
 
                     <Menu.ItemGroup key="g3" title="Hóa đơn" icon={<FileTextOutlined />}>
                         <Menu.Item key="3-1" onClick={() => handleMenuClick('3-1')}>

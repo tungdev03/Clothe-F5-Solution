@@ -55,23 +55,19 @@ const InvoiceManagement = () => {
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [form] = Form.useForm();
 
-    // Thêm hóa đơn mới
     const handleAddNew = () => {
         setEditingInvoice(null);
         form.resetFields();
         setIsModalVisible(true);
     };
 
-    // Lưu hóa đơn sau khi thêm hoặc sửa
     const handleSave = (values) => {
         if (editingInvoice) {
-            // Chỉnh sửa hóa đơn
-            setInvoices(invoices.map((invoice) => 
+            setInvoices(invoices.map((invoice) =>
                 invoice.key === editingInvoice.key ? { ...values, key: editingInvoice.key, dateCreated: editingInvoice.dateCreated } : invoice
             ));
             notification.success({ message: 'Hóa đơn đã được cập nhật!' });
         } else {
-            // Thêm mới hóa đơn
             const newInvoice = {
                 ...values,
                 key: invoices.length + 1,
@@ -83,20 +79,17 @@ const InvoiceManagement = () => {
         setIsModalVisible(false);
     };
 
-    // Chỉnh sửa hóa đơn
     const handleEdit = (record) => {
         setEditingInvoice(record);
         form.setFieldsValue(record);
         setIsModalVisible(true);
     };
 
-    // Xóa hóa đơn
     const handleDelete = (key) => {
         setInvoices(invoices.filter((invoice) => invoice.key !== key));
         notification.success({ message: 'Hóa đơn đã bị xóa!' });
     };
 
-    // Lọc hóa đơn dựa trên tìm kiếm và trạng thái
     const filteredInvoices = invoices.filter((invoice) => {
         const matchesSearchText =
             invoice.code.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -108,7 +101,6 @@ const InvoiceManagement = () => {
         return matchesSearchText && matchesStatus;
     });
 
-    // Đếm số lượng hóa đơn theo trạng thái
     const statusCounts = {
         'Chờ xác nhận': invoices.filter((invoice) => invoice.status === 'Chờ xác nhận').length,
         'Đã xác nhận': invoices.filter((invoice) => invoice.status === 'Đã xác nhận').length,
@@ -185,38 +177,28 @@ const InvoiceManagement = () => {
 
     return (
         <div className="invoice-management-container">
-            {/* <div className="header">
-                <Input.Search
-                    placeholder="Tìm kiếm..."
-                    style={{ width: 300 }}
-                    value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
-                />
-            </div> */}
-
-            {/* Thẻ trạng thái */}
-            <Row gutter={16} className="status-cards" justify="center">
-                <Col span={4}>
+            <Row gutter={[16, 16]} className="status-cards" justify="center">
+                <Col xs={24} sm={12} md={8} lg={6} xl={4}>
                     <Card title="Chờ xác nhận" bordered={false} className="status-card">
                         {statusCounts['Chờ xác nhận']}
                     </Card>
                 </Col>
-                <Col span={4}>
+                <Col xs={24} sm={12} md={8} lg={6} xl={4}>
                     <Card title="Đã xác nhận" bordered={false} className="status-card">
                         {statusCounts['Đã xác nhận']}
                     </Card>
                 </Col>
-                <Col span={4}>
+                <Col xs={24} sm={12} md={8} lg={6} xl={4}>
                     <Card title="Chờ giao" bordered={false} className="status-card">
                         {statusCounts['Chờ giao']}
                     </Card>
                 </Col>
-                <Col span={4}>
+                <Col xs={24} sm={12} md={8} lg={6} xl={4}>
                     <Card title="Hoàn thành" bordered={false} className="status-card">
                         {statusCounts['Hoàn thành']}
                     </Card>
                 </Col>
-                <Col span={4}>
+                <Col xs={24} sm={12} md={8} lg={6} xl={4}>
                     <Card title="Đơn huỷ" bordered={false} className="status-card">
                         {statusCounts['Đơn huỷ']}
                     </Card>
@@ -224,41 +206,41 @@ const InvoiceManagement = () => {
             </Row>
 
             <div className="filter-section">
-                <Row>
-                    <Col span={10}>
-                        <Input class name="search"
-                            placeholder="Tìm kiếm theo mã hoá đơn, tên khách hàng..."
-                            value={searchText}
-                            style={{ width: '300px' }}
-                            onChange={(e) => setSearchText(e.target.value)}
-                        />
-                    </Col>
-
-                    </Row>
-                    <Col span={4}> 
-                        <Select
-                            defaultValue="Tất cả các đơn"
-                            style={{ width: '250px' }}
-                            value={selectedStatus}
-                            onChange={(value) => setSelectedStatus(value)}
-                        >
-                            <Option value="all">Tất cả các đơn</Option>
-                            <Option value="Chờ xác nhận">Chờ xác nhận</Option>
-                            <Option value="Đã xác nhận">Đã xác nhận</Option>
-                            <Option value="Chờ giao">Chờ giao</Option>
-                            <Option value="Hoàn thành">Hoàn thành</Option>
-                            <Option value="Đơn huỷ">Đơn huỷ</Option>
-                        </Select>
-                    </Col>
-                    <Col span={4} offset={6}>
-                        <Button type="primary" style={{ backgroundColor: 'black' }} icon={<PlusOutlined />} onClick={handleAddNew}>
-                            Tạo hoá đơn
-                        </Button>
-                    </Col>
-                
+                <Input
+                    className="search-input"
+                    placeholder="Tìm kiếm theo mã hoá đơn, tên khách hàng..."
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                />
+                <Select
+                    className="status-select"
+                    defaultValue="all"
+                    value={selectedStatus}
+                    onChange={(value) => setSelectedStatus(value)}
+                >
+                    <Option value="all">Tất cả các đơn</Option>
+                    <Option value="Chờ xác nhận">Chờ xác nhận</Option>
+                    <Option value="Đã xác nhận">Đã xác nhận</Option>
+                    <Option value="Chờ giao">Chờ giao</Option>
+                    <Option value="Hoàn thành">Hoàn thành</Option>
+                    <Option value="Đơn huỷ">Đơn huỷ</Option>
+                </Select>
+                <Button
+                    type="primary"
+                    className="add-button"
+                    icon={<PlusOutlined />}
+                    onClick={handleAddNew}
+                >
+                    Tạo hoá đơn
+                </Button>
             </div>
 
-            <Table columns={columns} dataSource={filteredInvoices} pagination={{ pageSize: 5 }} />
+            <Table
+                columns={columns}
+                dataSource={filteredInvoices}
+                pagination={{ pageSize: 5 }}
+                scroll={{ x: 800 }} // Cuộn ngang nếu cần
+            />
 
             <Modal
                 title={editingInvoice ? 'Chỉnh sửa hóa đơn' : 'Thêm hóa đơn mới'}
@@ -273,10 +255,7 @@ const InvoiceManagement = () => {
                     <Form.Item label="Tên khách hàng" name="customer" rules={[{ required: true, message: 'Vui lòng nhập tên khách hàng!' }]}>
                         <Input />
                     </Form.Item>
-                    <Form.Item 
-                        label="Số điện thoại khách" 
-                        name="phoneNumber" 
-                        rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}>
+                    <Form.Item label="Số điện thoại khách" name="phoneNumber" rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}>
                         <Input />
                     </Form.Item>
                     <Form.Item label="Thành tiền" name="total" rules={[{ required: true, message: 'Vui lòng nhập thành tiền!' }]}>
@@ -307,3 +286,4 @@ const InvoiceManagement = () => {
 };
 
 export default InvoiceManagement;
+

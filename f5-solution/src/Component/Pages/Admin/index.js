@@ -13,7 +13,7 @@ import StatisticsPage from './StatisticsPage';
 import VoucherManagement from './VoucherManagement';
 import logo from '../../../assets/images/Logo.png';
 import { useNavigate } from 'react-router-dom';
-// import NhanVienPage from './NhanVienPage';
+import NhanVienPage from './NhanVienPage';
 import KhachHangPage from './KhachHangPage';
 import ColorManager from './ColorManager';
 import SizeManagement from './SizeManagement';
@@ -42,9 +42,9 @@ const Dashboard = () => {
             case '5-2':
                 setCurrentContent(<VoucherManagement />);
                 break;
-            // case '4-1':
-            //     setCurrentContent(<NhanVienPage />);
-            //     break;
+            case '4-1':
+                setCurrentContent(<NhanVienPage />);
+                break;
             case '4-2':
                 setCurrentContent(<KhachHangPage />);
                 break;

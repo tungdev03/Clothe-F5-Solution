@@ -75,7 +75,7 @@ const Home = () => {
       navigate('/Login');
     } else {
       // Điều hướng đến giỏ hàng của người dùng đã đăng nhập
-      navigate(`/Cart/${storedUser.TaiKhoan}`);
+      navigate(`/cart/${storedUser.TaiKhoan}`);
     }
   }
   const handleLogoutClick = () => {

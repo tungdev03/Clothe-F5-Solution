@@ -11,7 +11,11 @@
     "@testing-library/user-event": "^13.5.0",
     "antd": "^5.20.6",
     "axios": "^1.7.7",
+<<<<<<< HEAD
     "bootstrap": "^5.3.3",
+=======
+    "dayjs": "^1.11.13",
+>>>>>>> 92d1bfad8b1303beebc1d348f1a3c35db0f83ddb
     "jwt-decode": "^4.0.0",
     "momen": "^0.0.1-security",
     "moment": "^2.30.1",

@@ -33,21 +33,25 @@
     border-radius: 4px;
 }
 
+/* Styles for the "Thêm mới" and "Thanh toán" buttons */
 .add-product-btn,
 button.ant-btn-primary {
-    background-color: #52c41a;
-    border-color: #52c41a;
-    color: #fff;
+    background-color: #000; /* Black background */
+    border-color: #000; /* Black border */
+    color: #fff; /* White text */
     font-weight: bold;
     margin-top: 10px;
     border-radius: 4px;
     padding: 6px 12px;
 }
 
-button.ant-btn-primary:hover {
-    background-color: #41a414;
-    border-color: #41a414;
+button.ant-btn-primary:hover,
+.add-product-btn:hover {
+    background-color: #fff; /* White background on hover */
+    border-color: #fff; /* White border on hover */
+    color: #000; /* Black text on hover */
 }
+
 
 button.ant-btn {
     margin-top: 10px;
@@ -124,7 +128,7 @@ button.ant-btn-danger:hover {
 }
 
 .tag.paid {
-    background-color: #52c41a;
+    background-color: #000000;
     color: #fff;
 }
 
@@ -163,9 +167,9 @@ button.ant-btn-danger:hover {
 
 .ant-list-item button {
     font-weight: bold;
-    color: #52c41a;
+    color: #000000;
 }
 
 .ant-list-item button:hover {
-    color: #41a414;
+    color: #000000;
 }

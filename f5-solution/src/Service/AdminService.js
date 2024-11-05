@@ -19,6 +19,42 @@ const AdminService = {
             throw error.response?.data || 'Lỗi không xác định'; // Bắt lỗi và trả về thông báo lỗi
         }
     },
+    getNhanVienById: async (id) => {
+        try {
+            const response = await http.get(`NhanVien/${id}`);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || 'Lỗi khi lấy chi tiết nhân viên';
+        }
+    },
+    getKhachHangById: async (id) => {
+        try {
+            const response = await http.get(`KhachHang/${id}`);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || 'Lỗi khi lấy chi tiết nhân viên';
+        }
+    },
+    SearchCustomer: async (Keyword, IsPublic) => {
+        try {
+            const response = await http.get(`KhachHang/list?Keyword=${Keyword || ''}&Ispublic=${IsPublic ?? 0}`);
+            console.log(response.data)
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || 'Lỗi không xác định';
+        }
+    },
+    SearchNhanVien: async (Keyword, IsPublic) => {
+        try {
+            // Tạo URL với các tham số Keyword và IsPublic
+            const response = await http.get(`NhanVien/list?Keyword=${Keyword || ''}`);
+
+            console.log("Phản hồi từ server:", response.data);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || 'Lỗi không xác định';
+        }
+    }
 };
 
 // Export default object AuthService

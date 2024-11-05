@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, message, Switch, Input, Row, Col, Modal, Form, Space } from 'antd';
+import { Table, Button, message, Switch, Input, Row, Col, Drawer, Form, Space, Select } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import AdminService from '../../../Service/AdminService';
+import AuthService from '../../../Service/AuthService';
 
-const { Search } = Input;
+const { Option } = Select;
 
 const NhanVienPage = () => {
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [Keyword, setKeyword] = useState();
   const [pageSize] = useState(10);
   const [nhanViens, setNhanViens] = useState([]);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [editingNhanVien, setEditingNhanVien] = useState(null);
   const [form] = Form.useForm();
 
@@ -38,10 +40,15 @@ const NhanVienPage = () => {
     fetchNhanViens();
   }, []);
 
-  const handleEdit = (record) => {
-    setEditingNhanVien(record);
-    form.setFieldsValue(record);
-    setIsModalVisible(true);
+  const handleEdit = async (record) => {
+    try {
+      const data = await AdminService.getNhanVienById(record.id);
+      setEditingNhanVien(data);
+      form.setFieldsValue(data);
+      setIsDrawerVisible(true);
+    } catch (error) {
+      message.error('Lỗi khi lấy chi tiết nhân viên.');
+    }
   };
 
   const handleStatusChange = async (nhanVien, newStatus) => {
@@ -50,7 +57,7 @@ const NhanVienPage = () => {
         ...nhanVien,
         trangThai: newStatus ? 1 : 0,
       };
-      await AdminService.UpdateNhanVienStatus(updatedNhanVien); // Giả sử có phương thức này trong AdminService
+      await AuthService.registerNhanVien(updatedNhanVien);
       message.success('Trạng thái nhân viên đã được cập nhật!');
       fetchNhanViens();
     } catch (error) {
@@ -131,30 +138,60 @@ const NhanVienPage = () => {
     setCurrentPage(pagination.current);
   };
 
-  const onSearch = (value) => {
-    console.log('Search Value:', value);
-  };
 
-  const handleModalOk = () => {
-    form.validateFields().then(async (values) => {
-      try {
-        if (editingNhanVien) {
-          await AdminService.UpdateNhanVien({ ...editingNhanVien, ...values });
-          message.success('Cập nhật nhân viên thành công!');
-        } else {
-          await AdminService.CreateNhanVien(values);
-          message.success('Thêm nhân viên thành công!');
-        }
-        setIsModalVisible(false);
-        fetchNhanViens();
-      } catch (error) {
-        message.error('Lỗi khi cập nhật dữ liệu nhân viên.');
+  const onSearch = async () => {
+    setLoading(true);
+    try {
+      // Gọi hàm SearchNhanVien và truyền các giá trị Keyword và IsPublic
+      const result = await AdminService.SearchNhanVien(Keyword);
+      if (Array.isArray(result)) {
+        setNhanViens(result);
+        message.success('Tìm kiếm nhân viên thành công!');
+      } else {
+        throw new Error('Không có dữ liệu nhân viên');
       }
-    });
+    } catch (error) {
+      console.error('Lỗi khi tìm kiếm nhân viên:', error);
+      setNhanViens([]);
+      message.error(error.message || 'Lỗi không xác định');
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleModalCancel = () => {
-    setIsModalVisible(false);
+  const handleModalOk = async () => {
+    try {
+      const values = await form.validateFields();
+      const nhanVienData = {
+        ...editingNhanVien,
+        ...values,
+        maNv: values.maNv,
+        gioiTinh: values.gioiTinh === 'Nam',
+        MatKhau: values.matKhau,
+        IdCv: values.idCv,
+        taiKhoan: values.taiKhoan || 'string',
+        matKhau: values.matKhau || 'string',
+        DiaChi: values.diaChi,
+        MoTa: values.moTa,
+        TrangThai: values.trangThai,
+      };
+
+      if (editingNhanVien) {
+        await AuthService.registerNhanVien(nhanVienData); // Cập nhật nhân viên
+        message.success('Cập nhật nhân viên thành công!');
+      } else {
+        await AuthService.registerNhanVien(nhanVienData); // Thêm nhân viên
+        message.success('Thêm nhân viên thành công!');
+      }
+      handleDrawerClose();
+      fetchNhanViens();
+    } catch (error) {
+      message.error('Lỗi khi cập nhật dữ liệu nhân viên.');
+    }
+  };
+
+  const handleDrawerClose = () => {
+    setIsDrawerVisible(false);
     form.resetFields();
     setEditingNhanVien(null);
   };
@@ -168,20 +205,21 @@ const NhanVienPage = () => {
       message.error('Lỗi khi xóa nhân viên.');
     }
   };
-
   return (
     <div>
       <h1>Quản lý nhân viên</h1>
       <Row gutter={16} style={{ marginBottom: '20px' }}>
         <Col span={12}>
-          <Search
+          <Input.Search
             placeholder="Nhập tên hoặc mã nhân viên"
             onSearch={onSearch}
+            value={Keyword}
             enterButton
+            onChange={(e) => setKeyword(e.target.value)}
           />
         </Col>
         <Col span={6}>
-          <Button type="primary" onClick={() => setIsModalVisible(true)}>
+          <Button type="primary" onClick={() => setIsDrawerVisible(true)}>
             Thêm nhân viên mới
           </Button>
         </Col>
@@ -197,39 +235,57 @@ const NhanVienPage = () => {
           pageSize,
           total: nhanViens.length,
           onChange: handleTableChange,
+
         }}
       />
-
-      <Modal
+      <Drawer
         title={editingNhanVien ? "Sửa thông tin nhân viên" : "Thêm nhân viên"}
-        visible={isModalVisible}
-        onOk={handleModalOk}
-        onCancel={handleModalCancel}
+        visible={isDrawerVisible}
+        onClose={handleDrawerClose}
+        width={700}
       >
         <Form form={form} layout="vertical">
+          <Form.Item name="idCv" label="ID Chức Vụ" rules={[{ required: true, message: 'Nhập ID chức vụ' }]}>
+            <Input />
+          </Form.Item>
           <Form.Item name="maNv" label="Mã NV" rules={[{ required: true, message: 'Nhập mã NV' }]}>
             <Input />
           </Form.Item>
           <Form.Item name="hoVaTenNv" label="Họ và Tên" rules={[{ required: true, message: 'Nhập họ và tên' }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="gioiTinh" label="Giới Tính">
+          <Form.Item name="gioiTinh" label="Giới Tính" rules={[{ required: true, message: 'Chọn giới tính' }]}>
+            <Select placeholder="Chọn giới tính">
+              <Option value="Nam">Nam</Option>
+              <Option value="Nữ">Nữ</Option>
+            </Select>
+          </Form.Item>
+          <Form.Item name="ngaySinh" label="Ngày Sinh" rules={[{ required: true, message: 'Nhập ngày sinh' }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="ngaySinh" label="Ngày Sinh">
+          <Form.Item name="soDienThoai" label="Số Điện Thoại" rules={[{ required: true, message: 'Nhập số điện thoại' }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="soDienThoai" label="Số Điện Thoại">
-            <Input />
-          </Form.Item>
-          <Form.Item name="email" label="Email">
+          <Form.Item name="email" label="Email" rules={[{ required: true, message: 'Nhập email' }]}>
             <Input />
           </Form.Item>
           <Form.Item name="image" label="Hình Ảnh">
             <Input />
           </Form.Item>
+          <Form.Item name="diaChi" label="Địa Chỉ">
+            <Input />
+          </Form.Item>
+          <Form.Item name="moTa" label="Mô Tả">
+            <Input />
+          </Form.Item>
+          <Form.Item name="trangThai" label="Trạng Thái">
+            <Input />
+          </Form.Item>
         </Form>
-      </Modal>
+        <Button type="primary" onClick={handleModalOk}>
+          {editingNhanVien ? "Cập nhật" : "Thêm"}
+        </Button>
+      </Drawer>
     </div>
   );
 };

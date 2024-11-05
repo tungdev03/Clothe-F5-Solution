@@ -1,4 +1,4 @@
-.color-management-container {
+.original-management-container {
     display: flex;
 }
 
@@ -30,7 +30,7 @@
 }
 
 .ant-switch-checked {
-    background-color: #000000;
+    background-color: #52c41a;
 }
 
 .filter-button {

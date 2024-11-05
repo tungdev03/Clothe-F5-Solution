@@ -1,47 +1,47 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Switch, Modal, Radio, Form, Input, message, Select } from "antd";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
-import MaterialService from "../../../Service/MaterialService";
-import "./MaterialManagement.css";
+import CategoryService from "../../../Service/CategoryService";
+import "./CategoriesManagement.css";
 
 const { Option } = Select;
 
-const MaterialManagement = () => {
-    const [materials, setMaterials] = useState([]);
+const CategoriesManagement = () => {
+    const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [modalVisible, setModalVisible] = useState(false);
-    const [editingMaterial, setEditingMaterial] = useState(null);
+    const [editingCategory, setEditingCategory] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all"); // Trạng thái lọc
     const [form] = Form.useForm();
     const pageSize = 10;
 
-    const fetchMaterial = async (search = "", status = "all") => {
+    const fetchCategory = async (search = "", status = "all") => {
         setLoading(true);
         try {
-            const data = await MaterialService.getAllMaterial();
-            const filteredData = data.filter(material => {
-                const matchesSearch = material.tenChatLieu.toLowerCase().includes(search.toLowerCase());
-                const matchesStatus = status === "all" || (status === "active" && material.trangThai === 1) || (status === "inactive" && material.trangThai === 0);
+            const data = await CategoryService.getAllCategory();
+            const filteredData = data.filter(category => {
+                const matchesSearch = category.tenDanhMuc.toLowerCase().includes(search.toLowerCase());
+                const matchesStatus = status === "all" || (status === "active" && category.trangThai === 1) || (status === "inactive" && category.trangThai === 0);
                 return matchesSearch && matchesStatus;
             });
-            setMaterials(filteredData);
-            message.success("Lấy danh sách Chất Liệu thành công");
+            setCategories(filteredData);
+            message.success("Lấy danh sách danh mục thành công");
         } catch (error) {
-            message.error("Lỗi khi lấy danh sách Chất Liệu");
+            message.error("Lỗi khi lấy danh sách danh mục");
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchMaterial();
+        fetchCategory();
     }, []);
 
     const openModal = (record = null) => {
         setModalVisible(true);
-        setEditingMaterial(record);
+        setEditingCategory(record);
         if (record) {
             form.setFieldsValue({ ...record, trangThai: record.trangThai });
         } else {
@@ -53,16 +53,16 @@ const MaterialManagement = () => {
         try {
             const values = await form.validateFields();
             console.log('Submitting values for create:', values);
-            const newMaterial = {
-                tenChatLieu: values.tenChatLieu,
+            const newCategory = {
+                tenDanhMuc: values.tenDanhMuc,
                 moTa: values.moTa,
                 trangThai: values.trangThai === 1 ? 1 : 0,
             };
-            const response = await MaterialService.createMaterial(newMaterial);
+            const response = await CategoryService.createCategory(newCategory);
             console.log('Create response:', response);
-            message.success("Thêm mới Chất Liệu thành công");
+            message.success("Thêm mới Danh Mục thành công");
             setModalVisible(false);
-            fetchMaterial(searchTerm, statusFilter); // Lọc lại theo từ khóa và trạng thái
+            fetchCategory(searchTerm, statusFilter); // Lọc lại theo từ khóa và trạng thái
         } catch (error) {
             if (error.response && error.response.data) {
                 console.error("Error response data:", error.response.data);
@@ -78,16 +78,16 @@ const MaterialManagement = () => {
             const values = await form.validateFields();
             console.log('Submitting values for update:', values);
             const updatedValues = {
-                id: editingMaterial.id,
-                tenChatLieu: values.tenChatLieu,
+                id: editingCategory.id,
+                tenDanhMuc: values.tenDanhMuc,
                 moTa: values.moTa,
                 trangThai: values.trangThai === 1 ? 1 : 0,
             };
-            const response = await MaterialService.updateMaterial(editingMaterial.id, updatedValues);
+            const response = await CategoryService.updateCategory(editingCategory.id, updatedValues);
             console.log('Update response:', response);
-            message.success("Cập nhật Chất Liệu thành công");
+            message.success("Cập nhật Danh Mục thành công");
             setModalVisible(false);
-            fetchMaterial(searchTerm, statusFilter); // Lọc lại theo từ khóa và trạng thái
+            fetchCategory(searchTerm, statusFilter); // Lọc lại theo từ khóa và trạng thái
         } catch (error) {
             if (error.response && error.response.data) {
                 console.error("Error response data:", error.response.data);
@@ -99,29 +99,29 @@ const MaterialManagement = () => {
     };
 
     const handleOk = async () => {
-        if (editingMaterial) {
+        if (editingCategory) {
             await handleUpdate();
         } else {
             await handleCreate();
         }
     };
 
-    const handleStatusChange = async (material, newStatus) => {
+    const handleStatusChange = async (category, newStatus) => {
         try {
-            const updateMaterial = {
-                ...material,
+            const updateCategory = {
+                ...category,
                 trangThai: newStatus ? 1 : 0,
             };
-            await MaterialService.updateMaterial(material.id, updateMaterial);
-            message.success("Chuyển trạng thái Chất Liệu thành công");
-            fetchMaterial(searchTerm, statusFilter); // Reload lại dữ liệu sau khi cập nhật
+            await CategoryService.updateCategory(category.id, updateCategory);
+            message.success("Chuyển trạng thái Danh Mục thành công");
+            fetchCategory(searchTerm, statusFilter); // Reload lại dữ liệu sau khi cập nhật
         } catch (error) {
-            message.error("Lỗi khi chuyển trạng thái Chất Liệu");
+            message.error("Lỗi khi chuyển trạng thái Danh Mục");
         }
     };
 
     const handleFilter = () => {
-        fetchMaterial(searchTerm, statusFilter); // Gọi hàm lọc khi người dùng nhấn nút Lọc
+        fetchCategory(searchTerm, statusFilter); // Gọi hàm lọc khi người dùng nhấn nút Lọc
     };
 
     const columns = [
@@ -134,9 +134,9 @@ const MaterialManagement = () => {
             align: "center",
         },
         {
-            title: "Tên Chất Liệu",
-            dataIndex: "tenChatLieu",
-            key: "tenChatLieu",
+            title: "Tên Danh Mục",
+            dataIndex: "tenDanhMuc",
+            key: "tenDanhMuc",
             align: "center",
         },
         {
@@ -145,6 +145,7 @@ const MaterialManagement = () => {
             key: "moTa",
             align: "center",
         },
+        
         {
             title: "Trạng Thái",
             dataIndex: "trangThai",
@@ -171,13 +172,13 @@ const MaterialManagement = () => {
     ];
 
     return (
-        <div className="material-management">
-            <h2>Quản lý Chất Liệu</h2>
-            <div className="material-management-container">
+        <div className="categories-management">
+            <h2>Quản lý Danh Mục</h2>
+            <div className="categories-management-container">
                 <div className="sidebar">
                     <h2>Bộ lọc</h2>
                     <Input
-                        placeholder="Tìm kiếm tên chất liệu..."
+                        placeholder="Tìm kiếm tên danh mục..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="search-input"
@@ -204,38 +205,38 @@ const MaterialManagement = () => {
                         onClick={() => openModal()}
                         className="button"
                     >
-                        Thêm chất liệu mới
+                        Thêm danh mục mới
                     </Button>
 
                     <Table
                         columns={columns}
-                        dataSource={materials}
+                        dataSource={categories}
                         rowKey="id"
                         loading={loading}
                         pagination={{
                             current: currentPage,
                             pageSize: pageSize,
-                            total: materials.length,
+                            total: categories.length,
                             onChange: (page) => setCurrentPage(page),
                         }}
                     />
 
                     <Modal
-                        title={editingMaterial ? "Cập nhật Chất Liệu" : "Thêm mới Chất Liệu"}
+                        title={editingCategory ? "Cập nhật Danh Mục" : "Thêm mới Danh Mục"}
                         open={modalVisible}
                         onCancel={() => setModalVisible(false)}
                         footer={null}
                     >
                         <Form form={form} layout="vertical" onFinish={handleOk}>
                             <Form.Item
-                                label="Tên Chất Liệu"
-                                name="tenChatLieu"
-                                rules={[{ required: true, message: "Vui lòng nhập tên Chất Liệu" }]}
+                                label="Tên Danh Mục"
+                                name="tenDanhMuc"
+                                rules={[{ required: true, message: "Vui lòng nhập tên Danh Mục" }]}
                             >
-                                <Input placeholder="Nhập tên chất liệu" />
+                                <Input placeholder="Nhập tên danh mục" />
                             </Form.Item>
                             <Form.Item label="Mô tả" name="moTa">
-                                <Input.TextArea placeholder="Nhập mô tả cho chất liệu" rows={4} />
+                                <Input.TextArea placeholder="Nhập mô tả cho danh mục" rows={4} />
                             </Form.Item>
                             <Form.Item label="Trạng thái" name="trangThai" initialValue={1}>
                                 <Radio.Group style={{ display: "flex", flexDirection: "row" }}>
@@ -268,4 +269,4 @@ const MaterialManagement = () => {
     );
 };
 
-export default MaterialManagement;
+export default CategoriesManagement;

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, message, Switch, App, Input, Row, Col, Dropdown, Space, Drawer, Form, Select, DatePicker } from 'antd';
+import { Table, Button, message, Switch, Input, Row, Col, Dropdown, Space, Drawer, Form, Select } from 'antd';
 import { EditOutlined, DownOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import AdminService from '../../../Service/AdminService';
 import AuthService from '../../../Service/AuthService';
 
 const { Search } = Input;
+const { Option } = Select;
 
 const KhachHangPage = () => {
   const [loading, setLoading] = useState(false);
@@ -15,68 +16,86 @@ const KhachHangPage = () => {
   const [isDrawerVisible, setIsDrawerVisible] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [form] = Form.useForm();
+  const [Keyword, setKeyword] = useState();
 
   const fetchKhachHangs = async () => {
     setLoading(true);
     try {
-      const data = await AdminService.GetCustomer(); // Lấy dữ liệu từ API thông qua AdminService
-      setKhachHangs(data); // Lưu dữ liệu khách hàng vào state
+      const data = await AdminService.GetCustomer();
+      setKhachHangs(data);
       message.success('Lấy danh sách khách hàng thành công!');
     } catch (error) {
-      message.error(error);
+      message.error(error.message || 'Có lỗi xảy ra khi lấy dữ liệu khách hàng.');
     } finally {
-      setLoading(false); // Tắt trạng thái loading
+      setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchKhachHangs(); // Gọi hàm fetch dữ liệu khi component được mount
+    fetchKhachHangs();
   }, []);
 
-  const handleEdit = (record) => {
-    setEditingUser(record);
-    form.setFieldsValue({
-      ...record,
-      ngaySinh: moment(record.ngaySinh), // Chuyển đổi ngày thành moment
-    }); // Thiết lập giá trị cho form
-    setIsDrawerVisible(true); // Mở Drawer
+  const handleEdit = async (record) => {
+    try {
+      const data = await AdminService.getKhachHangById(record.id);
+      setEditingUser(data);
+      form.setFieldsValue({
+        ...data,
+        gioiTinh: data.gioiTinh ? 'Nam' : 'Nữ', // Chuyển đổi từ boolean thành chuỗi
+        ngaySinh: moment(data.ngaySinh).format('YYYY-MM-DD'),
+      });
+      setIsDrawerVisible(true);
+    } catch (error) {
+      message.error('Lỗi khi lấy chi tiết khách hàng.');
+    }
   };
 
   const handleDrawerClose = () => {
     setIsDrawerVisible(false);
     setEditingUser(null);
-    form.resetFields(); // Reset form
+    form.resetFields();
   };
 
   const handleFormSubmit = async (values) => {
     try {
-      const formattedValues = {
-        ...values,
-        ngaySinh: values.ngaySinh ? values.ngaySinh.format('YYYY-MM-DD') : null, // Định dạng ngày
+      const userValues = {
+        id: editingUser, // Tạo id nếu chưa có
+        maKh: values.maKh,
+        hoVaTenKh: values.hoVaTenKh,
+        gioiTinh: values.gioiTinh === 'Nam', // Chuyển đổi từ chuỗi thành boolean
+        ngaySinh: values.ngaySinh,
+        taiKhoan: values.taiKhoan || 'string',
+        matKhau: values.matKhau || 'string',
+        soDienThoai: values.soDienThoai,
+        email: values.email,
+        trangThai: 0,
       };
+
       if (editingUser) {
-        // Cập nhật người dùng
-        await AdminService.UpdateCustomer({ ...editingUser, ...formattedValues });
+        await AuthService.registerCustomer(userValues);
         message.success('Cập nhật khách hàng thành công!');
       } else {
-        // Thêm mới người dùng
-        await AuthService.registerCustomer(formattedValues);
+        await AuthService.registerCustomer(userValues);
         message.success('Thêm khách hàng thành công!');
       }
-      handleDrawerClose(); // Đóng Drawer sau khi thực hiện
-      fetchKhachHangs(); // Cập nhật lại danh sách khách hàng
+      handleDrawerClose();
+      fetchKhachHangs();
     } catch (error) {
       message.error('Có lỗi xảy ra. Vui lòng thử lại.');
     }
   };
 
-  const handleStatusChange = async (record, checked) => {
+  const handleStatusChange = async (khachHang, newStatus) => {
     try {
-      await AdminService.UpdateCustomer({ ...record, trangThai: checked });
-      message.success('Cập nhật trạng thái thành công!');
-      fetchKhachHangs(); // Cập nhật lại danh sách khách hàng
+      const updatedKhachHang = {
+        ...khachHang,
+        trangThai: newStatus ? 1 : 0,
+      };
+      await AuthService.registerCustomer(updatedKhachHang);
+      message.success('Trạng thái khách hàng đã được cập nhật!');
+      fetchKhachHangs();
     } catch (error) {
-      message.error('Có lỗi xảy ra khi cập nhật trạng thái.');
+      message.error('Không thể cập nhật trạng thái khách hàng.');
     }
   };
 
@@ -102,7 +121,7 @@ const KhachHangPage = () => {
       title: 'Giới Tính',
       dataIndex: 'gioiTinh',
       key: 'gioiTinh',
-      render: (text) => (text ? 'Nam' : 'Nữ'),
+      render: (text) => (text ? 'Nam' : 'Nữ'), // Chuyển đổi boolean thành chuỗi
     },
     {
       title: 'Ngày Sinh',
@@ -132,7 +151,7 @@ const KhachHangPage = () => {
       key: 'trangThai',
       render: (text, record) => (
         <Switch
-          checked={text}
+          checked={text === 1}
           onChange={(checked) => handleStatusChange(record, checked)}
         />
       ),
@@ -152,117 +171,148 @@ const KhachHangPage = () => {
     setCurrentPage(pagination.current);
   };
 
+  const onSearch = async (value) => {
+    setLoading(true)
+    try {
+      const data = await AdminService.SearchCustomer(value.Keyword, value.IsPublic)
+      if (Array.isArray(data)) {
+        setKhachHangs(data);
+        message.success('Tìm kiếm khách hàng thành công!');
+      } else {
+        throw new Error('Không có dữ liệu khách hàng');
+      }
+    }
+    catch (error) {
+      console.error('Lỗi khi tìm kiếm nhân viên:', error);
+      setKhachHangs([]);
+      message.error(error.message || 'Lỗi không xác định');
+    }
+    finally {
+      setLoading(false)
+    }
+  }
   return (
-    <App>
-      <div>
-        <h1>Quản lý khách hàng</h1>
-        <Row gutter={16} style={{ marginBottom: '20px' }}>
-          <Col span={12}>
-            <Search
-              placeholder="Nhập tên hoặc mã khách hàng"
-              onSearch={(value) => console.log('Search Value:', value)}
-              enterButton
-              style={{ height: '40px' }}
-            />
-          </Col>
-          <Col span={5}>
-            <Dropdown menu={{ items: [{ label: 'Hoạt động', key: '1' }, { label: 'Ngưng hoạt động', key: '2' }] }}>
-              <Button style={{ height: '40px' }}>
-                <Space>
-                  Lọc theo trạng thái
-                  <DownOutlined />
-                </Space>
-              </Button>
-            </Dropdown>
-          </Col>
-          <Col span={6}>
-            <Button
-              type="primary"
-              onClick={() => {
-                setEditingUser(null); // Reset người dùng để thêm mới
-                setIsDrawerVisible(true); // Mở Drawer
-              }}
-              style={{ height: '40px' }}
-            >
-              Thêm khách hàng mới
+    <div>
+      <h1>Quản lý khách hàng</h1>
+      <Row gutter={16} style={{ marginBottom: '20px' }}>
+        <Col span={12}>
+          <Search
+            placeholder="Nhập tên hoặc mã khách hàng"
+            enterButton
+            onSearch={onSearch}
+            style={{ height: '40px' }}
+            value={Keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+          />
+        </Col>
+        <Col span={5}>
+          <Dropdown
+            menu={{
+              items: [
+                { label: 'Hoạt động', key: '0' },
+                { label: 'Ngưng hoạt động', key: '1' },
+              ],
+            }}
+          >
+            <Button style={{ height: '40px' }}>
+              <Space>
+                Lọc theo trạng thái
+                <DownOutlined />
+              </Space>
             </Button>
-          </Col>
-        </Row>
+          </Dropdown>
+        </Col>
+        <Col span={6}>
+          <Button
+            type="primary"
+            onClick={() => {
+              setEditingUser(null);
+              setIsDrawerVisible(true);
+            }}
+            style={{ height: '40px' }}
+          >
+            Thêm khách hàng mới
+          </Button>
+        </Col>
+      </Row>
 
-        <Table
-          columns={columns}
-          loading={loading}
-          dataSource={khachHangs}
-          rowKey="id"
-          pagination={{
-            current: currentPage,
-            pageSize,
-            total: khachHangs.length,
-            onChange: handleTableChange,
-          }}
-        />
+      <Table
+        columns={columns}
+        loading={loading}
+        dataSource={khachHangs}
+        rowKey="id"
+        pagination={{
+          current: currentPage,
+          pageSize,
+          total: khachHangs.length,
+          onChange: handleTableChange,
+        }}
+      />
 
-        <Drawer
-          title={editingUser ? 'Cập nhật khách hàng' : 'Thêm khách hàng'}
-          visible={isDrawerVisible}
-          onClose={handleDrawerClose}
-          width={720}
-        >
-          <Form form={form} layout="vertical" onFinish={handleFormSubmit}>
-            <Form.Item
-              name="maKh"
-              label="Mã KH"
-              rules={[{ required: true, message: 'Vui lòng nhập mã khách hàng!' }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              name="hoVaTenKh"
-              label="Họ và Tên"
-              rules={[{ required: true, message: 'Vui lòng nhập họ và tên!' }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              name="gioiTinh"
-              label="Giới Tính"
-              rules={[{ required: true, message: 'Vui lòng chọn giới tính!' }]}
-            >
-              <Select>
-                <Select.Option value={0}>Nam</Select.Option>
-                <Select.Option value={1}>Nữ</Select.Option>
-              </Select>
-            </Form.Item>
-            <Form.Item
-              name="ngaySinh"
-              label="Ngày Sinh"
-              rules={[{ required: true, message: 'Vui lòng chọn ngày sinh!' }]}
-            >
-              <DatePicker format="YYYY-MM-DD" />
-            </Form.Item>
-            <Form.Item
-              name="soDienThoai"
-              label="Số Điện Thoại"
-              rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              name="email"
-              label="Email"
-              rules={[{ required: true, message: 'Vui lòng nhập email!' }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item>
-              <Button type="primary" htmlType="submit">
-                {editingUser ? 'Cập nhật' : 'Thêm'}
-              </Button>
-            </Form.Item>
-          </Form>
-        </Drawer>
-      </div>
-    </App>
+      <Drawer
+        title={editingUser ? 'Cập nhật khách hàng' : 'Thêm khách hàng'}
+        visible={isDrawerVisible}
+        onClose={handleDrawerClose}
+        width={720}
+      >
+        <Form form={form} layout="vertical" onFinish={handleFormSubmit}>
+          <Form.Item
+            name="maKh"
+            label="Mã KH"
+            rules={[{ required: true, message: 'Vui lòng nhập mã khách hàng!' }]}
+          >
+            <Input placeholder="Nhập mã khách hàng" />
+          </Form.Item>
+
+          <Form.Item
+            name="hoVaTenKh"
+            label="Họ và Tên"
+            rules={[{ required: true, message: 'Vui lòng nhập họ và tên!' }]}
+          >
+            <Input placeholder="Nhập họ và tên" />
+          </Form.Item>
+
+          <Form.Item
+            name="gioiTinh"
+            label="Giới Tính"
+            rules={[{ required: true, message: 'Vui lòng chọn giới tính!' }]}
+          >
+            <Select placeholder="Chọn giới tính">
+              <Option value="Nam">Nam</Option>
+              <Option value="Nữ">Nữ</Option>
+            </Select>
+          </Form.Item>
+
+          <Form.Item
+            name="ngaySinh"
+            label="Ngày Sinh"
+            rules={[{ required: true, message: 'Vui lòng chọn ngày sinh!' }]}
+          >
+            <Input type="date" placeholder="Chọn ngày sinh" />
+          </Form.Item>
+
+          <Form.Item
+            name="soDienThoai"
+            label="Số Điện Thoại"
+            rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
+          >
+            <Input placeholder="Nhập số điện thoại" />
+          </Form.Item>
+
+          <Form.Item
+            name="email"
+            label="Email"
+            rules={[{ required: true, message: 'Vui lòng nhập email!' }]}
+          >
+            <Input type="email" placeholder="Nhập email" />
+          </Form.Item>
+
+          <Button type="primary" htmlType="submit">
+            {editingUser ? 'Cập nhật' : 'Thêm mới'}
+          </Button>
+        </Form>
+      </Drawer>
+    </div>
   );
 };
 

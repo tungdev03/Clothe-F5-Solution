@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
     MenuFoldOutlined,
     MenuUnfoldOutlined,
@@ -6,7 +6,7 @@ import {
     ShoppingCartOutlined,
     FileTextOutlined,
     TeamOutlined,
-    TagsOutlined
+    TagsOutlined,
 } from '@ant-design/icons';
 import { Avatar, Button, Layout, Menu, theme, ConfigProvider } from 'antd';
 import StatisticsPage from './StatisticsPage';
@@ -81,6 +81,7 @@ const Dashboard = () => {
                 break;
             case '4-1':
                 setCurrentContent(<EmployeeManagement />);
+                break;
             default:
                 break;
         }
@@ -116,7 +117,7 @@ const Dashboard = () => {
                 <Menu theme="light" mode="inline" defaultSelectedKeys={['1']}>
                     <Menu.ItemGroup key="g1" title="Tổng quan" icon={<AppstoreOutlined />}>
                         <Menu.Item key="1-1" onClick={() => handleMenuClick('1-1')}>
-                            Thống kê
+                        Thống kê
                         </Menu.Item>
                     </Menu.ItemGroup>
 

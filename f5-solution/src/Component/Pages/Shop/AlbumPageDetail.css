@@ -1,0 +1,278 @@
+/* Container chính cho trang chi tiết sản phẩm */
+.album-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
+
+.album-detail-content {
+    display: flex;
+    justify-content: space-between;
+    gap: 40px;
+}
+
+.album-detail-images {
+    display: flex;
+    flex-direction: row;
+    gap: 20px;
+}
+
+.album-detail-sub-images {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    align-items: center;
+}
+
+.album-detail-sub-images img {
+    width: 100px;
+    height: 150px;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+}
+
+.album-detail-main-image-container {
+    position: relative;
+    width: 450px;
+    height: 600px; /* Đặt chiều cao cho container ảnh chính */
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.album-detail-main-image {
+    width: 100%;
+    height: 100%; /* Đảm bảo ảnh chính bao phủ toàn bộ container */
+    object-fit: cover;
+    transition: opacity 0.3s ease; /* Thêm hiệu ứng mờ cho hình ảnh chính */
+}
+
+/* Ô vuông chỉ định khu vực cần zoom */
+.zoom-lens {
+    position: absolute;
+    border: 2px dashed rgba(255, 255, 255, 0.7); /* Đường viền ô vuông zoom */
+    display: none; /* Ẩn ô vuông zoom ban đầu */
+    pointer-events: none; /* Không tương tác với ô vuông này */
+    width: 150px; /* Kích thước của ô zoom */
+    height: 150px;
+}
+
+/* Ô preview cho ảnh zoom */
+.zoom-preview {
+    position: absolute;
+    width: 200px; /* Chiều rộng của hình ảnh zoomed */
+    height: 200px; /* Chiều cao của hình ảnh zoomed */
+    border: 2px solid #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+    display: none; /* Ẩn ô vuông preview ban đầu */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.zoom-preview img {
+    position: absolute;
+    transition: transform 0.1s ease; /* Hiệu ứng mượt mà khi di chuyển */
+}
+
+/* Phần hiển thị thông tin sản phẩm */
+.album-detail-info {
+    flex: 1;
+}
+
+.album-detail-info h2 {
+    font-size: 28px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+.album-detail-product-code {
+    font-size: 14px;
+    margin-bottom: 5px;
+    color: #777;
+}
+
+.album-detail-price {
+    font-size: 24px;
+    color: red;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+.album-detail-material {
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.album-detail-sizes, .album-detail-colors {
+    margin-bottom: 20px;
+}
+
+.album-detail-sizes label, .album-detail-colors label {
+    display: block;
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+/* Các tùy chọn màu sắc và kích thước */
+.album-detail-size-options button, .album-detail-color-options button {
+    margin-right: 10px;
+    padding: 10px 20px;
+    border: 1px solid #ccc;
+    background-color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    border-radius: 50px;
+}
+
+/* Màu sắc (hình tròn) với dấu tích khi hover */
+.color-circle {
+    position: relative; /* Để tạo không gian cho dấu tích */
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid #000000;
+    cursor: pointer;
+    transition: transform 0.3s ease, border-color 0.3s ease;
+    background-color: #d476da;
+}
+
+.color-circle:hover {
+    transform: scale(1.1); /* Phóng to nhẹ khi di chuột qua */
+    border-color: #000000; /* Đổi màu viền khi hover */
+}
+
+.color-circle::after {
+    content: '\2713'; /* Unicode cho dấu tích */
+    color: black;
+    font-size: 14px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    transition: transform 0.3s ease;
+}
+
+.color-circle:hover::after {
+    transform: translate(-50%, -50%) scale(1); /* Hiển thị dấu tích khi hover */
+    color: #000;
+}
+
+/* Hiển thị các lựa chọn màu sắc */
+.album-detail-color-options {
+    display: flex;
+    gap: 10px;
+}
+
+/* Size option */
+.album-detail-size-options button {
+    margin-right: 10px;
+    padding: 10px 20px;
+    border: 1px solid #ccc;
+    background-color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    border-radius: 60px;
+    font-size: 16px;
+}
+
+/* Khi hover vào kích thước, chữ sẽ chuyển thành màu xanh */
+.album-detail-size-options button:hover {
+    color: #010201; /* Đổi màu chữ thành xanh khi hover */
+    background-color: #f0f0f0; /* Đổi nền nhẹ khi hover */
+    border-color: #000000; /* Đổi màu viền thành xanh khi hover */
+}
+
+/* Nút kích thước được chọn */
+.album-detail-size-options button.active {
+    background-color: transparent; /* Loại bỏ nền xanh */
+    color: #4CAF50; /* Chỉ đổi màu chữ */
+    border-color: #4CAF50;
+    font-weight: bold;
+}
+
+/* Hành động (thêm vào giỏ hàng và mua ngay) */
+.album-detail-actions {
+    display: flex;
+    flex-direction: column; /* Chồng các nút lên nhau */
+    gap: 10px;
+}
+
+.add-to-cart-btn, .buy-now-btn {
+    padding: 15px 0;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, color 0.3s ease;
+    width: 50%; /* Nút chiếm toàn bộ chiều ngang */
+}
+
+.add-to-cart-btn {
+    background-color: #000;
+    color: #fff;
+    border: none;
+}
+
+.add-to-cart-btn:hover {
+    background-color: #333;
+}
+
+.buy-now-btn {
+    background-color: white;
+    color: black;
+    border: 1px solid #000;
+}
+
+.buy-now-btn:hover {
+    background-color: #f5f5f5;
+    color: #000;
+}
+
+/* Phần giới thiệu sản phẩm */
+.album-detail-introduction {
+    margin-top: 20px;
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.buy-now-form {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.buy-now-image {
+    width: 100px; /* Kích thước hình ảnh trong form */
+    height: auto;
+}
+
+.buy-now-product-info {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.buy-now-details {
+    margin-left: 10px;
+}
+
+.price {
+    color: red;
+    font-weight: bold;
+}

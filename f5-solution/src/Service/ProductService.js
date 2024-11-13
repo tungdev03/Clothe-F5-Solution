@@ -37,6 +37,45 @@ const ProductService = {
                throw error.response?.data || "Lỗi không xác định";
           }
      },
+
+
+     createProductDetail: async (productDetailData) => {
+          try {
+               const response = await http.post('SPCT', productDetailData);
+               return response.data;
+          } catch (error) {
+               throw error.response?.data || "Lỗi không xác định";             
+          }         
+     },
+     
+     updateProductDetail: async (id, productDetailData) => {
+          try {
+              const response = await http.put(`SPCT/${id}`, productDetailData);
+              return response.data;
+          } catch (error) {
+               throw error.response?.data || "Lỗi không xác định";             
+          }     
+     },
+
+     // Hàm lấy thông tin thuộc tính theo Id
+     getProductByIdDetail: async (id) => {
+          try {
+               const response = await http.get(`SPCT/${id}`);
+               return response.data;
+          } catch (error) {
+               throw error.response?.data || "Lỗi không xác định";
+          }
+     },
+
+     // Hàm lấy danh sách tất cả các Chất liệu
+     getAllProductDetail: async () => {
+          try {
+               const response = await http.get('SPCT'); // Gọi API để lấy danh sách
+               return response.data;
+          } catch (error) {
+               throw error.response?.data || "Lỗi không xác định";
+          }
+     },
 };
 
 export default ProductService;

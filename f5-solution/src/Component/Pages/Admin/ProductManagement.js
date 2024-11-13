@@ -14,7 +14,6 @@ const { Option } = Select;
 
 const ProductManagement = () => {
     const [imageUrl, setImageUrl] = useState(null);
-    const [dateRange, setDateRange] = useState([moment(), moment()]); // Khởi tạo với giá trị mặc định là ngày hiện tại
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
@@ -29,6 +28,12 @@ const ProductManagement = () => {
     const [originals, setOriginals] = useState([]);
     const [brands, setBrands] = useState([]);
     const [discounts, setDiscounts] = useState([]);
+    const [fileList, setFileList] = useState([]);
+    const [selectedOrigin, setSelectedOrigin] = useState(null);
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [selectedMaterial, setSelectedMaterial] = useState(null);
+    const [selectedBrand, setSelectedBrand] = useState(null);
+
 
     const fetchProduct = async (search = "", status = "all") => {
         setLoading(true);
@@ -37,7 +42,12 @@ const ProductManagement = () => {
             const filteredData = data.filter(product => {
                 const matchesSearch = product.tenSp ? product.tenSp.toLowerCase().includes(search.toLowerCase()) : false;
                 const matchesStatus = status === "all" || (status === "active" && product.trangThai === 1) || (status === "inactive" && product.trangThai === 0);
-                return matchesSearch && matchesStatus;
+                const matchesOrigin = selectedOrigin === null || product.idXx === selectedOrigin;
+                const matchesCategory = selectedCategory === null || product.idDm === selectedCategory;
+                const matchesMaterial = selectedMaterial === null || product.idCl === selectedMaterial;
+                const matchesBrand = selectedBrand === null || product.idTh === selectedBrand;
+                return matchesSearch && matchesStatus && matchesOrigin && matchesCategory && matchesMaterial && matchesBrand;
+
             });
             setProducts(filteredData);
             message.success("Lấy danh sách sản phẩm thành công");
@@ -81,17 +91,42 @@ const ProductManagement = () => {
         fetchOriginal();
         fetchBrand();
         fetchDiscount();
-
     }, []);
 
 
     const openModal = (record = null) => {
         setModalVisible(true);
         setEditingProduct(record);
+        // Reset form trước khi thiết lập giá trị mới
+        form.resetFields();
+
         if (record) {
-            form.setFieldsValue({ ...record, trangThai: record.trangThai });
+            form.setFieldsValue({
+                ...record,
+                trangThai: record.trangThai,
+                ngayThem: record.ngayThem ? moment(record.ngayThem) : moment(),
+                ngayThemGiamGia: record.ngayThemGiamGia ? moment(record.ngayThemGiamGia) : null,
+            });
+
+            // Cập nhật fileList với điều kiện không giữ lại ảnh cũ
+            if (record.imageDefaul && fileList.length === 0) {
+                setFileList([
+                    {
+                        uid: '-1',
+                        name: 'image.png',
+                        status: 'done',
+                        url: record.imageDefaul,
+                    },
+                ]);
+            } else if (!record.imageDefaul) {
+                setFileList([]); // Reset fileList nếu không có ảnh trong record
+            }
         } else {
+            form.setFieldsValue({
+                ngayThem: moment(), // Giá trị mặc định là ngày hiện tại
+            });
             form.resetFields();
+            setFileList([]); // Đảm bảo fileList rỗng khi không có record
         }
     };
 
@@ -202,7 +237,7 @@ const ProductManagement = () => {
     const handleUploadChange = ({ fileList }) => {
         if (fileList.length > 0) {
             const file = fileList[0].originFileObj; // Lấy tệp gốc
-            
+
             const reader = new FileReader();
             reader.onloadend = () => {
                 // Cập nhật giá trị hình ảnh trong form là URL
@@ -217,15 +252,6 @@ const ProductManagement = () => {
             // Nếu không có tệp nào, đặt giá trị hình ảnh về null hoặc chuỗi rỗng
             form.setFieldsValue({ imageDefaul: '' });
             setImageUrl(''); // Reset lại URL hình ảnh
-        }
-    };
-
-
-    const handleDateChange = (dates) => {
-        if (dates && dates[0] && dates[1]) {
-            setDateRange(dates); // Cập nhật state với ngày chọn
-        } else {
-            setDateRange(null); // Đặt lại nếu không có ngày nào hợp lệ
         }
     };
 
@@ -322,6 +348,7 @@ const ProductManagement = () => {
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="search-input"
                     />
+                    <h3>Trạng Thái</h3>
                     <Select
                         value={statusFilter}
                         onChange={(value) => setStatusFilter(value)}
@@ -332,7 +359,56 @@ const ProductManagement = () => {
                         <Option value="inactive">Ngừng hoạt động</Option>
                     </Select>
 
+                    <h3>Xuất Xứ</h3>
+                    <Select
+                        value={selectedOrigin}
+                        onChange={(value) => setSelectedOrigin(value)}
+                        style={{ width: "100%", marginTop: 10 }}
+                    >
+                        <Option value={null}>Tất cả</Option>
+                        {originals.map(xx => (
+                            <Option key={xx.id} value={xx.id}>{xx.tenXuatXu}</Option>
+                        ))}
+                    </Select>
 
+                    <h3>Danh Mục</h3>
+
+                    <Select
+                        value={selectedCategory}
+                        onChange={(value) => setSelectedCategory(value)}
+                        style={{ width: "100%", marginTop: 10 }}
+                    >
+                        <Option value={null}>Tất cả</Option>
+                        {categories.map(dm => (
+                            <Option key={dm.id} value={dm.id}>{dm.tenDanhMuc}</Option>
+                        ))}
+                    </Select>
+
+                    <h3>Chất Liệu</h3>
+
+                    <Select
+                        value={selectedMaterial}
+                        onChange={(value) => setSelectedMaterial(value)}
+                        style={{ width: "100%", marginTop: 10 }}
+                    >
+                        <Option value={null}>Tất cả</Option>
+                        {materials.map(cl => (
+                            <Option key={cl.id} value={cl.id}>{cl.tenChatLieu}</Option>
+                        ))}
+                    </Select>                  
+                    <h3>Thương Hiệu</h3>
+
+
+                    <Select
+                        value={selectedBrand}
+                        onChange={(value) => setSelectedBrand(value)}
+                        style={{ width: "100%", marginTop: 10 }}
+                    >
+                        <Option value={null}>Tất cả</Option>
+                        {brands.map(th => (
+                            <Option key={th.id} value={th.id}>{th.tenThuongHieu}</Option>
+                        ))}
+                    </Select>
                     <Button className="button" type="primary" onClick={handleFilter} style={{ marginTop: 10 }}>
                         Lọc
                     </Button>
@@ -368,7 +444,7 @@ const ProductManagement = () => {
                         onCancel={() => setModalVisible(false)}
                         footer={null}
                     >
-                        <Form form={form} layout="vertical" onFinish={handleOk}>
+                        <Form form={form} layout="vertical" onFinish={handleOk} >
                             <Form.Item
                                 label="Mã Sản Phẩm"
                                 name="maSp"
@@ -386,10 +462,12 @@ const ProductManagement = () => {
                                 <Upload
                                     name="image"
                                     listType="picture"
-                                    beforeUpload={(file) => {
-                                        return false; // Ngăn chặn upload tự động
+                                    fileList={fileList}
+                                    beforeUpload={() => false} // Ngăn chặn upload tự động
+                                    onChange={(info) => {
+                                        setFileList(info.fileList); // Cập nhật fileList khi chọn file mới
+                                        handleUploadChange(info);
                                     }}
-                                    onChange={handleUploadChange} // Gọi hàm xử lý thay đổi khi có tệp được chọn
                                     maxCount={1} // Giới hạn chỉ một file
                                     accept="image/*" // Chấp nhận chỉ các file hình ảnh
                                 >
@@ -426,14 +504,13 @@ const ProductManagement = () => {
                             <Form.Item
                                 label="Ngày Thêm"
                                 name="ngayThem"
+                                rules={[{ required: true, message: "Vui lòng chọn ngày thêm" }]}
                                 initialValue={moment()} // Thiết lập giá trị mặc định là ngày hiện tại
                             >
                                 <DatePicker
-                                    format="DD/MM/YYYY"
-                                    value={dateRange}
-                                    onChange={handleDateChange}
-                                    style={{ marginBottom: '20px' }}
-                                    disabled
+                                    format="DD-MM-YYYY"
+                                    placeholder="Chọn ngày thêm"
+                                    style={{ width: '100%' }}
                                 />
                             </Form.Item>
 
@@ -497,12 +574,15 @@ const ProductManagement = () => {
                             </Form.Item>
 
 
-                            <Form.Item label="Ngày Thêm Giảm Giá" name="ngayThemGiamGia">
+                            <Form.Item
+                                label="Ngày Thêm Giảm Giá"
+                                name="ngayThemGiamGia"
+                                rules={[{ required: true, message: "Vui lòng chọn ngày thêm" }]}
+                            >
                                 <DatePicker
-                                    format="DD/MM/YYYY"
-                                    value={dateRange}
-                                    onChange={handleDateChange}
-                                    style={{ marginBottom: '20px' }}
+                                    format="DD-MM-YYYY"
+                                    placeholder="Chọn ngày thêm giảm giá"
+                                    style={{ width: '100%' }}
                                 />
                             </Form.Item>
 

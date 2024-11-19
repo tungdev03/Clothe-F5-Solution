@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UserOutlined, ShoppingCartOutlined, LogoutOutlined } from '@ant-design/icons';
-import { Layout, Menu, Button, Dropdown, Space, Input } from 'antd';
+import { Layout, Menu, Button, Dropdown, Space, Input, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import logo_v1 from '../../../assets/images/Logo.png';
 
@@ -15,14 +15,17 @@ const items1 = [
 
 const CustomHeader = () => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState(null);
-
+  const [TaiKhoan, setUsername] = useState(null);
+  const [userProfile, setUserProfile] = useState({});
+  const [MaKh, setMaKhachHang] = useState(null);
+  const storedUser = localStorage.getItem('user');
+  const user = JSON.parse(storedUser);
   useEffect(() => {
-    // Check user info from localStorage
+    // Kiểm tra thông tin người dùng từ localStorage
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       const user = JSON.parse(storedUser);
-      setUsername(user.username);
+      setUsername(user.TaiKhoan);
     }
   }, []);
 
@@ -30,18 +33,36 @@ const CustomHeader = () => {
     navigate('/login');
   };
 
+  const handleOncartClick = () => {
+    // Kiểm tra nếu người dùng không đăng nhập
+    const storedUser = JSON.parse(localStorage.getItem('user')); // Parse dữ liệu từ localStorage
+    // Kiểm tra nếu người dùng không đăng nhập
+    if (!storedUser || !storedUser.TaiKhoan) {
+      message.info("Vui lòng đăng nhập để xem giỏ hàng");
+      navigate('/Login');
+    } else {
+      // Điều hướng đến giỏ hàng của người dùng đã đăng nhập
+      navigate(`/cart/${storedUser.TaiKhoan}`);
+    }
+  }
   const handleLogoutClick = () => {
+    // Xử lý đăng xuất
     localStorage.removeItem('user');
-    setUsername(null);
-    navigate('/'); // Redirect to homepage after logout
+    setUsername(null); // Reset lại state username
+    navigate('/'); // Điều hướng tới trang chủ sau khi đăng xuất
   };
-
   const handleProfileClick = () => {
-    navigate('/'); // Redirect to user profile
-  };
+    const storedUser = localStorage.getItem('user');
+    const user = JSON.parse(storedUser);
+    console.log(user.MaKh)
+    setUsername(user.MaKh);
+    if (user.MaKh) {
+      navigate(`/Profile/${user.MaKh}`);
+    }
 
+  };
   const handleMenuClick = ({ key }) => {
-    navigate(key); // Navigate to the corresponding route
+    navigate(key); // Điều hướng đến đường dẫn tương ứng với key
   };
 
   const userMenu = (
@@ -90,12 +111,12 @@ const CustomHeader = () => {
       </div>
 
       <div className="actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <Button type="link" icon={<ShoppingCartOutlined />} style={{ fontSize: '16px' }}>Giỏ hàng</Button>
-        {username ? (
+        <Button onClick={handleOncartClick} type="link" icon={<ShoppingCartOutlined />} style={{ fontSize: '16px' }}>Giỏ hàng</Button>
+        {TaiKhoan ? (
           <Dropdown overlay={userMenu} placement="bottomRight">
             <Button type="link">
               <Space>
-                <span style={{ fontSize: '16px' }}>Xin chào, {username}</span>
+                <span style={{ fontSize: '16px' }}>Xin chào, {TaiKhoan}</span>
               </Space>
             </Button>
           </Dropdown>

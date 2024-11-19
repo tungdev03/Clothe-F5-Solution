@@ -1,9 +1,10 @@
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserOutlined, ShoppingCartOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Layout, Menu, Button, Carousel, Card, Dropdown, Space, Input, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import './Home.css';
 import logo_v1 from '../../../assets/images/Logo.png';
+import HomeView from '../../../Service/HomeService';
 
 const { Header, Content } = Layout;
 const { Meta } = Card;
@@ -25,8 +26,8 @@ const imgStyle = {
 };
 
 const metaStyle = {
-  margin: '0',  // Giảm khoảng cách giữa tiêu đề và mô tả
-  padding: '0', // Loại bỏ padding không cần thiết
+  margin: '0',
+  padding: '0',
 };
 const items1 = [
   { key: '/', label: 'Cửa hàng' },
@@ -54,6 +55,7 @@ const f5Blogs = [
 const Home = () => {
   const navigate = useNavigate();
   const [TaiKhoan, setUsername] = useState(null);
+  const [products, setProducts] = useState([]); // Thêm state cho sản phẩm
   useEffect(() => {
     // Kiểm tra thông tin người dùng từ localStorage
     const storedUser = localStorage.getItem('user');
@@ -61,8 +63,21 @@ const Home = () => {
       const user = JSON.parse(storedUser);
       setUsername(user.TaiKhoan);
     }
-  }, []);
 
+  }, []);
+  useEffect(() => {
+    const fetchNewProducts = async () => {
+      try {
+        const data = await HomeView.ViewProductHome();
+        setProducts(data); // Cập nhật danh sách sản phẩm mới từ API
+        console.log(data)
+      } catch (error) {
+        message.error(error || "Không thể tải danh sách sản phẩm.");
+      } finally {
+      }
+    };
+    fetchNewProducts();
+  }, []);
   const handleLoginClick = () => {
     navigate('/login');
   };
@@ -87,10 +102,12 @@ const Home = () => {
   const handleProfileClick = () => {
     const storedUser = localStorage.getItem('user');
     const user = JSON.parse(storedUser);
-    setUsername(user.TaiKhoan);
-    if (user.TaiKhoan) {
-      navigate(`/Profile/${user.TaiKhoan}`);
+    console.log(user.MaKh)
+    setUsername(user.MaKh);
+    if (user.MaKh) {
+      navigate(`/Profile/${user.MaKh}`);
     }
+
   };
   const handleMenuClick = ({ key }) => {
     navigate(key); // Điều hướng đến đường dẫn tương ứng với key
@@ -105,98 +122,14 @@ const Home = () => {
       </Menu.Item>
     </Menu>
   );
-  const products = [
-    {
-      id: 1,
-      maSp: 'FDDDDDsjdkadsdh465644',
-      title: "ĐẦM ĐEN THIẾT KẾ",
-      description: "1.800.000 Đ",
-      material: "Vải cotton",
-      color: ["black", "red"],
-      size: ["S", "M", "L"],
-      origin: "Việt Nam",
-      imgSrc: "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
-      imgGallery: [
-        "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__7__6d022f95d1004958a1066d9a71677d38_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__5__c919c06696364fdb9ca49efa44155b74_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__1__f697f759edda4db7bb7334e54df7d319_master.jpg"
-      ]
-    },
-    {
-      id: 2,
-      maSp: 'SP123856',
-      title: "ĐẦM XANH THIẾT KẾ",
-      description: "1.600.000 Đ",
-      material: "Vải cotton",
-      color: ["black", "red"],
-      size: ["S", "M", "L"],
-      origin: "Việt Nam",
-      imgSrc: "https://product.hstatic.net/200000182297/product/6_d5e0224e09b348a08caa34d04a6fd1ec_master.jpg",
-      imgGallery: [
-        "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__7__6d022f95d1004958a1066d9a71677d38_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__5__c919c06696364fdb9ca49efa44155b74_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__1__f697f759edda4db7bb7334e54df7d319_master.jpg"
-      ]
 
-    },
-    {
-      id: 3,
-      maSp: 'SP127456',
-      title: "ĐẦM XANH THIẾT KẾ",
-      description: "1.600.000 Đ",
-      material: "Vải cotton",
-      color: ["black", "red"],
-      size: ["S", "M", "L"],
-      origin: "Việt Nam",
-      imgSrc: "https://product.hstatic.net/200000182297/product/10_ff1fed504837495ea29706f50260af66_master.jpg",
-      imgGallery: [
-        "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__7__6d022f95d1004958a1066d9a71677d38_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__5__c919c06696364fdb9ca49efa44155b74_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__1__f697f759edda4db7bb7334e54df7d319_master.jpg"
-      ]
-    },
-    {
-      id: 4,
-      maSp: 'SP123458',
-      title: "ĐẦM XANH THIẾT KẾ",
-      description: "1.600.000 Đ",
-      material: "Vải cotton",
-      color: ["black", "red"],
-      size: ["S", "M", "L"],
-      origin: "Việt Nam",
-      imgSrc: "https://product.hstatic.net/200000182297/product/5_b7ad26ae5356495ea3d7ea7589ea1677_master.jpg",
-      imgGallery: [
-        "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__7__6d022f95d1004958a1066d9a71677d38_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__5__c919c06696364fdb9ca49efa44155b74_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__1__f697f759edda4db7bb7334e54df7d319_master.jpg"
-      ]
-    },
-    {
-      id: 5,
-      maSp: 'SP123856',
-      title: "ĐẦM XANH THIẾT KẾ",
-      description: "1.600.000 Đ",
-      material: "Vải cotton",
-      color: ["black", "red"],
-      size: ["S", "M", "L"],
-      origin: "Việt Nam",
-      imgSrc: "https://product.hstatic.net/200000182297/product/9_537a6b99fc7f486a9161bde9485cd0e0_master.jpg",
-      imgGallery: [
-        "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__7__6d022f95d1004958a1066d9a71677d38_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__5__c919c06696364fdb9ca49efa44155b74_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__1__f697f759edda4db7bb7334e54df7d319_master.jpg"
-      ]
+  const handleViewMore = async  (id) => {
+    try {
+      const productDetail = await HomeView.ViewProductDetail(id);
+      navigate(`/Products/${id}`, { state: { productDetail } });
+    } catch (error) {
+      message.error(error || "Không thể tải chi tiết sản phẩm.");
     }
-    // Các sản phẩm khác
-  ];
-  const handleViewMore = (id) => {
-    // Điều hướng đến trang chi tiết sản phẩm
-    navigate(`/Products/${id}`);
   };
   return (
     <Layout>
@@ -275,9 +208,9 @@ const Home = () => {
                 <div key={product.id} style={{ padding: '0 10px' }} className="product-card">
                   <Card
                     hoverable
-                    cover={<img alt={product.title} src={product.imgSrc} style={{ width: '100%', objectFit: 'contain', height: 'auto' }} />}
+                    cover={<img alt={product.tenSp} src={product.imageDefaul} style={{ width: '100%', objectFit: 'contain', height: 'auto' }} />}
                   >
-                    <Meta title={product.title} description={product.description} />
+                    <Meta title={product.tenSp} description={`${product.giaBan.toLocaleString()} VNĐ`} />
                   </Card>
                   {/* Lớp phủ khi hover */}
                   <div className="overlay">

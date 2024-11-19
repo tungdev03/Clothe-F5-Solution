@@ -16,8 +16,10 @@ const Register = () => {
 
     const onFinish = async (values) => {
         try {
+            const customerCode = `KH${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
             // Thực hiện đăng ký khách hàng qua AuthService
             const response = await AuthService.registerCustomer({
+                maKh: customerCode,
                 hoVaTenKh: values.hoVaTenKh,
                 taiKhoan: values.username,
                 matKhau: values.password,

@@ -218,7 +218,7 @@ const ProductDetail = () => {
                     backgroundColor: '#fff',
                     justifyContent: 'space-between',
                     padding: '20px 40px',
-                    height: '120px', // Giữ nguyên chiều cao của header như bạn yêu cầu
+                    height: '120px', 
                 }}
             >
                 <div className="logo-brand" style={{ display: 'flex', alignItems: 'center' }}>
@@ -274,7 +274,7 @@ const ProductDetail = () => {
                                     disabled={startIndex === 0}
                                     style={{ backgroundColor: 'black', color: 'white', marginBottom: '-15px' }}
                                 />
-                                {product.imgGallery.slice(startIndex, startIndex + visibleImages).map((img, index) => (
+                                {product.images.slice(startIndex, startIndex + visibleImages).map((img, index) => (
                                     <img
                                         key={index}
                                         src={img}
@@ -300,7 +300,7 @@ const ProductDetail = () => {
                             {/* Cột chứa ảnh lớn ở giữa */}
                             <Col span={10}>
                                 <div style={{ width: '100%' }}>
-                                    <img alt={product.title} src={mainImage} style={{ width: '100%', maxHeight: '100%', objectFit: 'cover' }} />
+                                    <img alt={product.tenSp} src={mainImage} style={{ width: '100%', maxHeight: '100%', objectFit: 'cover' }} />
                                 </div>
                             </Col>
 

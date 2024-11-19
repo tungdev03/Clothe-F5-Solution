@@ -17,33 +17,40 @@ const CustomHeader = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState(null);
 
+  // Load thông tin người dùng từ localStorage khi component được render
   useEffect(() => {
-    // Check user info from localStorage
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       const user = JSON.parse(storedUser);
       setUsername(user.username);
+    } else {
+      setUsername(null);
     }
   }, []);
 
+  // Xử lý đăng nhập
   const handleLoginClick = () => {
     navigate('/login');
   };
 
+  // Xử lý đăng xuất
   const handleLogoutClick = () => {
-    localStorage.removeItem('user');
-    setUsername(null);
-    navigate('/'); // Redirect to homepage after logout
+    localStorage.removeItem('user'); // Xóa thông tin user khỏi localStorage
+    setUsername(null); // Xóa trạng thái username
+    navigate('/'); // Quay lại trang chủ sau khi đăng xuất
   };
 
+  // Xử lý chuyển đến trang cá nhân
   const handleProfileClick = () => {
-    navigate('/'); // Redirect to user profile
+    navigate('/profile'); // Điều hướng đến trang thông tin cá nhân
   };
 
+  // Xử lý chuyển trang khi click menu
   const handleMenuClick = ({ key }) => {
-    navigate(key); // Navigate to the corresponding route
+    navigate(key); // Điều hướng đến các route tương ứng
   };
 
+  // Menu khi người dùng đã đăng nhập
   const userMenu = (
     <Menu>
       <Menu.Item key="1" onClick={handleProfileClick}>
@@ -66,6 +73,7 @@ const CustomHeader = () => {
         height: '120px',
       }}
     >
+      {/* Logo và thương hiệu */}
       <div className="logo-brand" style={{ display: 'flex', alignItems: 'center' }}>
         <img src={logo_v1} alt="logo" style={{ height: '150px', marginRight: '3px' }} />
         <span className="brand" style={{ fontSize: '18px', fontWeight: 'bold' }}>
@@ -73,10 +81,11 @@ const CustomHeader = () => {
         </span>
       </div>
 
+      {/* Menu điều hướng */}
       <Menu
         theme="light"
         mode="horizontal"
-        defaultSelectedKeys={['/store']}
+        defaultSelectedKeys={['/']}
         onClick={handleMenuClick}
         items={items1}
         style={{
@@ -85,10 +94,13 @@ const CustomHeader = () => {
           justifyContent: 'center',
         }}
       />
+
+      {/* Thanh tìm kiếm */}
       <div>
         <Input placeholder="Search" />
       </div>
 
+      {/* Phần giỏ hàng và thông tin tài khoản */}
       <div className="actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <Button type="link" icon={<ShoppingCartOutlined />} style={{ fontSize: '16px' }}>Giỏ hàng</Button>
         {username ? (

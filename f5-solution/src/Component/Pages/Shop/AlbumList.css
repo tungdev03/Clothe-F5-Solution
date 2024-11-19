@@ -1,77 +1,114 @@
+/* Container chính chứa toàn bộ album */
 .album-list-container1 {
     display: flex;
     padding: 20px;
-    background-color: #f9f9f9;
+    background-color: #f9f9f9; /* Màu nền chung */
 }
 
+/* Sidebar (ví dụ bộ lọc hoặc danh mục) */
 .album-list-sidebar1 {
     width: 256px;
-    margin-right: 16px;
+    margin-right: 16px; /* Khoảng cách giữa sidebar và nội dung */
 }
 
+/* Khu vực nội dung chính */
 .album-list-content1 {
-    flex-grow: 1;
+    flex-grow: 1; /* Cho phép nội dung chiếm hết không gian còn lại */
 }
 
+/* Card ảnh album */
+.album-card1 {
+    text-align: center; /* Căn giữa nội dung trong card */
+    position: relative;
+    margin-bottom: 20px; /* Khoảng cách giữa các card */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+/* Container chứa hình ảnh album */
 .album-card-image-container1 {
     position: relative;
     overflow: hidden;
-    border-radius: 10px; /* Bo góc ảnh */
+    border-radius: 10px; /* Bo góc container */
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Hiệu ứng đổ bóng */
-    transition: transform 0.3s ease; /* Hiệu ứng khi hover */
+    transition: transform 0.3s ease; /* Hiệu ứng mượt khi hover */
+    z-index: 1; /* Đảm bảo container nằm trên nền */
 }
 
+/* Hiệu ứng phóng to nhẹ khi hover */
 .album-card-image-container1:hover {
-    transform: scale(1.05); /* Phóng to nhẹ khi hover */
+    transform: scale(1.05);
 }
 
+/* Ảnh trong card album */
 .album-card-image1 {
     width: 100%;
     height: auto;
     display: block;
-    border-radius: 10px; /* Bo góc ảnh để trùng với container */
+    border-radius: 10px; /* Bo góc ảnh để khớp container */
 }
 
-.album-card1 {
-    text-align: center;
-    position: relative;
-    margin-bottom: 20px;
-}
-
+/* Dải màu overlay */
 .color-overlay1 {
     position: absolute;
     top: 0;
-    left: -100%;
+    left: -100%; /* Dải màu nằm ngoài khung hình, bên trái */
     width: 100%;
     height: 100%;
-    background: rgba(150, 148, 145, 0.5); /* Dải màu cam trong suốt */
-    transition: all 0.6s ease; /* Hiệu ứng dải màu di chuyển */
+    background: rgba(150, 148, 145, 0.5); /* Màu overlay xám nhạt */
+    transition: all 0.6s ease; /* Hiệu ứng mượt khi chuyển động */
+    z-index: 1; /* Nằm trên ảnh nhưng dưới nút "Xem thêm" */
 }
 
+/* Hiệu ứng di chuyển dải màu khi hover */
 .album-card-image-container1:hover .color-overlay1 {
-    left: 0; /* Di chuyển dải màu từ trái sang phải */
+    left: 0; /* Dải màu trượt vào khung hình */
 }
 
-/* Nút "Xem thêm" chỉnh theo mẫu */
+/* Nút "Xem thêm" */
 .view-more-btn1 {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    color: white;
-    background-color: transparent; /* Nền trong suốt */
-    border: 1px solid white; /* Viền trắng */
+    top: 50%; /* Căn giữa theo chiều dọc */
+    left: 50%; /* Căn giữa theo chiều ngang */
+    transform: translate(-50%, -50%); /* Đảm bảo nút nằm chính giữa */
+    color: white; /* Màu chữ mặc định */
+    background-color: transparent; /* Nền trong suốt mặc định */
+    border: 1px solid white; /* Viền trắng mặc định */
     padding: 10px 20px;
-    
-    cursor: pointer;
-    transition: all 0.3s ease;
-    z-index: 1; /* Đảm bảo nút luôn hiển thị trên dải màu */
-    font-size: 11px; /* Tăng kích thước font chữ */
+    font-size: 12px; /* Kích thước chữ */
     text-transform: uppercase; /* In hoa chữ */
-    letter-spacing: 1px; /* Khoảng cách giữa các chữ */
-    border-radius: 0px;
+    letter-spacing: 1px; /* Khoảng cách giữa các ký tự */
+    cursor: pointer;
+    opacity: 0; /* Nút ẩn mặc định */
+    border-radius: 4px;
+    transition: all 0.3s ease; /* Hiệu ứng mượt */
+    z-index: 2; /* Nút nằm trên overlay */
 }
 
+/* Hiển thị nút khi hover vào ảnh */
 .album-card-image-container1:hover .view-more-btn1 {
-    background-color: rgba(255, 255, 255, 0.1); /* Nền trắng mờ khi hover */
+    opacity: 1; /* Nút xuất hiện */
+    background-color: transparent; /* Nền vẫn trong suốt trước khi hover vào nút */
+}
+
+/* Hover trên nút "Xem thêm" */
+.album-card-image-container1 .view-more-btn1:hover {
+    background-color: white; /* Nền trắng khi hover */
+    color: black; /* Chữ đen khi hover */
+    border: 1px solid rgb(255, 255, 255); /* Viền đen khi hover */
+    transition: all 0.3s ease; /* Hiệu ứng mượt */
+}
+
+/* Phần meta title của Ant Design Card */
+.album-card1 .ant-card-meta-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+/* Phần meta description của Ant Design Card */
+.album-card1 .ant-card-meta-description {
+    font-size: 14px;
+    color: #666; /* Màu xám chữ mô tả */
 }

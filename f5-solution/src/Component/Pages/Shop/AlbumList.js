@@ -1,8 +1,8 @@
 import React from 'react';
 import { Card, Col, Row, Button } from 'antd';
-import { useParams, useNavigate } from 'react-router-dom'; // Import useParams for route params
-import CustomHeader from '../../Layouts/Header/Header'; 
-import AlbumListSidebar from './AlbumListSiteBar'; 
+import { useParams, useNavigate, Link } from 'react-router-dom'; // Import useParams for route params
+import CustomHeader from '../../Layouts/Header/Header';
+import AlbumListSidebar from './AlbumListSiteBar';
 import './AlbumList.css';
 
 const { Meta: Meta2 } = Card;
@@ -171,7 +171,7 @@ const AlbumList = () => {
     return (
         <div>
             <CustomHeader />
-            
+
             <div className="album-list-container1">
                 <AlbumListSidebar />
                 <div className="album-list-content1">
@@ -184,9 +184,10 @@ const AlbumList = () => {
                                     cover={
                                         <div className="album-card-image-container1">
                                             <img alt={album.title} src={album.imgSrc} className="album-card-image1" />
-                                            <Button className="view-more-btn1" onClick={() => handleViewMoreClick(album.id)}>
+                                            <Link to={`/album-detail/${album.id}`} className="view-more-btn1">
                                                 Xem thêm
-                                            </Button>
+                                            </Link>
+
                                         </div>
                                     }
                                 >

@@ -17,6 +17,7 @@ import AlbumDetail from './Component/Pages/Shop/AlbumPageDetail';
 // import ProductList from './Component/Pages/Shop/ProductList';
 import AlbumList from './Component/Pages/Shop/AlbumList';
 import AlbumListDetail from './Component/Pages/Shop/AlbumListDetail';
+import Checkout from './Component/Pages/Shop/CheckoutPage';
 
 import './App.css';
 
@@ -45,6 +46,8 @@ function App() {
           <Route path="/album-list/:collectionId" element={<AlbumList />} />
           {/* Route for individual album list details */}
           <Route path="/album-detail/:id" element={<AlbumListDetail />} />
+
+          <Route path="/checkout" element={<Checkout />} />
         </Routes>
       </div>
     </Router>

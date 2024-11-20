@@ -8,20 +8,39 @@ import Anh1 from './Anh1.png';
 const { Option } = Select;
 
 const ProductPage = () => {
-    const [invoices, setInvoices] = useState([
-        { key: 1, code: 'HD001', staff: 'Nguyễn Văn Toàn', dateCreated: '2024-03-01 09:00:00', customer: 'Khánh Lê', type: 'Tại quầy', status: 'Chờ thanh toán' },
-        { key: 2, code: 'HD002', staff: 'Trần Văn Bình', dateCreated: '2024-03-02 10:00:00', customer: 'Minh Phương', type: 'Giao hàng', status: 'Đã thanh toán' },
-        { key: 3, code: 'HD003', staff: 'Trần Văn Hình', dateCreated: '2024-03-02 10:00:00', customer: 'Minh Phương', type: 'Giao hàng', status: 'Đã thanh toán' }
-    ]);
+// Định nghĩa hàm fetchInvoices ngoài useEffect
+const fetchInvoices = async () => {
+    try {
+        const response = await axios.get('https://localhost:7030/api/HoaDon');
+        if (!response.data) {
+            throw new Error('Không có dữ liệu');
+        }
+        const data = response.data;
+        const filteredData = data.map(item => ({
+            key: item.id,
+            code: item.maHoaDon,
+            customer: item.IdKhNavigation?.name || 'Không có',
+            dateCreated: item.ngayTao ? new Date(item.ngayTao).toLocaleString() : 'Chưa xác định',
+            staff: item.idNvNavigation?.name || 'Không có',
+            type: item.loaiHoaDon,
+            status: item.trangThai,
+        }));
+        setInvoices(filteredData);
+    } catch (error) {
+        console.error("Error fetching invoice data:", error);
+        message.error("Không thể tải dữ liệu hóa đơn.");
+    }
+};
 
-    const [invoiceDetails, setInvoiceDetails] = useState([
-    ]);
+useEffect(() => {
+    fetchInvoices(); 
+}, []); 
 
+    const [invoices, setInvoices] = useState([]);
+    const [invoiceDetails, setInvoiceDetails] = useState([]);
     const [searchText, setSearchText] = useState("");
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [editingInvoice, setEditingInvoice] = useState(null);
     const [isProductModalVisible, setIsProductModalVisible] = useState(false);
-    const [editingProduct, setEditingProduct] = useState(null);
     const [form] = Form.useForm();
     const [productForm] = Form.useForm();
     const [totalAmount, setTotalAmount] = useState(0);
@@ -42,28 +61,38 @@ const ProductPage = () => {
     const handleSelectCustomer = (customer) => {
         setSelectedCustomer(customer);  // Lưu toàn bộ thông tin khách hàng vào state
         setIsCustomerSelectVisible(false);  // Đóng modal chọn khách hàng
+        console.log(customer)
     };
     
     // Hàm lấy dữ liệu sản phẩm từ API
     useEffect(() => {
+        let isMounted = true;
+        
         const fetchProducts = async () => {
             try {
                 const response = await axios.get('https://localhost:7030/api/SanPham');
-                const data = response.data;
-                const filteredData = data.map(item => ({
-                    key: item.id, // giả định rằng API có trường id
-                    name: item.tenSp,
-                    price: item.giaBan,
-                    image: item.imageDefaul,
-                }));
-                setProductList(filteredData); // Cập nhật productList với dữ liệu từ API
+                if (isMounted && response.data) {
+                    const filteredData = response.data.map(item => ({
+                        key: item.id,
+                        name: item.tenSp,
+                        price: item.giaBan,
+                        image: item.imageDefaul,
+                    }));
+                    setProductList(filteredData);
+                }
             } catch (error) {
-                console.error("Error fetching product data:", error);
-                message.error("Không thể tải dữ liệu sản phẩm.");
+                if (isMounted) {
+                    console.error("Error fetching product data:", error);
+                    message.error("Không thể tải dữ liệu sản phẩm.");
+                }
             }
         };
-
+    
         fetchProducts();
+    
+        return () => {
+            isMounted = false;
+        };
     }, []);
 
     const [customerList, setCustomerList] = useState([]);  
@@ -94,7 +123,7 @@ const ProductPage = () => {
     }, [invoiceDetails]);
 
    // Hàm chuyển đổi số thành chữ (tiếng Việt)
-const convertNumberToWords = (num) => {
+   const convertNumberToWords = (num) => {
     const units = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
     const tens = ["", "mười", "hai mươi", "ba mươi", "bốn mươi", "năm mươi", "sáu mươi", "bảy mươi", "tám mươi", "chín mươi"];
     const scales = ["", "nghìn", "triệu", "tỷ"];
@@ -113,7 +142,7 @@ const convertNumberToWords = (num) => {
             const hundreds = Math.floor(part / 100);
             const remainder = part % 100;
             if (hundreds > 0) {
-                partWords += `${units[hundreds]} trăm `;
+                partWords += `${units[hundreds]} trăm`;
             }
 
             // Xử lý hàng chục và đơn vị
@@ -170,47 +199,17 @@ const convertNumberToWords = (num) => {
         ));
     };
 
-    const handleSaveInvoice = (values) => {
-        if (editingInvoice) {
-            setInvoices(invoices.map(invoice => invoice.key === editingInvoice.key
-                ? { ...values, key: editingInvoice.key, status: paymentStatus }
-                : invoice
-            ));
-            notification.success({ message: 'Hóa đơn đã được cập nhật!' });
-        } else {
-            const newInvoice = {
-                ...values, key: invoices.length + 1, dateCreated: new Date().toLocaleString(), status: paymentStatus
-            };
-            setInvoices([...invoices, newInvoice]);
-            notification.success({ message: 'Hóa đơn mới đã được tạo!' });
+    const handleDeleteInvoice = async (key) => {
+        try {
+            await axios.delete(`https://localhost:7030/api/HoaDon/${key}`);
+            setInvoices(invoices.filter(invoice => invoice.key !== key));
+            notification.success({ message: 'Hóa đơn đã bị xóa!' });
+            
+        } catch (error) {
+            notification.error({ message: 'Xóa hóa đơn không thành công!' });
         }
-        setIsModalVisible(false);
-        form.resetFields();
-        setEditingInvoice(null);
-    };
-
-    const handleDeleteInvoice = (key) => {
-        setInvoices(invoices.filter(invoice => invoice.key !== key));
-        notification.success({ message: 'Hóa đơn đã bị xóa!' });
-    };
-
-    const handleSaveProduct = (values) => {
-        const totalPrice = values.quantity * values.unitPrice;
-        if (editingProduct) {
-            setInvoiceDetails(invoiceDetails.map(product =>
-                product.key === editingProduct.key ? { ...values, totalPrice, key: editingProduct.key } : product
-            ));
-            notification.success({ message: 'Sản phẩm đã được cập nhật!' });
-        } else {
-            const newProduct = { ...values, key: invoiceDetails.length + 1, totalPrice };
-            setInvoiceDetails([...invoiceDetails, newProduct]);
-            notification.success({ message: 'Sản phẩm mới đã được thêm!' });
-        }
-        setIsProductModalVisible(false);
-        productForm.resetFields();
-        setEditingProduct(null);
-    };
-
+        
+    };      
     const handleDeleteProduct = (key) => {
         setInvoiceDetails(invoiceDetails.filter(product => product.key !== key));
         notification.success({ message: 'Sản phẩm đã bị xóa!' });
@@ -224,23 +223,91 @@ const convertNumberToWords = (num) => {
         setIsProductSelectVisible(false);
     };
 
-    const handlePayment = () => {
+    const [customerFormData, setCustomerFormData] = useState(null); // Dữ liệu khách hàng
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(''); // Phương thức thanh toán
+    const [selectedProducts, setSelectedProducts] = useState([]); // Danh sách sản phẩm
+    const [notes, setNotes] = useState(''); // Ghi chú
+
+    const handlePayment = async () => {
+        if (isNaN(amountPaid) || amountPaid <= 0) {
+            notification.error({ message: 'Số tiền thanh toán không hợp lệ!' });
+            return;
+        }
+        if (!selectedCustomer) {
+            notification.error({ message: 'Vui lòng chọn khách hàng trước khi thanh toán!' });
+            return;
+        }
+    
+        if (invoiceDetails.length === 0) {
+            notification.error({ message: 'Vui lòng chọn sản phẩm trước khi thanh toán!' });
+            return;
+        }
+    
         if (amountPaid >= totalAmount) {
-            setInvoices(invoices.map(invoice =>
-                invoice.key === editingInvoice?.key ? { ...invoice, status: 'Đã thanh toán' } : invoice
-            ));
-            notification.success({ message: 'Thanh toán thành công!' });
-            setPaymentStatus('Đã thanh toán');
+            try {
+                // Dữ liệu cần gửi tới API
+                const invoiceData = {
+                    customerId: selectedCustomer.key,
+                    customerName: selectedCustomer.name,
+                    paymentMethod: paymentMethod,
+                    products: invoiceDetails.map(product => ({
+                        productId: product.key,
+                        quantity: product.quantity,
+                        price: product.unitPrice,
+                    })),
+                    totalAmount: totalAmount,
+                    paidAmount: amountPaid,
+                    changeAmount: amountPaid - totalAmount,
+                    notes: notes,
+                };
+    
+                // Gọi API thêm hóa đơn
+                const response = await axios.post('https://localhost:7030/api/HoaDon', invoiceData);
+    
+                // Kiểm tra nếu trả về status 201 thì là thành công
+                if (response.status === 201) {
+                    notification.success({ message: 'Thanh toán thành công!' });
+                    setInvoices([...invoices, response.data]);
+                    setPaymentStatus('Đã thanh toán');
+                    // Reset form sau khi thanh toán thành công
+                    setSelectedCustomer(null);
+                    setInvoiceDetails([]);
+                    setAmountPaid(0);
+                    setPaymentMethod('cash');
+                    setNotes('');
+                   await fetchInvoices();
+                }
+            } catch (error) {
+                console.error('Lỗi khi thêm hóa đơn:', error);
+                notification.error({
+                    message: 'Đã xảy ra lỗi khi thanh toán!',
+                    description: error.response ? error.response.data.message : 'Vui lòng thử lại sau',
+                });
+            }
         } else {
-            notification.error({ message: 'Thanh toán không đủ!' });
+            notification.error({ message: 'Số tiền thanh toán không đủ!' });
             setPaymentStatus('Chờ thanh toán');
         }
     };
-
-    const filteredInvoices = invoices.filter(
-        invoice => invoice.code.toLowerCase().includes(searchText.toLowerCase()) ||
-            invoice.customer.toLowerCase().includes(searchText.toLowerCase())
-    );
+    
+    const filteredInvoices = invoices.filter(invoice => {
+        // Kiểm tra nếu invoice là null hoặc undefined
+        if (!invoice) return false;
+        
+        const searchTextLower = searchText.toLowerCase();
+        
+        // Kiểm tra code
+        const codeMatch = invoice.code ? 
+            invoice.code.toLowerCase().includes(searchTextLower) : 
+            false;
+            
+        // Kiểm tra customer
+        const customerMatch = invoice.customer ? 
+            invoice.customer.toLowerCase().includes(searchTextLower) : 
+            false;
+            
+        return codeMatch || customerMatch;
+    });
 
     const columnsInvoices = [
         { title: 'Mã Hóa Đơn', dataIndex: 'code', key: 'code' },
@@ -256,12 +323,12 @@ const convertNumberToWords = (num) => {
             title: 'Thao tác', key: 'action',
             render: (text, record) => (
                 <Space size="middle">
-                    <Button icon={<EditOutlined />} onClick={() => setEditingInvoice(record)}>Sửa</Button>
                     <Button icon={<DeleteOutlined />} onClick={() => handleDeleteInvoice(record.key)} danger>Xóa</Button>
                 </Space>
             )
         }
     ];
+    
 
     const columnsProductDetails = [
         { title: 'STT', dataIndex: 'key', key: 'key' },
@@ -277,13 +344,22 @@ const convertNumberToWords = (num) => {
                 </Space>
             )
         },
-        { title: 'Đơn giá', dataIndex: 'unitPrice', key: 'unitPrice', render: price => `${price.toLocaleString('vi-VN')} vnđ` },
-        { title: 'Tổng tiền', dataIndex: 'totalPrice', key: 'totalPrice', render: total => `${total.toLocaleString('vi-VN')} vnđ` },
+        { 
+            title: 'Đơn giá', 
+            dataIndex: 'unitPrice', 
+            key: 'unitPrice', 
+            render: price => `${price.toLocaleString('vi-VN')} vnđ`
+        },
+        { 
+            title: 'Tổng tiền', 
+            dataIndex: 'totalPrice', 
+            key: 'totalPrice', 
+            render: total => `${total.toLocaleString('vi-VN')} vnđ`
+        },
         {
             title: 'Thao tác', key: 'action',
             render: (text, record) => (
                 <Space size="middle">
-                    <Button icon={<EditOutlined />} onClick={() => setEditingProduct(record)}>Sửa</Button>
                     <Button icon={<DeleteOutlined />} onClick={() => handleDeleteProduct(record.key)} danger>Xóa</Button>
                 </Space>
             )
@@ -311,7 +387,9 @@ const convertNumberToWords = (num) => {
                 <Col span={12}>
                     <Card title="Thông tin khách hàng" className="info-card">
                         <Form layout="vertical">
-                            <Form.Item label="Tên khách hàng"><Input value={selectedCustomer} readOnly /></Form.Item>
+                            <Form.Item label="Tên khách hàng">
+                                <Input value={selectedCustomer ? selectedCustomer.name : ''} readOnly />
+                                </Form.Item>
                             <Form.Item><Button onClick={() => setIsCustomerSelectVisible(true)}>Chọn khách hàng</Button></Form.Item>
                         </Form>
                     </Card>
@@ -407,7 +485,7 @@ const convertNumberToWords = (num) => {
 
         <Modal 
     title="Chọn khách hàng" 
-    visible={isCustomerSelectVisible} 
+    open={isCustomerSelectVisible} 
     onCancel={() => setIsCustomerSelectVisible(false)} 
     footer={null}
 >
@@ -426,27 +504,6 @@ const convertNumberToWords = (num) => {
         )} 
     />
 </Modal>
-
-
-
-            <Modal title={editingInvoice ? "Sửa hóa đơn" : "Thêm hóa đơn"} visible={isModalVisible} onCancel={() => setIsModalVisible(false)} footer={null}>
-                <Form form={form} onFinish={handleSaveInvoice} layout="vertical">
-                    <Form.Item name="code" label="Mã hóa đơn" rules={[{ required: true }]}><Input /></Form.Item>
-                    <Form.Item name="staff" label="Nhân viên" rules={[{ required: true }]}><Input /></Form.Item>
-                    <Form.Item name="customer" label="Khách hàng" rules={[{ required: true }]}><Input /></Form.Item>
-                    <Form.Item name="type" label="Loại đơn" rules={[{ required: true }]}><Select><Option value="Tại quầy">Tại quầy</Option><Option value="Giao hàng">Giao hàng</Option></Select></Form.Item>
-                    <Form.Item><Button htmlType="submit">Lưu</Button></Form.Item>
-                </Form>
-            </Modal>
-
-            <Modal title={editingProduct ? "Sửa sản phẩm" : "Thêm sản phẩm"} visible={isProductModalVisible} onCancel={() => setIsProductModalVisible(false)} footer={null}>
-                <Form form={productForm} onFinish={handleSaveProduct} layout="vertical">
-                    <Form.Item name="product" label="Sản phẩm" rules={[{ required: true }]}><Input /></Form.Item>
-                    <Form.Item name="quantity" label="Số lượng" rules={[{ required: true }]}><Input type="number" /></Form.Item>
-                    <Form.Item name="unitPrice" label="Đơn giá" rules={[{ required: true }]}><Input type="number" /></Form.Item>
-                    <Form.Item><Button htmlType="submit">Lưu</Button></Form.Item>
-                </Form>
-            </Modal>
         </div>
        
     );

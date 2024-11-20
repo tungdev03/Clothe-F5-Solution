@@ -33,8 +33,6 @@ const Profile = () => {
     const fetchData = async () => {
         try {
             const data = await AdminService.getKhachHangBymaKH(maKh);  // Gọi API với MaKh đã được gán
-            console.log(data)
-            // Cập nhật profile
             setUserProfile({
                 hoVaTenKh: data.hoVaTenKh,
                 TaiKhoan: data.TaiKhoan,
@@ -54,8 +52,6 @@ const Profile = () => {
                 soDienThoai: data.soDienThoai,
                 email: data.email,
             });
-            console.log(data);
-
         } catch (error) {
             message.error('Lỗi khi lấy thông tin khách hàng.');
             console.error(error);  // In lỗi ra console để dễ dàng debug

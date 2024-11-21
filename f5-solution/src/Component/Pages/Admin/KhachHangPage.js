@@ -38,6 +38,7 @@ const KhachHangPage = () => {
   const handleEdit = async (record) => {
     try {
       const data = await AdminService.getKhachHangById(record.id);
+      console.log(data)
       setEditingUser(data);
       form.setFieldsValue({
         ...data,
@@ -59,7 +60,7 @@ const KhachHangPage = () => {
   const handleFormSubmit = async (values) => {
     try {
       const userValues = {
-        id: editingUser, // Tạo id nếu chưa có
+        id: values.id,
         maKh: values.maKh,
         hoVaTenKh: values.hoVaTenKh,
         gioiTinh: values.gioiTinh === 'Nam', // Chuyển đổi từ chuỗi thành boolean
@@ -74,9 +75,6 @@ const KhachHangPage = () => {
       if (editingUser) {
         await AuthService.registerCustomer(userValues);
         message.success('Cập nhật khách hàng thành công!');
-      } else {
-        await AuthService.registerCustomer(userValues);
-        message.success('Thêm khách hàng thành công!');
       }
       handleDrawerClose();
       fetchKhachHangs();

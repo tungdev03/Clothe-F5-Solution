@@ -1,9 +1,10 @@
-import React, { useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { UserOutlined, ShoppingCartOutlined, LogoutOutlined } from '@ant-design/icons';
 import { Layout, Menu, Button, Carousel, Card, Dropdown, Space, Input, message } from 'antd';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import './Home.css';
 import logo_v1 from '../../../assets/images/Logo.png';
+import HomeView from '../../../Service/HomeService';
 
 const { Header, Content } = Layout;
 const { Meta } = Card;
@@ -25,8 +26,8 @@ const imgStyle = {
 };
 
 const metaStyle = {
-  margin: '0',  // Giảm khoảng cách giữa tiêu đề và mô tả
-  padding: '0', // Loại bỏ padding không cần thiết
+  margin: '0',
+  padding: '0',
 };
 const items1 = [
   { key: '/', label: 'Cửa hàng' },
@@ -38,31 +39,45 @@ const items1 = [
 
 
 const winterProducts = [
-  { id: 1, title: "MĂNG TÔ CAO CẤP AK13262", description: "2.200.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/12_14b69d65c3014d18a336f3d8beaee4cb_master.jpg" },
-  { id: 2, title: "ÁO KHOÁC THIẾT KẾ AK13742", description: "1.500.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/14_664080a99a6f4cd6ab61b6e40a3cdb48_master.jpg" },
-  { id: 3, title: "MĂNG TÔ AK11882", description: "900.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/5_0f84ef8d1aef4341a9fe107ee70fb7db_master.jpg" },
-  { id: 4, title: "MĂNG TÔ VAI CAPE AK11882", description: "3.000.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/1_b65595811f46450087d95f1b8ad33184_master.jpg" },
-  { id: 5, title: "MĂNG TÔ VAI CAPE AK11882", description: "3.000.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/1_b65595811f46450087d95f1b8ad33184_master.jpg" },
+  { wid: 1, title: "MĂNG TÔ CAO CẤP AK13262", description: "2.200.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/12_14b69d65c3014d18a336f3d8beaee4cb_master.jpg" },
+  { wid: 2, title: "ÁO KHOÁC THIẾT KẾ AK13742", description: "1.500.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/14_664080a99a6f4cd6ab61b6e40a3cdb48_master.jpg" },
+  { wid: 3, title: "MĂNG TÔ AK11882", description: "900.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/5_0f84ef8d1aef4341a9fe107ee70fb7db_master.jpg" },
+  { wid: 4, title: "MĂNG TÔ VAI CAPE AK11882", description: "3.000.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/1_b65595811f46450087d95f1b8ad33184_master.jpg" },
+  { wid: 5, title: "MĂNG TÔ VAI CAPE AK11882", description: "3.000.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/1_b65595811f46450087d95f1b8ad33184_master.jpg" },
 ];
 const f5Blogs = [
-  { id: 1, title: "F5 Blog 1", imgSrc: "https://file.hstatic.net/200000182297/article/342544079_185591394364106_3474506149512152400_n__1__7b5ebc8e82e84130a3effdf0c7599fa1_large.jpg" },
-  { id: 2, title: "F5 Blog 2", imgSrc: "https://file.hstatic.net/200000182297/article/327890757_8735259056545354_6482098786089923519_n_ee711d5e3b9f4541b8c10fed967c16ca_large.jpg" },
-  { id: 3, title: "F5 Blog 3", imgSrc: "https://file.hstatic.net/200000182297/article/315854475_2623148267823058_3203710229884569157_n_3baa02b3ee4348339faec98be869be0d_large.jpg" },
-  { id: 4, title: "F5 Blog 4", imgSrc: "https://file.hstatic.net/200000182297/article/285634743_2457803104357576_4449744498852558662_n_a415bf75ede64fc997cbc67f348f8153_large.jpg" },
+  { fid: 1, title: "F5 Blog 1", imgSrc: "https://file.hstatic.net/200000182297/article/342544079_185591394364106_3474506149512152400_n__1__7b5ebc8e82e84130a3effdf0c7599fa1_large.jpg" },
+  { fid: 2, title: "F5 Blog 2", imgSrc: "https://file.hstatic.net/200000182297/article/327890757_8735259056545354_6482098786089923519_n_ee711d5e3b9f4541b8c10fed967c16ca_large.jpg" },
+  { fid: 3, title: "F5 Blog 3", imgSrc: "https://file.hstatic.net/200000182297/article/315854475_2623148267823058_3203710229884569157_n_3baa02b3ee4348339faec98be869be0d_large.jpg" },
+  { fid: 4, title: "F5 Blog 4", imgSrc: "https://file.hstatic.net/200000182297/article/285634743_2457803104357576_4449744498852558662_n_a415bf75ede64fc997cbc67f348f8153_large.jpg" },
 ];
 
 const Home = () => {
   const navigate = useNavigate();
+  let {id} = useParams()
   const [TaiKhoan, setUsername] = useState(null);
+  const [products, setProducts] = useState([]);
   useEffect(() => {
-    // Kiểm tra thông tin người dùng từ localStorage
     const storedUser = localStorage.getItem('user');
     if (storedUser) {
       const user = JSON.parse(storedUser);
       setUsername(user.TaiKhoan);
     }
-  }, []);
 
+  }, []);
+  useEffect(() => {
+    const fetchNewProducts = async () => {
+      try {
+        const data = await HomeView.ViewProductHome();
+        setProducts(data); // Cập nhật danh sách sản phẩm mới từ API
+        console.log(data)
+      } catch (error) {
+        message.error(error || "Không thể tải danh sách sản phẩm.");
+      } finally {
+      }
+    };
+    fetchNewProducts();
+  }, []);
   const handleLoginClick = () => {
     navigate('/login');
   };
@@ -87,10 +102,12 @@ const Home = () => {
   const handleProfileClick = () => {
     const storedUser = localStorage.getItem('user');
     const user = JSON.parse(storedUser);
-    setUsername(user.TaiKhoan);
-    if (user.TaiKhoan) {
-      navigate(`/Profile/${user.TaiKhoan}`);
+    console.log(user.MaKh)
+    setUsername(user.MaKh);
+    if (user.MaKh) {
+      navigate(`/Profile/${user.MaKh}`);
     }
+
   };
   const handleMenuClick = ({ key }) => {
     navigate(key); // Điều hướng đến đường dẫn tương ứng với key
@@ -105,97 +122,8 @@ const Home = () => {
       </Menu.Item>
     </Menu>
   );
-  const products = [
-    {
-      id: 1,
-      maSp: 'FDDDDDsjdkadsdh465644',
-      title: "ĐẦM ĐEN THIẾT KẾ",
-      description: "1.800.000 Đ",
-      material: "Vải cotton",
-      color: ["black", "red"],
-      size: ["S", "M", "L"],
-      origin: "Việt Nam",
-      imgSrc: "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
-      imgGallery: [
-        "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__7__6d022f95d1004958a1066d9a71677d38_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__5__c919c06696364fdb9ca49efa44155b74_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__1__f697f759edda4db7bb7334e54df7d319_master.jpg"
-      ]
-    },
-    {
-      id: 2,
-      maSp: 'SP123856',
-      title: "ĐẦM XANH THIẾT KẾ",
-      description: "1.600.000 Đ",
-      material: "Vải cotton",
-      color: ["black", "red"],
-      size: ["S", "M", "L"],
-      origin: "Việt Nam",
-      imgSrc: "https://product.hstatic.net/200000182297/product/6_d5e0224e09b348a08caa34d04a6fd1ec_master.jpg",
-      imgGallery: [
-        "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__7__6d022f95d1004958a1066d9a71677d38_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__5__c919c06696364fdb9ca49efa44155b74_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__1__f697f759edda4db7bb7334e54df7d319_master.jpg"
-      ]
 
-    },
-    {
-      id: 3,
-      maSp: 'SP127456',
-      title: "ĐẦM XANH THIẾT KẾ",
-      description: "1.600.000 Đ",
-      material: "Vải cotton",
-      color: ["black", "red"],
-      size: ["S", "M", "L"],
-      origin: "Việt Nam",
-      imgSrc: "https://product.hstatic.net/200000182297/product/10_ff1fed504837495ea29706f50260af66_master.jpg",
-      imgGallery: [
-        "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__7__6d022f95d1004958a1066d9a71677d38_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__5__c919c06696364fdb9ca49efa44155b74_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__1__f697f759edda4db7bb7334e54df7d319_master.jpg"
-      ]
-    },
-    {
-      id: 4,
-      maSp: 'SP123458',
-      title: "ĐẦM XANH THIẾT KẾ",
-      description: "1.600.000 Đ",
-      material: "Vải cotton",
-      color: ["black", "red"],
-      size: ["S", "M", "L"],
-      origin: "Việt Nam",
-      imgSrc: "https://product.hstatic.net/200000182297/product/5_b7ad26ae5356495ea3d7ea7589ea1677_master.jpg",
-      imgGallery: [
-        "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__7__6d022f95d1004958a1066d9a71677d38_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__5__c919c06696364fdb9ca49efa44155b74_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__1__f697f759edda4db7bb7334e54df7d319_master.jpg"
-      ]
-    },
-    {
-      id: 5,
-      maSp: 'SP123856',
-      title: "ĐẦM XANH THIẾT KẾ",
-      description: "1.600.000 Đ",
-      material: "Vải cotton",
-      color: ["black", "red"],
-      size: ["S", "M", "L"],
-      origin: "Việt Nam",
-      imgSrc: "https://product.hstatic.net/200000182297/product/9_537a6b99fc7f486a9161bde9485cd0e0_master.jpg",
-      imgGallery: [
-        "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__7__6d022f95d1004958a1066d9a71677d38_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__5__c919c06696364fdb9ca49efa44155b74_master.jpg",
-        "https://product.hstatic.net/200000182297/product/d046621412442110457p1599dt__1__f697f759edda4db7bb7334e54df7d319_master.jpg"
-      ]
-    }
-    // Các sản phẩm khác
-  ];
   const handleViewMore = (id) => {
-    // Điều hướng đến trang chi tiết sản phẩm
     navigate(`/Products/${id}`);
   };
   return (
@@ -275,9 +203,9 @@ const Home = () => {
                 <div key={product.id} style={{ padding: '0 10px' }} className="product-card">
                   <Card
                     hoverable
-                    cover={<img alt={product.title} src={product.imgSrc} style={{ width: '100%', objectFit: 'contain', height: 'auto' }} />}
+                    cover={<img alt={product.tenSp} src={product.imageDefaul} style={{ width: '100%', objectFit: 'contain', height: 'auto' }} />}
                   >
-                    <Meta title={product.title} description={product.description} />
+                    <Meta title={product.tenSp} description={`${product.giaBan.toLocaleString()} VNĐ`} />
                   </Card>
                   {/* Lớp phủ khi hover */}
                   <div className="overlay">
@@ -300,7 +228,7 @@ const Home = () => {
             <h1 style={{ marginTop: '24px', textAlign: 'center' }}>ĐỒ ĐÔNG MỚI</h1>
             <Carousel autoplay slidesToShow={5} dots={false} style={{ margin: '0 5%' }}>
               {winterProducts.map(product => (
-                <div key={product.id} style={{ padding: '0 10px' }} className="product-card">
+                <div key={product.wid} style={{ padding: '0 10px' }} className="product-card">
                   <Card
                     hoverable
                     cover={<img alt={product.title} src={product.imgSrc} style={{ width: '100%', objectFit: 'contain', height: 'auto' }} />}
@@ -320,7 +248,7 @@ const Home = () => {
             <h3 style={{ marginTop: '5px', textAlign: 'center' }}>ĐÓN ĐẦU XU HƯỚNG, ĐỊNH HÌNH PHONG CÁCH</h3>
             <Carousel autoplay slidesToShow={3} dots={false} style={{ margin: '0 20%', marginTop: "3%" }}>
               {f5Blogs.map(blog => (
-                <div key={blog.id} style={{ padding: '0 10px' }}>
+                <div key={blog.fid} style={{ padding: '0 10px' }}>
                   <Card
                     hoverable
                     style={cardStyle}

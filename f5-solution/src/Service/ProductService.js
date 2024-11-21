@@ -31,7 +31,7 @@ const ProductService = {
      // Hàm lấy danh sách tất cả các Chất liệu
      getAllProduct: async () => {
           try {
-               const response = await http.get('SanPham'); // Gọi API để lấy danh sách
+               const response = await http.get('SanPham/GetAll'); // Gọi API để lấy danh sách
                return response.data;
           } catch (error) {
                throw error.response?.data || "Lỗi không xác định";

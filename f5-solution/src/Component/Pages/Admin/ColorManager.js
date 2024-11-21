@@ -1,220 +1,264 @@
-import React, { useState } from 'react';
-import { Table, Button, Input, Space, Modal, Form, Row, Col, Select, DatePicker, Switch } from 'antd';
-import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
-import moment from 'moment';
-import './ColorManagement.css';  // Đảm bảo tạo file CSS
+import React, { useEffect, useState } from "react";
+import { Table, Button, Switch, Modal, Radio, Form, Input, message, Select } from "antd";
+import { EditOutlined, PlusOutlined } from "@ant-design/icons";
+import ColorService from "../../../Service/ColorService";
+import "./ColorManagement.css";
 
-const { RangePicker } = DatePicker;
 const { Option } = Select;
 
 const ColorManagement = () => {
-    const [colors, setColors] = useState([
-        { key: 1, code: 'M_001', name: 'Đỏ', dateCreated: '2024-01-15', status: 'Active' },
-        { key: 2, code: 'M_002', name: 'Xanh', dateCreated: '2024-02-10', status: 'Inactive' },
-        // Dữ liệu mẫu
-    ]);
-
-    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [colors, setColors] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [modalVisible, setModalVisible] = useState(false);
     const [editingColor, setEditingColor] = useState(null);
-    const [searchText, setSearchText] = useState("");
-    const [selectedStatus, setSelectedStatus] = useState(null);
-    const [dateRange, setDateRange] = useState([]);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [statusFilter, setStatusFilter] = useState("all"); // Trạng thái lọc
+    const [form] = Form.useForm();
+    const pageSize = 10;
 
-    const handleDelete = (key) => {
-        setColors(colors.filter((item) => item.key !== key));
-    };
-
-    const handleEdit = (record) => {
-        setEditingColor(record);
-        setIsModalVisible(true);
-    };
-
-    const handleAddNew = () => {
-        setEditingColor(null);
-        setIsModalVisible(true);
-    };
-
-    const handleSave = (values) => {
-        if (editingColor) {
-            setColors(colors.map((color) =>
-                (color.key === editingColor.key
-                    ? { ...values, key: editingColor.key, dateCreated: moment().format('YYYY-MM-DD'), status: values.status ? 'Active' : 'Inactive' }
-                    : color)));
-        } else {
-            setColors([...colors, { ...values, key: colors.length + 1, dateCreated: moment().format('YYYY-MM-DD'), status: values.status ? 'Active' : 'Inactive' }]);
-        }
-        setIsModalVisible(false);
-    };
-
-    const handleSearch = () => {
-        let filteredColors = colors;
-
-        // Lọc theo tên hoặc mã
-        if (searchText) {
-            filteredColors = filteredColors.filter((color) =>
-                color.code.toLowerCase().includes(searchText.toLowerCase()) ||
-                color.name.toLowerCase().includes(searchText.toLowerCase())
-            );
-        }
-
-        // Lọc theo trạng thái
-        if (selectedStatus) {
-            filteredColors = filteredColors.filter((color) => color.status === selectedStatus);
-        }
-
-        // Lọc theo ngày tạo
-        if (dateRange.length > 0) {
-            const [startDate, endDate] = dateRange;
-            filteredColors = filteredColors.filter((color) => {
-                const colorDate = moment(color.dateCreated);
-                return colorDate.isBetween(startDate, endDate, 'day', '[]'); // Bao gồm cả ngày bắt đầu và kết thúc
+    const fetchColor = async (search = "", status = "all") => {
+        setLoading(true);
+        try {
+            const data = await ColorService.getAllColor();
+            const filteredData = data.filter(color => {
+                const matchesSearch = color.tenMauSac.toLowerCase().includes(search.toLowerCase());
+                const matchesStatus = status === "all" || (status === "active" && color.trangThai === 1) || (status === "inactive" && color.trangThai === 0);
+                return matchesSearch && matchesStatus;
             });
+            setColors(filteredData);
+            message.success("Lấy danh sách màu sắc thành công");
+        } catch (error) {
+            message.error("Lỗi khi lấy danh sách màu sắc");
+        } finally {
+            setLoading(false);
         }
-
-        return filteredColors;
     };
 
-    const handleStatusChange = (checked, record) => {
-        setColors(colors.map((color) =>
-            color.key === record.key ? { ...color, status: checked ? 'Active' : 'Inactive' } : color
-        ));
+    useEffect(() => {
+        fetchColor();
+    }, []);
+
+    const openModal = (record = null) => {
+        setModalVisible(true);
+        setEditingColor(record);
+        if (record) {
+            form.setFieldsValue({ ...record, trangThai: record.trangThai });
+        } else {
+            form.resetFields();
+        }
+    };
+
+    const handleCreate = async () => {
+        try {
+            const values = await form.validateFields();
+            console.log('Submitting values for create:', values);
+            const newColor = {
+                tenMauSac: values.tenMauSac,
+                moTa: values.moTa,
+                trangThai: values.trangThai === 1 ? 1 : 0,
+            };
+            const response = await ColorService.createColor(newColor);
+            console.log('Create response:', response);
+            message.success("Thêm mới Màu sắc thành công");
+            setModalVisible(false);
+            fetchColor(searchTerm, statusFilter); // Lọc lại theo từ khóa và trạng thái
+        } catch (error) {
+            if (error.response && error.response.data) {
+                console.error("Error response data:", error.response.data);
+                message.error(`Lỗi: ${error.response.data}`);
+            } else {
+                message.error("Lỗi không xác định khi xử lý dữ liệu");
+            }
+        }
+    };
+
+    const handleUpdate = async () => {
+        try {
+            const values = await form.validateFields();
+            const updatedValues = {
+                id: editingColor.id,
+                tenMauSac: values.tenMauSac,
+                moTa: values.moTa,
+                trangThai: values.trangThai === 1 ? 1 : 0,
+            };
+            const response = await ColorService.updateColor(editingColor.id, updatedValues);
+            console.log('Update response:', response);
+            message.success("Cập nhật Màu sắc thành công");
+            setModalVisible(false);
+            fetchColor(searchTerm, statusFilter); // Lọc lại theo từ khóa và trạng thái
+        } catch (error) {
+            console.error("Error updating Mau Sac:", error);
+            message.error(error.response?.data || "Lỗi không xác định khi xử lý dữ liệu");
+        }
+    };
+
+    const handleOk = async () => {
+        if (editingColor) {
+            await handleUpdate();
+        } else {
+            await handleCreate();
+        }
+    };
+
+    const handleStatusChange = async (color, newStatus) => {
+        try {
+            const updateColor = {
+                ...color,
+                trangThai: newStatus ? 1 : 0,
+            };
+            await ColorService.updateColor(color.id, updateColor);
+            message.success("Chuyển trạng thái Màu sắc thành công");
+            fetchColor(searchTerm, statusFilter); // Reload lại dữ liệu sau khi cập nhật
+        } catch (error) {
+            message.error("Lỗi khi chuyển trạng thái Màu sắc");
+        }
+    };
+
+    const handleFilter = () => {
+        fetchColor(searchTerm, statusFilter); // Gọi hàm lọc khi người dùng nhấn nút Lọc
     };
 
     const columns = [
         {
-            title: 'STT',
-            dataIndex: 'key',
-            key: 'key',
+            title: "STT",
+            dataIndex: "index",
+            key: "index",
+            render: (_, __, index) => (currentPage - 1) * pageSize + index + 1,
+            width: 70,
+            align: "center",
         },
         {
-            title: 'Mã màu',
-            dataIndex: 'code',
-            key: 'code',
+            title: "Tên Màu Sắc",
+            dataIndex: "tenMauSac",
+            key: "tenMauSac",
+            align: "center",
         },
         {
-            title: 'Tên màu',
-            dataIndex: 'name',
-            key: 'name',
+            title: "Mô tả",
+            dataIndex: "moTa",
+            key: "moTa",
+            align: "center",
         },
+        
         {
-            title: 'Ngày tạo',
-            dataIndex: 'dateCreated',
-            key: 'dateCreated',
-        },
-        {
-            title: 'Trạng thái',
-            dataIndex: 'status',
-            key: 'status',
-            render: (status, record) => (
-                <Switch
-                    checked={status === 'Active'}
-                    onChange={(checked) => handleStatusChange(checked, record)}
-                />
-            ),
-        },
-        {
-            title: 'Hành động',
-            key: 'action',
+            title: "Trạng Thái",
+            dataIndex: "trangThai",
+            key: "trangThai",
             render: (text, record) => (
-                <Space size="middle">
-                    <Button icon={<EditOutlined />} onClick={() => handleEdit(record)}>Sửa</Button>
-                    <Button icon={<DeleteOutlined />} onClick={() => handleDelete(record.key)} danger>Xóa</Button>
-                </Space>
+                <Switch checked={text === 1} onChange={(checked) => handleStatusChange(record, checked)} />
             ),
+            align: "center",
+        },
+        {
+            title: "Hành động",
+            key: "action",
+            render: (_, record) => (
+                <Button className="button-s" type="primary" icon={<EditOutlined />} onClick={() => openModal(record)} style={{
+                    backgroundColor: "#ffffff",
+                    color: "#000000",
+                    marginRight: 10
+                }}>
+                    Sửa
+                </Button>
+            ),
+            align: "center",
         },
     ];
 
     return (
-        <div className="color-management-container">
-            <div className="sidebar">
-                <h2>Quản lý màu sắc</h2>
-                <ul>
-                    <li>
-                        <Input
-                            placeholder="Tìm kiếm tên hoặc mã màu..."
-                            value={searchText}
-                            onChange={(e) => setSearchText(e.target.value)}
-                            className="search-input"
-                        />
-                    </li>
-                    <li>
-                        <Select
-                            placeholder="Chọn trạng thái"
-                            style={{ width: '100%' }}
-                            onChange={(value) => setSelectedStatus(value)}
-                            value={selectedStatus}
-                            className="status-select"
-                        >
-                            <Option value={null}>Tất cả</Option>
-                            <Option value="Active">Đang hoạt động</Option>
-                            <Option value="Inactive">Ngừng hoạt động</Option>
-                        </Select>
-                    </li>
-                    <li>
-                        <RangePicker
-                            style={{ width: '100%' }}
-                            onChange={(dates) => setDateRange(dates)}
-                            className="date-picker"
-                        />
-                    </li>
-                    <li>
-                        <Button type="primary" onClick={handleSearch} className="filter-button">Lọc ngay</Button>
-                    </li>
-                </ul>
-            </div>
-
-            <div className="main-content">
-                <h1>Quản lý màu sắc</h1>
-
-                <Button
-                    type="primary"
-                    icon={<PlusOutlined />}
-                    style={{ marginBottom: '20px' }}
-                    onClick={handleAddNew}
-                >
-                    Thêm màu mới
-                </Button>
-
-                <Table columns={columns} dataSource={handleSearch()} pagination={{ pageSize: 5 }} />
-
-                <Modal
-                    title={editingColor ? "Chỉnh sửa màu" : "Thêm màu mới"}
-                    visible={isModalVisible}
-                    onCancel={() => setIsModalVisible(false)}
-                    footer={null}
-                >
-                    <Form
-                        initialValues={editingColor || { code: '', name: '', status: true }}
-                        onFinish={handleSave}
+        <div className="color-management">
+            <h2>Quản lý Màu Sắc</h2>
+            <div className="color-management-container">
+                <div className="sidebar">
+                    <h2>Bộ lọc</h2>
+                    <Input
+                        placeholder="Tìm kiếm tên màu sắc..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="search-input"
+                    />
+                    <Select
+                        value={statusFilter}
+                        onChange={(value) => setStatusFilter(value)}
+                        style={{ width: "100%", marginTop: 10 }}
                     >
-                        <Form.Item
-                            label="Mã màu"
-                            name="code"
-                            rules={[{ required: true, message: 'Vui lòng nhập mã màu!' }]}
-                        >
-                            <Input />
-                        </Form.Item>
-                        <Form.Item
-                            label="Tên màu"
-                            name="name"
-                            rules={[{ required: true, message: 'Vui lòng nhập tên màu!' }]}
-                        >
-                            <Input />
-                        </Form.Item>
-                        <Form.Item
-                            label="Trạng thái"
-                            name="status"
-                            valuePropName="checked"
-                        >
-                            <Switch defaultChecked />
-                        </Form.Item>
-                        <Form.Item>
-                            <Button type="primary" htmlType="submit">
-                                Lưu
-                            </Button>
-                        </Form.Item>
-                    </Form>
-                </Modal>
+                        <Option value="all">Tất cả</Option>
+                        <Option value="active">Hoạt động</Option>
+                        <Option value="inactive">Ngừng hoạt động</Option>
+                    </Select>
+                    <Button className="button" type="primary" onClick={handleFilter} style={{ marginTop: 10 }}>
+                        Lọc
+                    </Button>
+                </div>
+
+                <div className="main-content">
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        style={{ marginBottom: "20px" }}
+                        onClick={() => openModal()}
+                        className="button"
+                    >
+                        Thêm màu sắc mới
+                    </Button>
+
+                    <Table
+                        columns={columns}
+                        dataSource={colors}
+                        rowKey="id"
+                        loading={loading}
+                        pagination={{
+                            current: currentPage,
+                            pageSize: pageSize,
+                            total: colors.length,
+                            onChange: (page) => setCurrentPage(page),
+                        }}
+                    />
+
+                    <Modal
+                        title={editingColor ? "Cập nhật Màu Sắc" : "Thêm mới Màu Sắc"}
+                        open={modalVisible}
+                        onCancel={() => setModalVisible(false)}
+                        footer={null}
+                    >
+                        <Form form={form} layout="vertical" onFinish={handleOk}>
+                            <Form.Item
+                                label="Tên Màu Sắc"
+                                name="tenMauSac"
+                                rules={[{ required: true, message: "Vui lòng nhập tên Màu sắc" }]}
+                            >
+                                <Input placeholder="Nhập tên màu sắc" />
+                            </Form.Item>
+                            <Form.Item label="Mô tả" name="moTa">
+                                <Input.TextArea placeholder="Nhập mô tả cho màu sắc" rows={4} />
+                            </Form.Item>
+                            <Form.Item label="Trạng thái" name="trangThai" initialValue={1}>
+                                <Radio.Group style={{ display: "flex", flexDirection: "row" }}>
+                                    <Radio value={1}>Hoạt động</Radio>
+                                    <Radio value={0}>Không hoạt động</Radio>
+                                </Radio.Group>
+                            </Form.Item>
+                            <Form.Item>
+                                <div style={{ display: 'flex', gap: '16px' }}>
+                                    <Button
+                                        onClick={() => setModalVisible(false)}
+                                        style={{ flex: 1, height: '40px' }}
+                                    >
+                                        Hủy
+                                    </Button>
+                                    <Button
+                                        type="primary"
+                                        htmlType="submit"
+                                        style={{ flex: 1, height: '40px' }}
+                                    >
+                                        Lưu
+                                    </Button>
+                                </div>
+                            </Form.Item>
+                        </Form>
+                    </Modal>
+                </div>
             </div>
         </div>
     );

@@ -1,47 +1,47 @@
 import React, { useEffect, useState } from "react";
 import { Table, Button, Switch, Modal, Radio, Form, Input, message, Select } from "antd";
 import { EditOutlined, PlusOutlined } from "@ant-design/icons";
-import MaterialService from "../../../Service/MaterialService";
-import "./MaterialManagement.css";
+import "./OriginalManagement.css";
+import OriginalService from "../../../Service/OriginalService";
 
 const { Option } = Select;
 
-const MaterialManagement = () => {
-    const [materials, setMaterials] = useState([]);
+const OriginalManagement = () => {
+    const [originals, setOriginals] = useState([]);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
     const [modalVisible, setModalVisible] = useState(false);
-    const [editingMaterial, setEditingMaterial] = useState(null);
+    const [editingOriginanl, setEditingOriginal] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
     const [statusFilter, setStatusFilter] = useState("all"); // Trạng thái lọc
     const [form] = Form.useForm();
     const pageSize = 10;
 
-    const fetchMaterial = async (search = "", status = "all") => {
+    const fetchOriginal= async (search = "", status = "all") => {
         setLoading(true);
         try {
-            const data = await MaterialService.getAllMaterial();
-            const filteredData = data.filter(material => {
-                const matchesSearch = material.tenChatLieu.toLowerCase().includes(search.toLowerCase());
-                const matchesStatus = status === "all" || (status === "active" && material.trangThai === 1) || (status === "inactive" && material.trangThai === 0);
+            const data = await OriginalService.getAllOriginal();
+            const filteredData = data.filter(original => {
+                const matchesSearch = original.tenXuatXu.toLowerCase().includes(search.toLowerCase());
+                const matchesStatus = status === "all" || (status === "active" && original.trangThai === 1) || (status === "inactive" && original.trangThai === 0);
                 return matchesSearch && matchesStatus;
             });
-            setMaterials(filteredData);
-            message.success("Lấy danh sách Chất Liệu thành công");
+            setOriginals(filteredData);
+            message.success("Lấy danh sách Xuất Xứ thành công");
         } catch (error) {
-            message.error("Lỗi khi lấy danh sách Chất Liệu");
+            message.error("Lỗi khi lấy danh sách Xuất Xứ");
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchMaterial();
+        fetchOriginal();
     }, []);
 
     const openModal = (record = null) => {
         setModalVisible(true);
-        setEditingMaterial(record);
+        setEditingOriginal(record);
         if (record) {
             form.setFieldsValue({ ...record, trangThai: record.trangThai });
         } else {
@@ -52,17 +52,16 @@ const MaterialManagement = () => {
     const handleCreate = async () => {
         try {
             const values = await form.validateFields();
-            console.log('Submitting values for create:', values);
-            const newMaterial = {
-                tenChatLieu: values.tenChatLieu,
+            const newOriginal = {
+                tenXuatXu: values.tenXuatXu,
                 moTa: values.moTa,
                 trangThai: values.trangThai === 1 ? 1 : 0,
             };
-            const response = await MaterialService.createMaterial(newMaterial);
+            const response =  await OriginalService.createOriginal(newOriginal);
             console.log('Create response:', response);
-            message.success("Thêm mới Chất Liệu thành công");
+            message.success("Thêm mới Xuất Xứ thành công");
             setModalVisible(false);
-            fetchMaterial(searchTerm, statusFilter); // Lọc lại theo từ khóa và trạng thái
+            fetchOriginal(searchTerm, statusFilter); // Lọc lại theo từ khóa và trạng thái
         } catch (error) {
             if (error.response && error.response.data) {
                 console.error("Error response data:", error.response.data);
@@ -76,18 +75,17 @@ const MaterialManagement = () => {
     const handleUpdate = async () => {
         try {
             const values = await form.validateFields();
-            console.log('Submitting values for update:', values);
             const updatedValues = {
-                id: editingMaterial.id,
-                tenChatLieu: values.tenChatLieu,
+                id: editingOriginanl.id,
+                tenXuatXu: values.tenXuatXu,
                 moTa: values.moTa,
                 trangThai: values.trangThai === 1 ? 1 : 0,
             };
-            const response = await MaterialService.updateMaterial(editingMaterial.id, updatedValues);
+            const response = await OriginalService.updateOriginal(editingOriginanl.id, updatedValues);
             console.log('Update response:', response);
-            message.success("Cập nhật Chất Liệu thành công");
+            message.success("Cập nhật Xuất Xứ thành công");
             setModalVisible(false);
-            fetchMaterial(searchTerm, statusFilter); // Lọc lại theo từ khóa và trạng thái
+            fetchOriginal(searchTerm, statusFilter); // Lọc lại theo từ khóa và trạng thái
         } catch (error) {
             if (error.response && error.response.data) {
                 console.error("Error response data:", error.response.data);
@@ -99,29 +97,29 @@ const MaterialManagement = () => {
     };
 
     const handleOk = async () => {
-        if (editingMaterial) {
+        if (editingOriginanl) {
             await handleUpdate();
         } else {
             await handleCreate();
         }
     };
 
-    const handleStatusChange = async (material, newStatus) => {
+    const handleStatusChange = async (original, newStatus) => {
         try {
-            const updateMaterial = {
-                ...material,
+            const updateOriginal = {
+                ...original,
                 trangThai: newStatus ? 1 : 0,
             };
-            await MaterialService.updateMaterial(material.id, updateMaterial);
-            message.success("Chuyển trạng thái Chất Liệu thành công");
-            fetchMaterial(searchTerm, statusFilter); // Reload lại dữ liệu sau khi cập nhật
+            await OriginalService.updateOriginal(original.id, updateOriginal);
+            message.success("Chuyển trạng thái Xuất Xứ thành công");
+            fetchOriginal(searchTerm, statusFilter); // Reload lại dữ liệu sau khi cập nhật
         } catch (error) {
-            message.error("Lỗi khi chuyển trạng thái Chất Liệu");
+            message.error("Lỗi khi chuyển trạng thái Size");
         }
     };
 
     const handleFilter = () => {
-        fetchMaterial(searchTerm, statusFilter); // Gọi hàm lọc khi người dùng nhấn nút Lọc
+        fetchOriginal(searchTerm, statusFilter); // Gọi hàm lọc khi người dùng nhấn nút Lọc
     };
 
     const columns = [
@@ -134,9 +132,9 @@ const MaterialManagement = () => {
             align: "center",
         },
         {
-            title: "Tên Chất Liệu",
-            dataIndex: "tenChatLieu",
-            key: "tenChatLieu",
+            title: "Xuất Xứ",
+            dataIndex: "tenXuatXu",
+            key: "tenXuatXu",
             align: "center",
         },
         {
@@ -171,13 +169,13 @@ const MaterialManagement = () => {
     ];
 
     return (
-        <div className="material-management">
-            <h2>Quản lý Chất Liệu</h2>
-            <div className="material-management-container">
+        <div className="original-management">
+            <h2>Quản lý Xuất Xứ</h2>
+            <div className="original-management-container">
                 <div className="sidebar">
                     <h2>Bộ lọc</h2>
                     <Input
-                        placeholder="Tìm kiếm tên chất liệu..."
+                        placeholder="Tìm kiếm Xuất Xứ..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                         className="search-input"
@@ -204,38 +202,38 @@ const MaterialManagement = () => {
                         onClick={() => openModal()}
                         className="button"
                     >
-                        Thêm chất liệu mới
+                        Thêm Xuất Xứ mới
                     </Button>
 
                     <Table
                         columns={columns}
-                        dataSource={materials}
+                        dataSource={originals}
                         rowKey="id"
                         loading={loading}
                         pagination={{
                             current: currentPage,
                             pageSize: pageSize,
-                            total: materials.length,
+                            total: originals.length,
                             onChange: (page) => setCurrentPage(page),
                         }}
                     />
 
                     <Modal
-                        title={editingMaterial ? "Cập nhật Chất Liệu" : "Thêm mới Chất Liệu"}
+                        title={editingOriginanl ? "Cập nhật Xuất Xứ" : "Thêm mới Xuất Xứ"}
                         open={modalVisible}
                         onCancel={() => setModalVisible(false)}
                         footer={null}
                     >
                         <Form form={form} layout="vertical" onFinish={handleOk}>
                             <Form.Item
-                                label="Tên Chất Liệu"
-                                name="tenChatLieu"
-                                rules={[{ required: true, message: "Vui lòng nhập tên Chất Liệu" }]}
+                                label="Xuất Xứ"
+                                name="tenXuatXu"
+                                rules={[{ required: true, message: "Vui lòng nhập Xuất Xứ" }]}
                             >
-                                <Input placeholder="Nhập tên chất liệu" />
+                                <Input placeholder="Nhập Xuất Xứ" />
                             </Form.Item>
                             <Form.Item label="Mô tả" name="moTa">
-                                <Input.TextArea placeholder="Nhập mô tả cho chất liệu" rows={4} />
+                                <Input.TextArea placeholder="Nhập mô tả cho Xuất Xứ" rows={4} />
                             </Form.Item>
                             <Form.Item label="Trạng thái" name="trangThai" initialValue={1}>
                                 <Radio.Group style={{ display: "flex", flexDirection: "row" }}>
@@ -268,4 +266,4 @@ const MaterialManagement = () => {
     );
 };
 
-export default MaterialManagement;
+export default OriginalManagement;

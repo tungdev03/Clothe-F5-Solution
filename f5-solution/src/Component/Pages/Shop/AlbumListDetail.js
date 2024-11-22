@@ -1,5 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom'; // Để lấy tham số ID từ URL và điều hướng
+import { Menu, message } from 'antd'; // Import Ant Design Menu và message
+import { LogoutOutlined } from '@ant-design/icons';
 import { albums2 } from './AlbumList'; // Lấy dữ liệu album từ AlbumList
 import './AlbumListDetail.css';
 import CustomHeader from '../../Layouts/Header/Header';
@@ -10,6 +12,63 @@ const AlbumListDetail = () => {
     const album = albums2.find((album) => album.id === parseInt(id)); // Tìm sản phẩm theo ID
     const imgRef = useRef(null); // Dùng để thao tác với hình ảnh
     const zoomRef = useRef(null); // Dùng cho chức năng zoom ảnh
+    
+    const [TaiKhoan, setUsername] = useState(null);
+    useEffect(() => {
+        // Kiểm tra thông tin người dùng từ localStorage
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            const user = JSON.parse(storedUser);
+            setUsername(user.TaiKhoan);
+        }
+    }, []);
+
+    const handleLoginClick = () => {
+        navigate('/login');
+    };
+
+    const handleOncartClick = () => {
+        // Kiểm tra nếu người dùng không đăng nhập
+        const storedUser = JSON.parse(localStorage.getItem('user')); // Parse dữ liệu từ localStorage
+        if (!storedUser || !storedUser.TaiKhoan) {
+            message.info("Vui lòng đăng nhập để xem giỏ hàng");
+            navigate('/Login');
+        } else {
+            // Điều hướng đến giỏ hàng của người dùng đã đăng nhập
+            navigate(`/cart/${storedUser.TaiKhoan}`);
+        }
+    };
+
+    const handleLogoutClick = () => {
+        // Xử lý đăng xuất
+        localStorage.removeItem('user');
+        setUsername(null); // Reset lại state username
+        navigate('/'); // Điều hướng tới trang chủ sau khi đăng xuất
+    };
+
+    const handleProfileClick = () => {
+        const storedUser = localStorage.getItem('user');
+        const user = JSON.parse(storedUser);
+        setUsername(user.TaiKhoan);
+        if (user.TaiKhoan) {
+            navigate(`/Profile/${user.TaiKhoan}`);
+        }
+    };
+
+    const handleMenuClick = ({ key }) => {
+        navigate(key); // Điều hướng đến đường dẫn tương ứng với key
+    };
+
+    const userMenu = (
+        <Menu>
+            <Menu.Item key="1" onClick={handleProfileClick}>
+                Thông tin cá nhân
+            </Menu.Item>
+            <Menu.Item key="2" danger onClick={handleLogoutClick} icon={<LogoutOutlined />}>
+                Đăng xuất
+            </Menu.Item>
+        </Menu>
+    );
 
     // State để lưu màu sắc và size được chọn
     const [selectedColor, setSelectedColor] = useState(null);
@@ -50,9 +109,21 @@ const AlbumListDetail = () => {
         }
     };
 
+    // State để lưu số lượng sản phẩm
+    const [quantity, setQuantity] = useState(1);
+
+    // Tăng số lượng
+    const incrementQuantity = () => {
+        setQuantity(prevQuantity => Math.min(prevQuantity + 1, 99)); // Giới hạn tối đa 99
+    };
+
+    // Giảm số lượng
+    const decrementQuantity = () => {
+        setQuantity(prevQuantity => Math.max(prevQuantity - 1, 1)); // Giới hạn tối thiểu 1
+    };
+
     // Hàm đổi ảnh chính với ảnh phụ khi click
     const handleImageClick = (clickedImage) => {
-        // Đổi vị trí giữa ảnh chính và ảnh được click
         setSubImages(subImages.map(img => (img === clickedImage ? mainImage : img)));
         setMainImage(clickedImage); // Đặt ảnh được click làm ảnh chính
     };
@@ -65,7 +136,6 @@ const AlbumListDetail = () => {
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
         
-        const lensSize = 150; // Kích thước của kính lúp
         const bgPosX = (x / img.width) * 100;
         const bgPosY = (y / img.height) * 100;
 
@@ -127,7 +197,6 @@ const AlbumListDetail = () => {
                         <div className="album-detail-colors">
                             <label>Màu sắc:</label>
                             <div className="album-detail-color-options">
-                                {/* Giả định album có thuộc tính colors */}
                                 {['red', 'white'].map((color, index) => (
                                     <div
                                         key={index}
@@ -142,7 +211,7 @@ const AlbumListDetail = () => {
                         {/* Chọn size */}
                         <div className="album-detail-sizes">
                             <label>Size:</label>
-                            <div className="album-detail-size-options">
+                            <div  className="album-detail-size-options">
                                 {['S', 'M', 'L'].map(size => (
                                     <button
                                         key={size}
@@ -152,6 +221,22 @@ const AlbumListDetail = () => {
                                         {size}
                                     </button>
                                 ))}
+                            </div>
+                        </div>
+                        <div className="album-detail-quantity-section">
+                            <label className="quantity-label">Số lượng:</label>
+                            <div className="album-detail-quantity">
+                                <button
+                                    onClick={decrementQuantity}
+                                    className={`quantity-btn ${quantity === 1 ? 'disabled' : ''}`}
+                                    disabled={quantity === 1}
+                                >
+                                    <i className="material-icons">-</i>
+                                </button>
+                                <span className="quantity-value">{quantity}</span>
+                                <button onClick={incrementQuantity} className="quantity-btn">
+                                    <i className="material-icons">+</i>
+                                </button>
                             </div>
                         </div>
 

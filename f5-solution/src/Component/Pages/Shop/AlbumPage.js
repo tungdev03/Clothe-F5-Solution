@@ -3,7 +3,7 @@ import { Card, Col, Row, Button } from 'antd';
 import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
 import CustomHeader from '../../Layouts/Header/Header';
 import './Album.css';
-import './Home.css';
+
 const { Meta } = Card;
 
 export const albums = [
@@ -133,7 +133,7 @@ const AlbumPage = () => {
                                         />
                                         <div className="color-overlay"></div>
                                         <Link to={`/album/${album.id}`}> <div className="view-more-overlay">
-                                            <Button type='light' className="view-more-btn">Xem thêm</Button>
+                                             Xem thêm
                                         </div></Link>
                                     </div>
                                 }
@@ -204,7 +204,7 @@ const AlbumPage = () => {
                                             />
                                             <div className="color-overlay"></div>
                                             <Link to={`/album/${album1.id}`}> <div className="view-more-overlay">
-                                                <Button type='light' className="view-more-btn">Xem thêm</Button>
+                                                Xem thêm
                                             </div></Link>
                                         </div>
                                     }

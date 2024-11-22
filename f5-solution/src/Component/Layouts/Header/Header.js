@@ -29,6 +29,7 @@ const CustomHeader = () => {
     }
   }, []);
 
+  // Xử lý đăng nhập
   const handleLoginClick = () => {
     navigate('/login');
   };
@@ -65,6 +66,7 @@ const CustomHeader = () => {
     navigate(key); // Điều hướng đến đường dẫn tương ứng với key
   };
 
+  // Menu khi người dùng đã đăng nhập
   const userMenu = (
     <Menu>
       <Menu.Item key="1" onClick={handleProfileClick}>
@@ -87,6 +89,7 @@ const CustomHeader = () => {
         height: '120px',
       }}
     >
+      {/* Logo và thương hiệu */}
       <div className="logo-brand" style={{ display: 'flex', alignItems: 'center' }}>
         <img src={logo_v1} alt="logo" style={{ height: '150px', marginRight: '3px' }} />
         <span className="brand" style={{ fontSize: '18px', fontWeight: 'bold' }}>
@@ -94,10 +97,11 @@ const CustomHeader = () => {
         </span>
       </div>
 
+      {/* Menu điều hướng */}
       <Menu
         theme="light"
         mode="horizontal"
-        defaultSelectedKeys={['/store']}
+        defaultSelectedKeys={['/']}
         onClick={handleMenuClick}
         items={items1}
         style={{
@@ -106,10 +110,13 @@ const CustomHeader = () => {
           justifyContent: 'center',
         }}
       />
+
+      {/* Thanh tìm kiếm */}
       <div>
         <Input placeholder="Search" />
       </div>
 
+      {/* Phần giỏ hàng và thông tin tài khoản */}
       <div className="actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <Button onClick={handleOncartClick} type="link" icon={<ShoppingCartOutlined />} style={{ fontSize: '16px' }}>Giỏ hàng</Button>
         {TaiKhoan ? (

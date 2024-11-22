@@ -12,25 +12,40 @@ const AlbumDetail = () => {
     const imgRef = useRef(null);
     const zoomRef = useRef(null);
 
+    
+
     // State để lưu màu sắc và size người dùng đã chọn
     const [selectedColor, setSelectedColor] = useState(null);
     const [selectedSize, setSelectedSize] = useState(null);
 
     // State để hiển thị form
-    const [showForm, setShowForm] = useState(false);
+    // const [showForm, setShowForm] = useState(false);
 
     // State để lưu ảnh chính và ảnh phụ
     const [mainImage, setMainImage] = useState(album.imgSrc); // Hình ảnh chính ban đầu
     const [subImages] = useState([album.imgSrc, album.imgSrc1, album.imgSrc2]); // Các hình ảnh phụ
+
+    // State để lưu số lượng sản phẩm
+    const [quantity, setQuantity] = useState(1);
+
+    // Tăng số lượng
+    const incrementQuantity = () => {
+        setQuantity(prevQuantity => Math.min(prevQuantity + 1, 99)); // Giới hạn tối đa 99
+    };
+
+    // Giảm số lượng
+    const decrementQuantity = () => {
+        setQuantity(prevQuantity => Math.max(prevQuantity - 1, 1)); // Giới hạn tối thiểu 1
+    };
 
     const handleAddToCart = () => {
         if (!selectedColor || !selectedSize) {
             alert("Vui lòng chọn màu sắc và size trước khi thêm vào giỏ hàng.");
             return;
         }
-        // Lưu sản phẩm vào localStorage cùng với màu sắc và size
+        // Lưu sản phẩm vào localStorage cùng với màu sắc, size, và số lượng
         let cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-        cartItems.push({ ...album, selectedColor, selectedSize }); // Thêm sản phẩm vào giỏ hàng
+        cartItems.push({ ...album, selectedColor, selectedSize, quantity }); // Thêm số lượng
         localStorage.setItem('cartItems', JSON.stringify(cartItems)); // Lưu lại trong localStorage
         // Điều hướng tới trang giỏ hàng
         navigate('/cart');
@@ -42,15 +57,15 @@ const AlbumDetail = () => {
             return;
         }
         // Hiện form mua hàng khi nhấn "Mua ngay"
-        setShowForm(true);
+        // setShowForm(true);
     };
 
     // Đóng form khi click ra ngoài
-    const handleCloseForm = (e) => {
-        if (e.target.className === 'overlay') {
-            setShowForm(false); // Ẩn form
-        }
-    };
+    // const handleCloseForm = (e) => {
+    //     if (e.target.className === 'overlay') {
+    //         setShowForm(false); // Ẩn form
+    //     }
+    // };
 
     // Hàm đổi ảnh chính với ảnh phụ khi click
     const handleImageClick = (clickedImage) => {
@@ -165,59 +180,32 @@ const AlbumDetail = () => {
                             </div>
                         </div>
 
+                        <div className="album-detail-quantity-section">
+                            <label className="quantity-label">Số lượng:</label>
+                            <div className="album-detail-quantity">
+                                <button
+                                    onClick={decrementQuantity}
+                                    className={`quantity-btn ${quantity === 1 ? 'disabled' : ''}`}
+                                    disabled={quantity === 1}
+                                >
+                                    <i className="material-icons">-</i> {/* Icon trừ */}
+                                </button>
+                                <span className="quantity-value">{quantity}</span>
+                                <button onClick={incrementQuantity} className="quantity-btn">
+                                    <i className="material-icons">+</i> {/* Icon cộng */}
+                                </button>
+                            </div>
+                        </div>
+
+
+
                         <div className="album-detail-actions">
                             <button className="add-to-cart-btn" onClick={handleAddToCart}>Thêm vào giỏ hàng</button>
                             <button className="buy-now-btn" onClick={handleBuyNow}>Mua ngay</button>
                         </div>
                     </div>
                 </div>
-
-                {/* Phần giới thiệu sản phẩm ở dưới ảnh chính */}
-                <div className="album-detail-introduction">
-                    <h3>Giới thiệu sản phẩm</h3>
-                    <p>
-                        Sản phẩm {album.title} được thiết kế với chất liệu vải tổng hợp cao cấp, mang lại sự thoải mái và phong cách sang trọng.
-                        Với thiết kế tinh tế và màu sắc hiện đại, chiếc đầm này hoàn hảo cho những bữa tiệc hoặc sự kiện quan trọng.
-                    </p>
-                    <p>
-                        Được chế tác tỉ mỉ và kỹ lưỡng, sản phẩm không chỉ nổi bật về mặt thẩm mỹ mà còn mang đến sự thoải mái tối đa khi mặc.
-                        Đây chắc chắn là một sự lựa chọn lý tưởng cho các quý cô muốn nổi bật và tự tin hơn.
-                    </p>
-                </div>
             </div>
-
-            {/* Hiển thị form khi nhấn "Mua ngay" */}
-            {showForm && (
-                <div className="overlay" onClick={handleCloseForm}>
-                    <div className="buy-now-form">
-                        <h2>Thông tin mua hàng</h2>
-                        <div className="buy-now-product-info">
-                            <img src={mainImage} alt={album.title} className="buy-now-image" />
-                            <div className="buy-now-details">
-                                <p>Sản phẩm: {album.title}</p>
-                                <p className="price">Giá: {album.price}</p>
-                                <p>Màu sắc: {selectedColor}</p>
-                                <p>Size: {selectedSize}</p>
-                            </div>
-                        </div>
-                        <form>
-                            <label>
-                                Tên khách hàng:
-                                <input type="text" name="name" required />
-                            </label>
-                            <label>
-                                Địa chỉ giao hàng:
-                                <input type="text" name="address" required />
-                            </label>
-                            <label>
-                                Số điện thoại:
-                                <input type="text" name="phone" required />
-                            </label>
-                            <button type="submit">Xác nhận mua</button>
-                        </form>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

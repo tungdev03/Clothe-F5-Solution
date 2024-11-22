@@ -21,6 +21,10 @@ import MaterialManagement from './MaterialManagement';
 import InvoiceManagement from './InvoiceManagement';
 import CounterSale from './CounterSale';
 import EmployeeManagement from './EmployeeManagement';
+import OriginalManagement from './OriginalManagement';
+import CategoriesManagement from './CategoriesManagement';
+import Brandmanagement from './Brandmanagement';
+import ProductManagement from './ProductManagement';
 const { Header, Sider, Content } = Layout;
 const { SubMenu } = Menu;
 
@@ -39,6 +43,9 @@ const Dashboard = () => {
             case '1-1':
                 setCurrentContent(<StatisticsPage />);
                 break;
+            case '2-1':
+                setCurrentContent(<ProductManagement />);
+                break;
             case '5-2':
                 setCurrentContent(<VoucherManagement />);
                 break;
@@ -56,6 +63,15 @@ const Dashboard = () => {
                 break;
             case '2-3-3':
                 setCurrentContent(<MaterialManagement />);
+                break;
+            case '2-3-4':
+                setCurrentContent(<OriginalManagement />);
+                break;
+            case '2-3-5':
+                setCurrentContent(<CategoriesManagement />);
+                break;
+            case '2-3-6':
+                setCurrentContent(<Brandmanagement />);
                 break;
             case '3-1':
                 setCurrentContent(<InvoiceManagement />);
@@ -109,9 +125,6 @@ const Dashboard = () => {
                         <Menu.Item key="2-1" onClick={() => handleMenuClick('2-1')}>
                             Quản lý sản phẩm
                         </Menu.Item>
-                        <Menu.Item key="2-2" onClick={() => handleMenuClick('2-2')}>
-                            Thêm sản phẩm
-                        </Menu.Item>
                         <SubMenu key="sub1" title="Quản lý thuộc tính">
                             <Menu.Item key="2-3-1" onClick={() => handleMenuClick('2-3-1')}>
                                 Quản lý màu sắc
@@ -121,6 +134,15 @@ const Dashboard = () => {
                             </Menu.Item>
                             <Menu.Item key="2-3-3" onClick={() => handleMenuClick('2-3-3')}>
                                 Quản lý chất liệu
+                            </Menu.Item>
+                            <Menu.Item key="2-3-4" onClick={() => handleMenuClick('2-3-4')}>
+                                Quản lý xuất xứ
+                            </Menu.Item>
+                            <Menu.Item key="2-3-5" onClick={() => handleMenuClick('2-3-5')}>
+                                Quản lý danh mục
+                            </Menu.Item>
+                            <Menu.Item key="2-3-6" onClick={() => handleMenuClick('2-3-6')}>
+                                Quản lý thương hiệu
                             </Menu.Item>
                         </SubMenu>
                     </Menu.ItemGroup>

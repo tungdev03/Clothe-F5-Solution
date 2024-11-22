@@ -54,6 +54,17 @@ const AdminService = {
         } catch (error) {
             throw error.response?.data || 'Lỗi không xác định';
         }
+    },
+    getKhachHangBymaKH: async (MaKh) =>{
+        try {
+          // Tạo URL với các tham số Keyword và IsPublic
+            const response = await http.get(`KhachHang/ma-khach-hang/${MaKh}`);
+
+            console.log("Phản hồi từ server:", response.data);
+            return response.data;
+        } catch (error) {
+            throw error.response?.data || 'Lỗi không xác định';
+        }
     }
 };
 

@@ -35,16 +35,11 @@ function App() {
           <Route path="/Dashboard" element={<Dashboard />} />
           <Route path="/cart/:username" element={<Cart />} />
           <Route path="/Profile/:username" element={<Profile />} />
-
           <Route path='/LoginAdmin' element={<LoginAdmin />} />
           <Route path="/contact" element={<ContactPage />} />
-          {/* Route for AlbumPage */}
           <Route path="/album" element={<AlbumPage />} />
-          {/* Route for individual album details */}
           <Route path="/album/:id" element={<AlbumDetail />} />
-          {/* Route for AlbumList that uses collectionId as a dynamic parameter */}
           <Route path="/album-list/:collectionId" element={<AlbumList />} />
-          {/* Route for individual album list details */}
           <Route path="/album-detail/:id" element={<AlbumListDetail />} />
 
           <Route path="/checkout" element={<Checkout />} />

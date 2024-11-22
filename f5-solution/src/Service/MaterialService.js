@@ -1,17 +1,18 @@
 import http from "../common/http-common"; // Import http từ http-common
-const ProductService = {
-     createProduct: async (productData) => {
+const MaterialService = {
+     // Hàm tạo mới thuộc tính
+     createMaterial: async (materialData) => {
           try {
-               const response = await http.post('SanPham', productData);
+               const response = await http.post('ChatLieu', materialData);
                return response.data;
           } catch (error) {
                throw error.response?.data || "Lỗi không xác định";             
           }         
      },
      
-     updateProduct: async (id, productData) => {
+     updateMaterial: async (id, materialData) => {
           try {
-              const response = await http.put(`SanPham/${id}`, productData);
+              const response = await http.put(`ChatLieu/${id}`, materialData);
               return response.data;
           } catch (error) {
                throw error.response?.data || "Lỗi không xác định";             
@@ -19,19 +20,19 @@ const ProductService = {
      },
 
      // Hàm lấy thông tin thuộc tính theo Id
-     getProductById: async (id) => {
+     getMaterialById: async (id) => {
           try {
-               const response = await http.get(`SanPham/${id}`);
+               const response = await http.get(`ChatLieu/${id}`);
                return response.data;
           } catch (error) {
                throw error.response?.data || "Lỗi không xác định";
           }
      },
-
+     
      // Hàm lấy danh sách tất cả các Chất liệu
-     getAllProduct: async () => {
+     getAllMaterial: async () => {
           try {
-               const response = await http.get('SanPham/GetAll'); // Gọi API để lấy danh sách
+               const response = await http.get('ChatLieu'); // Gọi API để lấy danh sách
                return response.data;
           } catch (error) {
                throw error.response?.data || "Lỗi không xác định";
@@ -39,4 +40,4 @@ const ProductService = {
      },
 };
 
-export default ProductService;
+export default MaterialService;

@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserOutlined, ShoppingCartOutlined, LogoutOutlined } from '@ant-design/icons';
-import { Layout, Menu, Button, Dropdown, Space, Input, Breadcrumb, Carousel, Card } from 'antd';
+import { Layout, Menu, Button, Dropdown, Space, Input, Breadcrumb, Carousel, Card, message } from 'antd';
 import logo_v1 from '../../../assets/images/Logo.png';
 import './Home.css';
 import './Product.css';
 import { AppstoreOutlined } from '@ant-design/icons';
-
+import HomeView from '../../../Service/HomeService';
 const { Header, Content, Sider } = Layout;
 const { Meta } = Card;
 
@@ -17,37 +17,37 @@ const items1 = [
     { key: '/album', label: 'Bộ sưu tập' }
 ];
 
-const products = [
-    { id: 1, title: "ĐẦM ĐEN THIẾT KẾ", description: "1.800.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/7_9e21fe965ef2474a9f334bc640876ab4_master.jpg" },
-    { id: 2, title: "Sản phẩm 2", description: "Mô tả sản phẩm 2", imgSrc: "https://product.hstatic.net/200000182297/product/3_546959316b5642f2a2ef2c3bbe0423f0_master.jpg" },
-    { id: 3, title: "Sản phẩm 3", description: "Mô tả sản phẩm 3", imgSrc: "https://product.hstatic.net/200000182297/product/11_7d07e90c8fee41629d02a837fd9a3e79_master.jpg" },
-    { id: 4, title: "Sản phẩm 4", description: "Mô tả sản phẩm 4", imgSrc: "https://product.hstatic.net/200000182297/product/2_01427c39fc824af3940e9ca334275070_master.jpg" },
-    { id: 5, title: "Sản phẩm 5", description: "Mô tả sản phẩm 5", imgSrc: "https://product.hstatic.net/200000182297/product/4_efc408a2620c47abb7bcd9d54f47c401_master.jpg" },
-    { id: 6, title: "Sản phẩm 6", description: "Mô tả sản phẩm 6", imgSrc: "https://product.hstatic.net/200000182297/product/20_95721a4d9bbb444cb5b941f7199dafd6_master.jpg" },
-    { id: 7, title: "Sản phẩm 7", description: "Mô tả sản phẩm 7", imgSrc: "https://product.hstatic.net/200000182297/product/6_d5e0224e09b348a08caa34d04a6fd1ec_master.jpg" },
-    { id: 8, title: "Sản phẩm 8", description: "Mô tả sản phẩm 8", imgSrc: "https://product.hstatic.net/200000182297/product/6_d5e0224e09b348a08caa34d04a6fd1ec_master.jpg" },
-];
-
-const winterProducts = [
-    { id: 1, title: "MĂNG TÔ CAO CẤP AK13262", description: "2.200.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/12_14b69d65c3014d18a336f3d8beaee4cb_master.jpg" },
-    { id: 2, title: "ÁO KHOÁC THIẾT KẾ AK13742", description: "1.500.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/14_664080a99a6f4cd6ab61b6e40a3cdb48_master.jpg" },
-    { id: 3, title: "MĂNG TÔ AK11882", description: "900.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/5_0f84ef8d1aef4341a9fe107ee70fb7db_master.jpg" },
-    { id: 4, title: "MĂNG TÔ VAI CAPE AK11882", description: "3.000.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/1_b65595811f46450087d95f1b8ad33184_master.jpg" },
-    { id: 5, title: "MĂNG TÔ VAI CAPE AK11882", description: "3.000.000 Đ", imgSrc: "https://product.hstatic.net/200000182297/product/1_b65595811f46450087d95f1b8ad33184_master.jpg" },
-];
 
 const ProductPage = () => {
     const navigate = useNavigate();
-    const [username, setUsername] = useState(null);
-
+    const [TaiKhoan, setUsername] = useState(null);
+    const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại// Số sản phẩm hiển thị mỗi trang
+    const [loading, setLoading] = useState(false);
+    const [products, setProducts] = useState([]); // Thêm state cho sản phẩm
     // Tạo state cho từ khóa tìm kiếm và sản phẩm đã lọc
     const [searchTerm, setSearchTerm] = useState("");
+    const productsPerPage = 8;
     const [filteredProducts, setFilteredProducts] = useState(products);
+    useEffect(() => {
+        const fetchNewProducts = async () => {
+            setLoading(true);
+            try {
+                const data = await HomeView.ViewProductHome();
+                setProducts(data); // Cập nhật danh sách sản phẩm mới từ API
+                console.log(data)
+            } catch (error) {
+                message.error(error || "Không thể tải danh sách sản phẩm.");
+            } finally {
+                setLoading(true);
+            }
 
+        };
+        fetchNewProducts();
+    }, []);
     useEffect(() => {
         // Lọc danh sách sản phẩm dựa trên từ khóa tìm kiếm
         const result = products.filter(product =>
-            product.title.toLowerCase().includes(searchTerm.toLowerCase())
+            product.tenSp.toLowerCase().includes(searchTerm.toLowerCase())
         );
         setFilteredProducts(result);
     }, [searchTerm]);
@@ -57,14 +57,26 @@ const ProductPage = () => {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             const user = JSON.parse(storedUser);
-            setUsername(user.username);
+            setUsername(user.TaiKhoan);
         }
     }, []);
-
+    const startIndex = (currentPage - 1) * productsPerPage;
+    const endIndex = startIndex + productsPerPage;
+    const currentProducts = products.slice(startIndex, endIndex);
     const handleLoginClick = () => {
         navigate('/login');
     };
+    const handleNextPage = () => {
+        if (currentPage < Math.ceil(products.length / productsPerPage)) {
+            setCurrentPage((prevPage) => prevPage + 1);
+        }
+    };
 
+    const handlePreviousPage = () => {
+        if (currentPage > 1) {
+            setCurrentPage((prevPage) => prevPage - 1);
+        }
+    };
     const handleLogoutClick = () => {
         localStorage.removeItem('user');
         setUsername(null);
@@ -72,9 +84,15 @@ const ProductPage = () => {
     };
 
     const handleProfileClick = () => {
-        navigate('/'); // Redirect to user profile
-    };
+        const storedUser = localStorage.getItem('user');
+        const user = JSON.parse(storedUser);
+        console.log(user.MaKh)
+        setUsername(user.MaKh);
+        if (user.MaKh) {
+            navigate(`/Profile/${user.MaKh}`);
+        }
 
+    };
     const handleMenuClick = ({ key }) => {
         navigate(key); // Navigate to the corresponding route
     };
@@ -154,7 +172,18 @@ const ProductPage = () => {
     const handleMenuClicks = ({ key }) => {
         setSelectedCategory(key);
     };
-
+    const handleOncartClick = () => {
+        // Kiểm tra nếu người dùng không đăng nhập
+        const storedUser = JSON.parse(localStorage.getItem('user')); // Parse dữ liệu từ localStorage
+        // Kiểm tra nếu người dùng không đăng nhập
+        if (!storedUser || !storedUser.TaiKhoan) {
+            message.info("Vui lòng đăng nhập để xem giỏ hàng");
+            navigate('/Login');
+        } else {
+            // Điều hướng đến giỏ hàng của người dùng đã đăng nhập
+            navigate(`/cart/${storedUser.TaiKhoan}`);
+        }
+    }
     // Hàm điều hướng đến trang chi tiết sản phẩm khi nhấn "Xem thêm"
     const handleViewMore = (id) => {
         navigate(`/Products/${id}`);
@@ -193,20 +222,20 @@ const ProductPage = () => {
                 />
                 <div>
                     {/* Ô tìm kiếm */}
-                    <Input 
+                    <Input
                         placeholder="Search"
-                        value={searchTerm} 
+                        value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)} // Cập nhật từ khóa tìm kiếm
                     />
                 </div>
 
                 <div className="actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <Button type="link" icon={<ShoppingCartOutlined />} style={{ fontSize: '16px' }}>Giỏ hàng</Button>
-                    {username ? (
+                    <Button onClick={handleOncartClick} type="link" icon={<ShoppingCartOutlined />} style={{ fontSize: '16px' }}>Giỏ hàng</Button>
+                    {TaiKhoan ? (
                         <Dropdown overlay={userMenu} placement="bottomRight">
                             <Button type="link">
                                 <Space>
-                                    <span style={{ fontSize: '16px' }}>Xin chào, {username}</span>
+                                    <span style={{ fontSize: '16px' }}>Xin chào, {TaiKhoan}</span>
                                 </Space>
                             </Button>
                         </Dropdown>
@@ -283,39 +312,73 @@ const ProductPage = () => {
                             </div>
                         </div>
                     </div>
-                    {/* Sử dụng filteredProducts thay vì products */}
-                    <Carousel slidesToShow={4} dots={false} style={{ margin: '0 5%' }}>
-                        {filteredProducts.map(product => (
-                            <div key={product.id} style={{ padding: '0 10px' }} className="product-card">
+                    <div
+                        style={{
+                            display: 'flex',
+                            flexWrap: 'wrap',
+                            justifyContent: 'space-between',
+                            gap: '16px',
+                        }}
+                    >
+                        {currentProducts.map((product) => (
+                            <div
+                                key={product.id}
+                                style={{
+                                    flex: '0 0 calc(25% - 16px)', // Mỗi sản phẩm chiếm 25% chiều rộng
+                                    boxSizing: 'border-box',
+                                }}
+                                className="product-card"
+                            >
                                 <Card
                                     hoverable
-                                    cover={<img alt={product.title} src={product.imgSrc} style={{ width: '100%', objectFit: 'contain', height: 'auto' }} />}
+                                    cover={
+                                        <img
+                                            alt={product.tenSp}
+                                            src={product.imageDefaul}
+                                            style={{
+                                                width: '100%',
+                                                height: "100%",
+                                                objectFit: 'cover', // Đảm bảo ảnh không bị méo
+                                            }}
+                                        />
+                                    }
                                 >
-                                    <Meta title={product.title} description={product.description} />
+                                    <Meta
+                                        title={product.tenSp}
+                                        description={`${product.giaBan.toLocaleString()} VNĐ`}
+                                    />
                                 </Card>
                                 {/* Lớp phủ khi hover */}
                                 <div className="overlay">
-                                    <button className="view-more-button" onClick={() => handleViewMore(product.id)}>Xem thêm</button>
+                                    <button
+                                        className="view-more-button"
+                                        onClick={() => handleViewMore(product.id)}
+                                    >
+                                        Xem thêm
+                                    </button>
                                 </div>
                             </div>
                         ))}
-                    </Carousel>
-                    <Carousel slidesToShow={4} dots={false} style={{ margin: '5% 5%' }}>
-                        {winterProducts.map(product => (
-                            <div key={product.id} style={{ padding: '0 10px' }} className="product-card">
-                                <Card
-                                    hoverable
-                                    cover={<img alt={product.title} src={product.imgSrc} style={{ width: '100%', objectFit: 'contain', height: 'auto' }} />}
-                                >
-                                    <Meta title={product.title} description={product.description} />
-                                </Card>
-                                {/* Lớp phủ khi hover */}
-                                <div className="overlay">
-                                    <button className="view-more-button" onClick={() => handleViewMore(product.id)}>Xem thêm</button>
-                                </div>
-                            </div>
-                        ))}
-                    </Carousel>
+                    </div>
+                    <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                        <Button
+                            disabled={currentPage === 1}
+                            onClick={handlePreviousPage}
+                            style={{ marginRight: '10px' }}
+                        >
+                            Trang trước
+                        </Button>
+                        <span>
+                            Trang {currentPage} / {Math.ceil(products.length / productsPerPage)}
+                        </span>
+                        <Button
+                            disabled={currentPage === Math.ceil(products.length / productsPerPage)}
+                            onClick={handleNextPage}
+                            style={{ marginLeft: '10px' }}
+                        >
+                            Trang sau
+                        </Button>
+                    </div>
                 </Content>
             </Layout>
         </Layout>

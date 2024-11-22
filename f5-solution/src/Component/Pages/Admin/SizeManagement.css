@@ -9,29 +9,9 @@
     height: 100vh;
 }
 
-.sidebar h2 {
-    font-size: 18px;
-    margin-bottom: 20px;
-}
-
-.sidebar ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-.sidebar ul li {
-    margin: 10px 0;
-    font-size: 16px;
-}
-
 .main-content {
     padding: 20px;
     width: 100%;
-}
-
-h1 {
-    font-size: 24px;
-    margin-bottom: 20px;
 }
 
 .ant-table {
@@ -60,3 +40,4 @@ h1 {
 .sidebar .search-input, .sidebar .status-select, .sidebar .date-picker {
     margin-bottom: 10px;
 }
+

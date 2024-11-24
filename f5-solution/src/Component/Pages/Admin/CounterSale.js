@@ -74,6 +74,8 @@ useEffect(() => {
                 if (isMounted && response.data) {
                     const filteredData = response.data.map(item => ({
                         key: item.id,
+                        id: item.id,
+                        idSpct:item.idSpct,
                         name: item.tenSp,
                         price: item.giaBan,
                         image: item.imageDefaul,
@@ -112,7 +114,6 @@ useEffect(() => {
                 message.error("Không thể tải dữ liệu khách hàng.");
             }
         };
-    
         fetchCustomers();  
     }, []);  
     
@@ -217,8 +218,16 @@ useEffect(() => {
 
     const handleSelectProduct = (product) => {
         const newProduct = {
-            key: invoiceDetails.length + 1, product: product.name, quantity: 1, unitPrice: product.price, totalPrice: product.price
+            key: invoiceDetails.length + 1,
+            id: product.id,  
+            idSpct: product.idSpct,
+            product: product.name,
+            quantity: 1,
+            unitPrice: product.price,
+            totalPrice: product.price
         };
+        console.log(product)
+
         setInvoiceDetails([...invoiceDetails, newProduct]);
         setIsProductSelectVisible(false);
     };
@@ -242,6 +251,10 @@ useEffect(() => {
             notification.error({ message: 'Vui lòng chọn sản phẩm trước khi thanh toán!' });
             return;
         }
+        if (!invoiceDetails.every(detail => detail.id && detail.quantity > 0 && detail.unitPrice > 0)) {
+            notification.error({ message: 'Dữ liệu sản phẩm không hợp lệ!' });
+            return;
+        }
     
         if (amountPaid >= totalAmount) {
             try {
@@ -249,9 +262,9 @@ useEffect(() => {
                 const invoiceData = {
                     customerId: selectedCustomer.key,
                     customerName: selectedCustomer.name,
-                    paymentMethod: paymentMethod,
-                    products: invoiceDetails.map(product => ({
-                        productId: product.key,
+                    paymentMethod: paymentMethod === 'cash' ? 1 : 2,
+                    invoiceDetails: invoiceDetails.map(product => ({
+                        productId: product.idSpct,
                         quantity: product.quantity,
                         price: product.unitPrice,
                     })),
@@ -260,10 +273,10 @@ useEffect(() => {
                     changeAmount: amountPaid - totalAmount,
                     notes: notes,
                 };
-    
+                console.log('Dữ liệu gửi đi:', invoiceData);
+
                 // Gọi API thêm hóa đơn
                 const response = await axios.post('https://localhost:7030/api/HoaDon', invoiceData);
-    
                 // Kiểm tra nếu trả về status 201 thì là thành công
                 if (response.status === 201) {
                     notification.success({ message: 'Thanh toán thành công!' });
@@ -330,183 +343,183 @@ useEffect(() => {
     ];
     
 
-    const columnsProductDetails = [
-        { title: 'STT', dataIndex: 'key', key: 'key' },
-        { title: 'Ảnh', dataIndex: 'image', key: 'image', render: image => <img src={image} alt="Product" style={{ width: 50 }} /> },
-        { title: 'Sản phẩm', dataIndex: 'product', key: 'product' },
-        {
-            title: 'Số lượng', dataIndex: 'quantity', key: 'quantity',
-            render: (quantity, record) => (
-                <Space>
-                    <Button icon={<MinusOutlined />} onClick={() => decreaseQuantity(record.key)} />
-                    {quantity}
-                    <Button icon={<PlusOutlined />} onClick={() => increaseQuantity(record.key)} />
-                </Space>
-            )
-        },
-        { 
-            title: 'Đơn giá', 
-            dataIndex: 'unitPrice', 
-            key: 'unitPrice', 
-            render: price => `${price.toLocaleString('vi-VN')} vnđ`
-        },
-        { 
-            title: 'Tổng tiền', 
-            dataIndex: 'totalPrice', 
-            key: 'totalPrice', 
-            render: total => `${total.toLocaleString('vi-VN')} vnđ`
-        },
-        {
-            title: 'Thao tác', key: 'action',
-            render: (text, record) => (
-                <Space size="middle">
-                    <Button icon={<DeleteOutlined />} onClick={() => handleDeleteProduct(record.key)} danger>Xóa</Button>
-                </Space>
-            )
-        }
-    ];
-  // Đóng modal
-  const closeProductModal = () => {
-    setIsProductSelectVisible(false);
-};
-    return (
-        
-             <div className="counter-sale-container">
-            <div className="invoice-section">
-                <Input placeholder="Tìm kiếm hóa đơn..." value={searchText} onChange={e => setSearchText(e.target.value)} style={{ marginBottom: 20, width: 300 }} />
-                <Button icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>Tạo hóa đơn mới</Button>
-                <Table columns={columnsInvoices} dataSource={filteredInvoices} pagination={false} />
-            </div>
+        const columnsProductDetails = [
+            { title: 'STT', dataIndex: 'key', key: 'stt' },
+            { title: 'Ảnh', dataIndex: 'image', key: 'image', render: image => <img src={image} alt="Product" style={{ width: 50 }} /> },
+            { title: 'Sản phẩm', dataIndex: 'product', key: 'product' },
+            {
+                title: 'Số lượng', dataIndex: 'quantity', key: 'quantity',
+                render: (quantity, record) => (
+                    <Space>
+                        <Button icon={<MinusOutlined />} onClick={() => decreaseQuantity(record.key)} />
+                        {quantity}
+                        <Button icon={<PlusOutlined />} onClick={() => increaseQuantity(record.key)} />
+                    </Space>
+                )
+            },
+            { 
+                title: 'Đơn giá', 
+                dataIndex: 'unitPrice', 
+                key: 'unitPrice', 
+                render: price => `${price.toLocaleString('vi-VN')} vnđ`
+            },
+            { 
+                title: 'Tổng tiền', 
+                dataIndex: 'totalPrice', 
+                key: 'totalPrice', 
+                render: total => `${total.toLocaleString('vi-VN')} vnđ`
+            },
+            {
+                title: 'Thao tác', key: 'action',
+                render: (text, record) => (
+                    <Space size="middle">
+                        <Button icon={<DeleteOutlined />} onClick={() => handleDeleteProduct(record.key)} danger>Xóa</Button>
+                    </Space>
+                )
+            }
+        ];
+    // Đóng modal
+    const closeProductModal = () => {
+        setIsProductSelectVisible(false);
+    };
+        return (
+            
+                <div className="counter-sale-container">
+                <div className="invoice-section">
+                    <Input placeholder="Tìm kiếm hóa đơn..." value={searchText} onChange={e => setSearchText(e.target.value)} style={{ marginBottom: 20, width: 300 }} />
+                    <Button icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>Tạo hóa đơn mới</Button>
+                    <Table columns={columnsInvoices} dataSource={filteredInvoices} pagination={false} />
+                </div>
 
-            <div className="product-details-section">
-                <Table columns={columnsProductDetails} dataSource={invoiceDetails} pagination={false} />
-                <Button className="add-product-btn" onClick={() => setIsProductSelectVisible(true)}>Chọn sản phẩm</Button>
-            </div>
+                <div className="product-details-section">
+                    <Table columns={columnsProductDetails} dataSource={invoiceDetails} pagination={false} />
+                    <Button className="add-product-btn" onClick={() => setIsProductSelectVisible(true)}>Chọn sản phẩm</Button>
+                </div>
 
-            <Row gutter={20}>
-                <Col span={12}>
-                    <Card title="Thông tin khách hàng" className="info-card">
-                        <Form layout="vertical">
-                            <Form.Item label="Tên khách hàng">
-                                <Input value={selectedCustomer ? selectedCustomer.name : ''} readOnly />
-                                </Form.Item>
-                            <Form.Item><Button onClick={() => setIsCustomerSelectVisible(true)}>Chọn khách hàng</Button></Form.Item>
-                        </Form>
-                    </Card>
-                </Col>
-                <Col span={12}>
-                    <Card title="Dịch vụ khác" className="info-card">
-                        <Form layout="vertical">
-                            <Form.Item label="Dịch vụ giao hàng"><Switch checkedChildren="Có" unCheckedChildren="Không" /></Form.Item>
-                        </Form>
-                    </Card>
-                </Col>
-            </Row>
+                <Row gutter={20}>
+                    <Col span={12}>
+                        <Card title="Thông tin khách hàng" className="info-card">
+                            <Form layout="vertical">
+                                <Form.Item label="Tên khách hàng">
+                                    <Input value={selectedCustomer ? selectedCustomer.name : ''} readOnly />
+                                    </Form.Item>
+                                <Form.Item><Button onClick={() => setIsCustomerSelectVisible(true)}>Chọn khách hàng</Button></Form.Item>
+                            </Form>
+                        </Card>
+                    </Col>
+                    <Col span={12}>
+                        <Card title="Dịch vụ khác" className="info-card">
+                            <Form layout="vertical">
+                                <Form.Item label="Dịch vụ giao hàng"><Switch checkedChildren="Có" unCheckedChildren="Không" /></Form.Item>
+                            </Form>
+                        </Card>
+                    </Col>
+                </Row>
 
-            <Row gutter={20}>
-                <Col span={12}>
-                    <Card title="Hình Thức Thanh Toán" className="info-card">
-                        <Form.Item label="Hình thức thanh toán">
-                            <Radio.Group onChange={handlePaymentMethodChange} value={paymentMethod}>
-                                <Radio value="cash">Tiền mặt</Radio>
-                                <Radio value="transfer">Chuyển khoản</Radio>
-                            </Radio.Group>
-                        </Form.Item>
-                        {paymentMethod === 'cash' && (
-                            <>
-                                <Form.Item label="Chọn số tiền">
-                                    <Space>
-                                        <Button onClick={() => handleDefaultAmountClick(100000)}>100.000 VND</Button>
-                                        <Button onClick={() => handleDefaultAmountClick(200000)}>200.000 VND</Button>
-                                        <Button onClick={() => handleDefaultAmountClick(500000)}>500.000 VND</Button>
-                                    </Space>
-                                </Form.Item>
+                <Row gutter={20}>
+                    <Col span={12}>
+                        <Card title="Hình Thức Thanh Toán" className="info-card">
+                            <Form.Item label="Hình thức thanh toán">
+                                <Radio.Group onChange={handlePaymentMethodChange} value={paymentMethod}>
+                                    <Radio value="cash">Tiền mặt</Radio>
+                                    <Radio value="transfer">Chuyển khoản</Radio>
+                                </Radio.Group>
+                            </Form.Item>
+                            {paymentMethod === 'cash' && (
+                                <>
+                                    <Form.Item label="Chọn số tiền">
+                                        <Space>
+                                            <Button onClick={() => handleDefaultAmountClick(100000)}>100.000 VND</Button>
+                                            <Button onClick={() => handleDefaultAmountClick(200000)}>200.000 VND</Button>
+                                            <Button onClick={() => handleDefaultAmountClick(500000)}>500.000 VND</Button>
+                                        </Space>
+                                    </Form.Item>
 
-                                <Form.Item label="Số tiền khách trả">
-                                    <Input type="number" value={amountPaid} onChange={e => setAmountPaid(Number(e.target.value))} />
-                                </Form.Item>
+                                    <Form.Item label="Số tiền khách trả">
+                                        <Input type="number" value={amountPaid} onChange={e => setAmountPaid(Number(e.target.value))} />
+                                    </Form.Item>
 
-                                <p>Thành chữ: {amountInWords}</p>
-                            </>
-                        )}
-                        {showQRCode && (
-                            <div className="qr-code-wrapper">
-                                <Image className="image-qr" src={Anh1} alt="QR Code" width={200} height={200} />
-                            </div>
-                        )}
-                    </Card>
-                </Col>
-                <Col span={12}>
-                    <Card title="Thông Tin Hóa Đơn" className="info-card">
-                        <Table columns={columnsProductDetails} dataSource={invoiceDetails} pagination={false} />
-                        <Row>
-                            <Col span={12}>Tổng tiền sản phẩm:</Col>
-                            <Col span={12} style={{ textAlign: 'right' }}>{totalAmount.toLocaleString('vi-VN')} vnđ</Col>
-                        </Row>
-                        {paymentMethod === 'cash' && (
+                                    <p>Thành chữ: {amountInWords}</p>
+                                </>
+                            )}
+                            {showQRCode && (
+                                <div className="qr-code-wrapper">
+                                    <Image className="image-qr" src={Anh1} alt="QR Code" width={200} height={200} />
+                                </div>
+                            )}
+                        </Card>
+                    </Col>
+                    <Col span={12}>
+                        <Card title="Thông Tin Hóa Đơn" className="info-card">
+                            <Table columns={columnsProductDetails} dataSource={invoiceDetails} pagination={false} />
                             <Row>
-                                <Col span={12}>Còn lại phải trả:</Col>
-                                <Col span={12} style={{ textAlign: 'right', fontWeight: 'bold' }}>
-                                    {(amountPaid - totalAmount).toLocaleString('vi-VN')} vnđ
-                                </Col>
+                                <Col span={12}>Tổng tiền sản phẩm:</Col>
+                                <Col span={12} style={{ textAlign: 'right' }}>{totalAmount.toLocaleString('vi-VN')} vnđ</Col>
                             </Row>
+                            {paymentMethod === 'cash' && (
+                                <Row>
+                                    <Col span={12}>Còn lại phải trả:</Col>
+                                    <Col span={12} style={{ textAlign: 'right', fontWeight: 'bold' }}>
+                                        {(amountPaid - totalAmount).toLocaleString('vi-VN')} vnđ
+                                    </Col>
+                                </Row>
+                            )}
+                            <Button block style={{ marginTop: 20 }} onClick={handlePayment}>Xác nhận thanh toán</Button>
+                        </Card>
+                    </Col>
+                </Row>
+
+                {/* Các Modal */}
+                <div style={{ padding: '20px' }}>
+    
+            
+                
+                <Modal
+                    title="Chọn sản phẩm"
+                    open={isProductSelectVisible} 
+                    onCancel={closeProductModal}
+                    footer={null}
+                >
+                    <List
+                        dataSource={productList} // Dữ liệu sản phẩm từ API
+                        renderItem={item => (
+                            <List.Item>
+                                <Image src={item.image} alt={item.name} width={50} style={{ marginRight: 10 }} />
+                                <Button onClick={() => handleSelectProduct(item)}>
+                                    {item.name} - {item.price ? item.price.toLocaleString('vi-VN') : 'Liên hệ'} vnđ
+                                </Button>
+                            </List.Item>
                         )}
-                        <Button block style={{ marginTop: 20 }} onClick={handlePayment}>Xác nhận thanh toán</Button>
-                    </Card>
-                </Col>
-            </Row>
+                    />
+                </Modal>
 
-            {/* Các Modal */}
-            <div style={{ padding: '20px' }}>
-   
-           
-            
-            <Modal
-                title="Chọn sản phẩm"
-                open={isProductSelectVisible} 
-                onCancel={closeProductModal}
-                footer={null}
-            >
-                <List
-                    dataSource={productList} // Dữ liệu sản phẩm từ API
-                    renderItem={item => (
-                        <List.Item>
-                            <Image src={item.image} alt={item.name} width={50} style={{ marginRight: 10 }} />
-                            <Button onClick={() => handleSelectProduct(item)}>
-                                {item.name} - {item.price ? item.price.toLocaleString('vi-VN') : 'Liên hệ'} vnđ
-                            </Button>
-                        </List.Item>
-                    )}
-                />
-            </Modal>
+                
+            </div>
 
-            
-        </div>
+            <Modal 
+        title="Chọn khách hàng" 
+        open={isCustomerSelectVisible} 
+        onCancel={() => setIsCustomerSelectVisible(false)} 
+        footer={null}
+    >
+        <Input.Search 
+            placeholder="Tìm kiếm theo tên hoặc số điện thoại" 
+            onSearch={value => console.log(value)} 
+        />
+        <List 
+            dataSource={customerList} 
+            renderItem={item => (
+                <List.Item>
+                    <Button onClick={() => handleSelectCustomer(item)}>
+                        {item.name} - {item.phone}
+                    </Button>
+                </List.Item>
+            )} 
+        />
+    </Modal>
+            </div>
+        
+        );
+    };  
 
-        <Modal 
-    title="Chọn khách hàng" 
-    open={isCustomerSelectVisible} 
-    onCancel={() => setIsCustomerSelectVisible(false)} 
-    footer={null}
->
-    <Input.Search 
-        placeholder="Tìm kiếm theo tên hoặc số điện thoại" 
-        onSearch={value => console.log(value)} 
-    />
-    <List 
-        dataSource={customerList} 
-        renderItem={item => (
-            <List.Item>
-                <Button onClick={() => handleSelectCustomer(item)}>
-                    {item.name} - {item.phone}
-                </Button>
-            </List.Item>
-        )} 
-    />
-</Modal>
-        </div>
-       
-    );
-};  
-
-export default ProductPage;
+    export default ProductPage;

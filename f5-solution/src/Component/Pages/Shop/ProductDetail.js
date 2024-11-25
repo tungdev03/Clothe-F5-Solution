@@ -207,11 +207,11 @@ const ProductDetail = () => {
                             </Col>
                             {/* Chi tiết sản phẩm */}
                             <Col span={10}>
-                                <h2>{product?.tenSp || 'Tên sản phẩm'}</h2>
-                                <p>Mã sản phẩm: {product?.maSp || ''}</p>
-                                <p>Giá bán: {product?.giaBan || 0} VND</p>
-                                <p>Chất liệu: {product?.chatLieu?.tenChatLieu || 'Không rõ'}</p>
-                                <div>
+                                <h2 style={{margin: "15px", fontWeight: 500}}>{product?.tenSp || 'Tên sản phẩm'}</h2>
+                                <p style={{margin: "15px", fontWeight: 500}}>Mã sản phẩm: {product?.maSp || ''}</p>
+                                <p style={{margin: "0px 0px 0px 15px", fontWeight: 500, fontSize: "25px"}}>Giá bán: <span style={{color: "red"}}>{product?.giaBan.toLocaleString() || 0}</span> VND</p>
+                                <p style={{margin: "15px", fontWeight: 500}}>Chất liệu: {product?.chatLieu?.tenChatLieu || 'Không rõ'}</p>
+                                <div style={{margin: "60px 0px 0px 15px", fontWeight: 500}}>
                                     <p>Màu sắc:</p>
                                     {product?.mauSac?.map((color) => (
                                         <Button
@@ -228,7 +228,7 @@ const ProductDetail = () => {
                                     ))}
                                 </div>
 
-                                <div>
+                                <div style={{margin: "15px", fontWeight: 500}}>
                                     <p>Size:</p>
                                     {product?.size?.map((size) => (
                                         <Button
@@ -244,12 +244,12 @@ const ProductDetail = () => {
                                     ))}
                                 </div>
 
-                                <p>Số lượng:</p>
-                                <div style={{ display: 'flex', alignItems: 'center' }}>
+                                <p style={{margin: "15px", fontWeight: 500}}>Số lượng:</p>
+                                <div style={{margin: "15px", fontWeight: 500, display: 'flex', alignItems: 'center' }}>
                                     <Button onClick={decreaseQuantity} disabled={quantity <= 1}>
                                         <MinusOutlined />
                                     </Button>
-                                    <span style={{ margin: '0 20px' }}>{quantity}</span>
+                                    <span style={{ padding: "15px", fontWeight: 500}}>{quantity}</span>
                                     <Button onClick={increaseQuantity}>
                                         <PlusOutlined />
                                     </Button>

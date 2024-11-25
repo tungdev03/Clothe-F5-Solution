@@ -40,6 +40,7 @@ const ProductManagement = () => {
                 return matchesSearch && matchesStatus;
             });
             setProducts(filteredData);
+            console.log(data)
             message.success("Lấy danh sách sản phẩm thành công");
         } catch (error) {
             message.error("Lỗi khi lấy danh sách sản phẩm");
@@ -261,7 +262,7 @@ const ProductManagement = () => {
         },
         {
             title: "Thể Loại",
-            dataIndex: "theLoai",
+            dataIndex: "tenDanhMuc",
             key: "theLoai",
             align: "center",
         },
@@ -535,8 +536,6 @@ const ProductManagement = () => {
                                     </Button>
                                 </div>
                             </Form.Item>
-
-
                         </Form>
                     </Modal>
                 </div>

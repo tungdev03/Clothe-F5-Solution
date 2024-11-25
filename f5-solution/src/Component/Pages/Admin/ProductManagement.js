@@ -312,7 +312,7 @@ const ProductManagement = () => {
 
     return (
         <div className="product-management">
-            <h2>Quản lý Sản Phẩm</h2>
+            <h2>Quản Lý Sản Phẩm</h2>
             <div className="product-management-container">
                 <div className="sidebar">
                     <h2>Bộ lọc</h2>

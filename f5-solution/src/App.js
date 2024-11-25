@@ -41,7 +41,6 @@ function App() {
           <Route path="/album/:id" element={<AlbumDetail />} />
           <Route path="/album-list/:collectionId" element={<AlbumList />} />
           <Route path="/album-detail/:id" element={<AlbumListDetail />} />
-
           <Route path="/checkout" element={<Checkout />} />
         </Routes>
       </div>

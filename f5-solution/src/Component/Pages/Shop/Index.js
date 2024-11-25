@@ -85,12 +85,12 @@ const Home = () => {
     // Kiểm tra nếu người dùng không đăng nhập
     const storedUser = JSON.parse(localStorage.getItem('user')); // Parse dữ liệu từ localStorage
     // Kiểm tra nếu người dùng không đăng nhập
-    if (!storedUser || !storedUser.TaiKhoan) {
+    if (!storedUser || !storedUser.IdKhachhang) {
       message.info("Vui lòng đăng nhập để xem giỏ hàng");
       navigate('/Login');
     } else {
       // Điều hướng đến giỏ hàng của người dùng đã đăng nhập
-      navigate(`/cart/${storedUser.TaiKhoan}`);
+      navigate(`/cart/${storedUser.IdKhachhang}`);
     }
   }
   const handleLogoutClick = () => {
@@ -125,6 +125,9 @@ const Home = () => {
 
   const handleViewMore = (id) => {
     navigate(`/Products/${id}`);
+  };
+  const handleLogoClick = () => {
+    window.location.reload();  // This will reload the current page
   };
   return (
     <Layout>

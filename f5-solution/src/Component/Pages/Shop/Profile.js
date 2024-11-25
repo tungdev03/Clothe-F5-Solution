@@ -150,6 +150,18 @@ const Profile = () => {
     const handleLoginClick = () => {
         navigate('/login');
     };
+    const handleOncartClick = () => {
+        // Kiểm tra nếu người dùng không đăng nhập
+        const storedUser = JSON.parse(localStorage.getItem('user')); // Parse dữ liệu từ localStorage
+        // Kiểm tra nếu người dùng không đăng nhập
+        if (!storedUser || !storedUser.IdKhachhang) {
+          message.info("Vui lòng đăng nhập để xem giỏ hàng");
+          navigate('/Login');
+        } else {
+          // Điều hướng đến giỏ hàng của người dùng đã đăng nhập
+          navigate(`/cart/${storedUser.IdKhachhang}`);
+        }
+      }
     const userMenu = (
         <Menu>
             <Menu.Item key="1" onClick={handleProfileClick}>
@@ -172,7 +184,7 @@ const Profile = () => {
                 </div>
                 <Menu theme="light" mode="horizontal" defaultSelectedKeys={['/']} onClick={(e) => navigate(e.key)} items={items1} />
                 <div className="actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <Button type="link" icon={<ShoppingCartOutlined />} style={{ fontSize: '16px' }}>Giỏ hàng</Button>
+                <Button onClick={handleOncartClick} type="link" icon={<ShoppingCartOutlined />} style={{ fontSize: '16px' }}>Giỏ hàng</Button>
                     {TaiKhoan ? (
                         <Dropdown overlay={userMenu} placement="bottomRight">
                             <Button type="link">

@@ -419,3 +419,36 @@ select:focus {
   margin-bottom: 0;
 }
 
+/* Đảm bảo rằng các nút có chiều rộng tự động theo nội dung của chúng */
+button {
+  background-color: #f0f0f0;
+  padding: 10px 15px; /* Thêm padding để nút dễ nhìn hơn */
+  margin: 5px 0; /* Tạo khoảng cách giữa các nút */
+  border: 1px solid #ccc;
+  cursor: pointer;
+  width: auto; /* Chiều rộng tự động theo nội dung */
+  display: block; /* Mỗi nút chiếm một dòng */
+  text-align: left; /* Căn chỉnh văn bản về bên trái */
+  border-radius: 4px; /* Tạo viền cong cho nút */
+}
+
+button:hover {
+  background-color: #ddd; /* Màu nền thay đổi khi hover */
+}
+.error-message {
+  color: red;
+  font-size: 12px;
+  margin-top: 5px;
+}
+/* Căn chỉnh phần chi tiết địa chỉ */
+.address-detail {
+  margin-top: 15px;
+  background-color: #f9f9f9;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+button.selected {
+  background-color: #4CAF50; /* Green color for selected address */
+  color: white;
+}

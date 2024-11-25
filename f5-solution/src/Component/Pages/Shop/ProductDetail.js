@@ -14,6 +14,7 @@ import './Home.css';
 import logo_v1 from '../../../assets/images/Logo.png';
 import { Content } from 'antd/es/layout/layout';
 import HomeView from '../../../Service/HomeService';
+import GioHangService from '../../../Service/GioHangService';
 const { Header } = Layout;
 const { Meta } = Card;
 
@@ -50,6 +51,7 @@ const ProductDetail = () => {
     const [selectedSize, setSelectedSize] = useState('');
     const [startIndex, setStartIndex] = useState(0);
     const [quantity, setQuantity] = useState(1);
+    const [CartId, setCartId] = useState(null);
     const visibleImages = 3;
 
     useEffect(() => {
@@ -57,6 +59,7 @@ const ProductDetail = () => {
             try {
                 const data = await HomeView.ViewProductDetail(id); // Gọi API với id
                 setProduct(data);
+                console.log(data);
                 setMainImage(data.imageDefaul || ''); // Ảnh mặc định
             } catch (error) {
                 console.error('Lỗi khi lấy chi tiết sản phẩm:', error);
@@ -71,19 +74,60 @@ const ProductDetail = () => {
         if (storedUser) {
             const user = JSON.parse(storedUser);
             setUsername(user.username);
+            handCart(user.IdKhachhang);
         }
     }, []);
 
-    const handleAddToCart = () => {
-        if (!selectedColor || !selectedSize) {
-            alert('Vui lòng chọn màu sắc và size trước khi thêm vào giỏ hàng.');
-            return;
+
+    const handCart = async (userId) => {
+        try {
+            const data = await GioHangService.getByGioHang(userId);
+            console.log(data.id);
+            setCartId(data.id);
+        } catch (error) {
+            console.error("Failed to fetch cart items:", error);
+            message.error("Không thể tải giỏ hàng");
         }
-        const cart = JSON.parse(localStorage.getItem('cart')) || [];
-        cart.push({ ...product, selectedColor, selectedSize, quantity });
-        localStorage.setItem('cart', JSON.stringify(cart));
-        navigate('/cart');
     };
+    const findProductDetailId = (color, size) => {
+        if (!product || !product.sanPhamChiTiets) return null;
+        const detail = product.sanPhamChiTiets.find(
+          (item) => item.mauSac === color && item.size === size
+        );
+        return detail ? detail.id : null;
+      };
+    const handleAddToCart = async () => {
+        if (!selectedColor || !selectedSize) {
+            console.error("Vui lòng chọn màu sắc và size trước khi thêm vào giỏ hàng.");
+          return;
+        }
+      
+        // Tìm IdSpCt dựa trên màu sắc và kích thước
+        const idSpCt = findProductDetailId(selectedColor, selectedSize);
+        if (!idSpCt) {
+          alert("Không tìm thấy sản phẩm chi tiết phù hợp.");
+          return;
+        }
+      
+        // Dữ liệu gửi đến API
+        const addDto = {
+          idGh:CartId,
+          idSpCt: idSpCt,
+          soLuong: quantity, // Số lượng người dùng đã chọn
+        };
+      
+        try {
+          // Gọi API để thêm vào giỏ hàng
+          console.log("Kết quả:", addDto);
+          const result = await GioHangService.addGioHang(addDto);
+          alert("Sản phẩm đã được thêm vào giỏ hàng!");
+          console.log("Kết quả:", result);
+        } catch (error) {
+          console.error("Không thể thêm sản phẩm vào giỏ hàng:", error);
+          alert("Đã xảy ra lỗi khi thêm vào giỏ hàng.");
+        }
+      };
+      
     const handleBuyNow = () => {
         if (!selectedColor || !selectedSize) {
             alert("Vui lòng chọn màu sắc và size trước khi mua.");

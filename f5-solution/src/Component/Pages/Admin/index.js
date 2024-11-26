@@ -173,16 +173,29 @@ const Dashboard = () => {
                             Quản lý voucher giảm giá
                         </Menu.Item>
                     </Menu.ItemGroup>
+                    {isAuthenticated && (
+                        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                            <Button type="primary" onClick={handleLoginLogout}>
+                                Đăng xuất
+                            </Button>
+                        </div>
+                    )}
                 </Menu>
             </Sider>
             <Layout>
+                <ConfigProvider
+                    theme={{
+                        Layout: {
+                            siderBg: 'red'
+                        }
+                    }}
+                />
                 <Header style={{ padding: 0, background: colorBgContainer, display: 'flex', justifyContent: 'space-between' }}>
                     <Button
                         type="text" icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
                         onClick={() => setCollapsed(!collapsed)}
                         style={{ fontSize: '16px', width: 64, height: 64 }}
                     />
-                    {/* Nút đăng nhập / đăng xuất */}
                 </Header>
                 <Content
                     style={{

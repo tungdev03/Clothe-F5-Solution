@@ -12,6 +12,7 @@ const ProductService = {
      updateProduct: async (id, productData) => {
           try {
               const response = await http.put(`SanPham/${id}`, productData);
+              console.log('Updating product:', response);
               return response.data;
           } catch (error) {
                throw error.response?.data || "Lỗi không xác định";             
@@ -19,13 +20,13 @@ const ProductService = {
      },
 
      // Hàm lấy thông tin thuộc tính theo Id
-     getProductById: async (id) => {
+     ViewProductDetail: async (productId) => {
           try {
-               const response = await http.get(`SanPham/${id}`);
+               const response = await http.get(`SanPham/details/${productId}`);
                return response.data;
           } catch (error) {
-               throw error.response?.data || "Lỗi không xác định";
-          }
+               throw error.response?.data || "API không hoạt động";             
+          }  
      },
 
      // Hàm lấy danh sách tất cả các Chất liệu

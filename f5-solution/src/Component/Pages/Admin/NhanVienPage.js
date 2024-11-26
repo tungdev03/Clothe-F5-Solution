@@ -4,6 +4,8 @@ import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import AdminService from '../../../Service/AdminService';
 import AuthService from '../../../Service/AuthService';
+import './NhanVienPage.css';
+
 
 const { Option } = Select;
 
@@ -128,7 +130,7 @@ const NhanVienPage = () => {
       render: (text, record) => (
         <Space size="middle">
           <Button icon={<EditOutlined />} onClick={() => handleEdit(record)}>Sửa</Button>
-          <Button icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>Xóa</Button>
+          {/* <Button icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>Xóa</Button> */}
         </Space>
       ),
     },
@@ -205,10 +207,14 @@ const NhanVienPage = () => {
       message.error('Lỗi khi xóa nhân viên.');
     }
   };
+  
+
+  
+
   return (
     <div>
       <h1>Quản lý nhân viên</h1>
-      <Row gutter={16} style={{ marginBottom: '20px' }}>
+      <Row gutter={16} style={{ marginBottom: '25px' }}>
         <Col span={12}>
           <Input.Search
             placeholder="Nhập tên hoặc mã nhân viên"
@@ -216,10 +222,11 @@ const NhanVienPage = () => {
             value={Keyword}
             enterButton
             onChange={(e) => setKeyword(e.target.value)}
+            className='test'
           />
         </Col>
         <Col span={6}>
-          <Button type="primary" onClick={() => setIsDrawerVisible(true)}>
+          <Button  onClick={() => setIsDrawerVisible(true)}>
             Thêm nhân viên mới
           </Button>
         </Col>
@@ -269,7 +276,7 @@ const NhanVienPage = () => {
           <Form.Item name="email" label="Email" rules={[{ required: true, message: 'Nhập email' }]}>
             <Input />
           </Form.Item>
-          <Form.Item name="image" label="Hình Ảnh">
+          <Form.Item name="image" label="Hình Ảnh" width="100px">
             <Input />
           </Form.Item>
           <Form.Item name="diaChi" label="Địa Chỉ">

@@ -1,166 +1,161 @@
-/* Container quản lý nhân viên */
+/* General container styling */
 .employee-management-container {
-    padding: 24px;
-    background-color: #f4f6f9;
-    border-radius: 10px;
-    max-width: 1200px;
-    margin: 0 auto;
+    padding: 20px;
     font-family: Arial, sans-serif;
-    color: #333;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Khu vực lọc */
 .filter-section {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+/* Input search styling */
+.filter-section input {
+    width: 300px;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    font-size: 14px;
+}
+
+/* Select dropdown styling */
+.filter-controls .ant-select {
+    width: 200px;
+    margin-right: 10px;
+}
+
+.filter-controls .ant-btn {
     display: flex;
     align-items: center;
-    gap: 16px;
-    margin-bottom: 24px;
-    background-color: #ffffff;
-    padding: 15px 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    justify-content: center;
 }
 
-.filter-section input {
-    flex: 1; /* Đảm bảo ô tìm kiếm chiếm hết không gian trống */
-    height: 40px;
-    border-radius: 6px;
-    padding: 8px 12px;
-    border: 1px solid #d9d9d9;
-    font-size: 14px;
-}
-
-.filter-section select {
-    width: 150px; /* Cố định chiều rộng để tránh bị lệch */
-    height: 40px;
-    border-radius: 6px;
-    padding-left: 10px;
-    border: 1px solid #d9d9d9;
-    font-size: 14px;
-    color: #595959;
-}
-
-.filter-controls {
-    display: flex;
-    gap: 12px;
-}
-
-.filter-section button {
-    background-color: #000;
-    color: #fff;
-    font-weight: bold;
-    border-radius: 6px;
-    padding: 10px 20px;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
-    height: 40px;
-}
-
-.filter-section button:hover {
-    background-color: #333;
-}
-
-/* Bảng hiển thị */
-.ant-table {
-    background-color: #ffffff;
-    border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
+/* Table styling */
 .ant-table-thead > tr > th {
-    background-color: #fafafa;
+    background-color: #f4f4f4;
+    color: #555;
     font-weight: bold;
     text-align: center;
-    font-size: 14px;
-    color: #595959;
-    padding: 12px;
 }
 
 .ant-table-tbody > tr > td {
     text-align: center;
-    font-size: 14px;
-    color: #595959;
+    vertical-align: middle;
     padding: 12px;
 }
 
-.ant-table-tbody > tr:hover > td {
-    background-color: #f0f0f0;
+.ant-table-tbody > tr:hover {
+    background-color: #f7f7f7;
 }
 
-/* Các nút trong bảng */
+/* Button styling */
 .ant-btn {
     border-radius: 4px;
-    font-size: 12px;
-    padding: 6px 12px;
+    font-size: 14px;
+    padding: 5px 10px;
+    display: flex;
+    align-items: center;
 }
 
 .ant-btn-primary {
     background-color: #1890ff;
-    border: none;
+    border-color: #1890ff;
+}
+
+.ant-btn-primary:hover {
+    background-color: #40a9ff;
+    border-color: #40a9ff;
 }
 
 .ant-btn-danger {
     background-color: #ff4d4f;
-    border: none;
+    border-color: #ff4d4f;
 }
 
-.ant-btn-primary:hover,
 .ant-btn-danger:hover {
-    opacity: 0.9;
+    background-color: #ff7875;
+    border-color: #ff7875;
 }
 
-/* Định dạng cho thẻ trạng thái */
-.ant-tag {
-    border-radius: 4px;
-    padding: 6px 12px;
-    font-size: 12px;
+/* Modal styling */
+.ant-modal-header {
+    background-color: #1890ff;
+    color: white;
+    border-radius: 8px 8px 0 0;
 }
 
-.ant-tag-green {
-    background-color: #52c41a;
-    color: #fff;
+.ant-modal-title {
+    font-size: 20px;
+    color: white;
 }
 
-.ant-tag-red {
-    background-color: #f5222d;
-    color: #fff;
-}
-
-/* Modal thêm/sửa nhân viên */
-.ant-modal-content {
-    border-radius: 10px;
+.ant-modal-body {
     padding: 20px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
 
 .ant-modal-footer {
     display: flex;
-    justify-content: center;
-    gap: 12px;
-    border-top: none;
+    justify-content: flex-end;
 }
 
-.ant-modal-footer button {
-    width: 100px;
-    height: 36px;
-}
-
-/* Căn chỉnh các phần tử trong form */
+/* Form inputs */
 .ant-form-item {
-    margin-bottom: 1px;
+    margin-bottom: 16px;
 }
 
-input, select, .ant-input, .ant-select-selector {
+.ant-form-item-label > label {
+    font-weight: bold;
+    color: #333;
+}
+
+.ant-input,
+.ant-select-selector {
+    border-radius: 4px;
+    padding: 8px;
     font-size: 14px;
-    border-radius: 6px;
-    height: 36px;
 }
 
-button {
-    transition: background-color 0.3s ease, transform 0.2s ease-in-out;
-    padding-bottom: '100px';
+/* Image styling */
+.ant-table img {
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-button:hover {
-    transform: scale(1.05);
+/* Tag styling */
+.ant-tag {
+    font-size: 14px;
+    border-radius: 4px;
+    padding: 5px 10px;
+    text-transform: capitalize;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .filter-section {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .filter-controls {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .filter-section input {
+        width: 100%;
+    }
+
+    .ant-select {
+        width: 100%;
+    }
 }

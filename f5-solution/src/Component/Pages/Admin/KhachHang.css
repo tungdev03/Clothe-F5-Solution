@@ -1,0 +1,39 @@
+/* Tùy chỉnh giao diện cho các button */
+.btn-edit {
+    background-color: #ffa500;
+    color: white;
+  }
+  
+  .btn-delete {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  /* Tùy chỉnh các input */
+  .search-input {
+    padding: 8px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+  }
+  
+  /* Tùy chỉnh Drawer */
+  .drawer-content {
+    background-color: white;
+    padding: 20px;
+    width: 400px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Style table */
+  .customer-table th {
+    background-color: #f4f4f4;
+  }
+  
+  .customer-table td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd;
+  }
+  

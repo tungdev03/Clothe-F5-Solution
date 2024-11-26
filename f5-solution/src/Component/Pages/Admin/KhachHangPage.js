@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Button, message, Switch, Input, Row, Col, Dropdown, Space, Drawer, Form, Select } from 'antd';
-import { EditOutlined, DownOutlined } from '@ant-design/icons';
+import { EditOutlined, DownOutlined, DeleteOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import AdminService from '../../../Service/AdminService';
 import AuthService from '../../../Service/AuthService';
+
 
 const { Search } = Input;
 const { Option } = Select;
@@ -48,6 +49,15 @@ const KhachHangPage = () => {
       setIsDrawerVisible(true);
     } catch (error) {
       message.error('Lỗi khi lấy chi tiết khách hàng.');
+    }
+  };
+  const handleDelete = async (record) => {
+    try {
+      await AdminService.deleteKhachHang(record.id);
+      message.success('Xóa khách hàng thành công!');
+      fetchKhachHangs();
+    } catch (error) {
+      message.error('Không thể xóa khách hàng.');
     }
   };
 
@@ -160,6 +170,7 @@ const KhachHangPage = () => {
       render: (text, record) => (
         <Space size="middle">
           <Button icon={<EditOutlined />} onClick={() => handleEdit(record)}>Sửa</Button>
+          <Button icon={<DeleteOutlined />} onClick={() => handleDelete(record)}>Xóa</Button>
         </Space>
       ),
     },
@@ -201,6 +212,7 @@ const KhachHangPage = () => {
             style={{ height: '40px' }}
             value={Keyword}
             onChange={(e) => setKeyword(e.target.value)}
+            className='test'
           />
         </Col>
         <Col span={5}>
@@ -222,7 +234,8 @@ const KhachHangPage = () => {
         </Col>
         <Col span={6}>
           <Button
-            type="primary"
+            
+            className='test'
             onClick={() => {
               setEditingUser(null);
               setIsDrawerVisible(true);

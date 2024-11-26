@@ -320,7 +320,7 @@ const ProductManagement = () => {
                         placeholder="Tìm kiếm tên sản phẩm..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
+                        
                     />
                     <Select
                         value={statusFilter}
@@ -333,7 +333,7 @@ const ProductManagement = () => {
                     </Select>
 
 
-                    <Button className="button" type="primary" onClick={handleFilter} style={{ marginTop: 10 }}>
+                    <Button className="button1" type="primary" onClick={handleFilter} style={{ marginTop: 10 }}>
                         Lọc
                     </Button>
                 </div>
@@ -344,7 +344,7 @@ const ProductManagement = () => {
                         icon={<PlusOutlined />}
                         style={{ marginBottom: "20px" }}
                         onClick={() => openModal()}
-                        className="button"
+                        className="button1"
                     >
                         Thêm sản phẩm mới
                     </Button>

@@ -50,50 +50,68 @@ const CounterSale = () => {
         const total = invoiceDetails.reduce((sum, item) => sum + item.totalPrice, 0);
         setTotalAmount(total);
     }, [invoiceDetails]);
+    const formatCurrency = (value) => {
+        if (!value) return "";
+        return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+    };
+    
+    const parseCurrency = (value) => {
+        if (!value) return 0;
+        return parseInt(value.replace(/\./g, ""), 10);
+    };
+    
+    const handleAmountInputChange = (e) => {
+        const rawValue = e.target.value;
+        const numericValue = parseCurrency(rawValue); // Loại bỏ dấu chấm và chuyển thành số
+        setAmountPaid(numericValue); // Cập nhật state
+    };
+    
 
-   // Hàm chuyển đổi số thành chữ (tiếng Việt)
-const convertNumberToWords = (num) => {
-    const units = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
-    const tens = ["", "mười", "hai mươi", "ba mươi", "bốn mươi", "năm mươi", "sáu mươi", "bảy mươi", "tám mươi", "chín mươi"];
-    const scales = ["", "nghìn", "triệu", "tỷ"];
-
-    if (num === 0) return "không đồng";
-
-    let words = "";
-    let scaleIndex = 0;
-
-    while (num > 0) {
-        let part = num % 1000;
-        if (part > 0) {
-            let partWords = "";
-
-            // Xử lý hàng trăm
-            const hundreds = Math.floor(part / 100);
-            const remainder = part % 100;
+    const convertNumberToWords = (num) => {
+        const units = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
+        const tens = ["", "mười", "hai mươi", "ba mươi", "bốn mươi", "năm mươi", "sáu mươi", "bảy mươi", "tám mươi", "chín mươi"];
+        const scales = ["", "nghìn", "triệu", "tỷ"];
+    
+        if (num === 0) return "không đồng";
+    
+        const processChunk = (chunk) => {
+            const hundreds = Math.floor(chunk / 100);
+            const remainder = chunk % 100;
+            const tensPart = Math.floor(remainder / 10);
+            const unitsPart = remainder % 10;
+    
+            let chunkWords = "";
             if (hundreds > 0) {
-                partWords += `${units[hundreds]} trăm `;
+                chunkWords += `${units[hundreds]} trăm `;
             }
-
-            // Xử lý hàng chục và đơn vị
-            if (remainder > 0) {
-                if (remainder < 10) {
-                    partWords += `lẻ ${units[remainder]}`;
-                } else {
-                    const tensPart = Math.floor(remainder / 10);
-                    const unitsPart = remainder % 10;
-                    partWords += `${tens[tensPart]} ${units[unitsPart]}`.trim();
-                }
+            if (tensPart > 0) {
+                chunkWords += `${tens[tensPart]} `;
             }
-
-            words = `${partWords} ${scales[scaleIndex]} ${words}`.trim();
+            if (unitsPart > 0) {
+                chunkWords += `${units[unitsPart]}`;
+            }
+            if (tensPart === 0 && unitsPart > 0 && hundreds > 0) {
+                chunkWords = `lẻ ${units[unitsPart]}`;
+            }
+    
+            return chunkWords.trim();
+        };
+    
+        let words = "";
+        let scaleIndex = 0;
+    
+        while (num > 0) {
+            const chunk = num % 1000;
+            if (chunk > 0) {
+                words = `${processChunk(chunk)} ${scales[scaleIndex]} ${words}`.trim();
+            }
+            num = Math.floor(num / 1000);
+            scaleIndex++;
         }
-
-        num = Math.floor(num / 1000);
-        scaleIndex++;
-    }
-
-    return words + " đồng";
-};
+    
+        return `${words} đồng`.trim();
+    };
+    
 
 
     // Cập nhật số tiền thành chữ khi amountPaid thay đổi
@@ -253,7 +271,7 @@ const convertNumberToWords = (num) => {
              <div className="counter-sale-container">
             <div className="invoice-section">
                 <Input placeholder="Tìm kiếm hóa đơn..." value={searchText} onChange={e => setSearchText(e.target.value)} style={{ marginBottom: 20, width: 300 }} />
-                <Button icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>Tạo hóa đơn mới</Button>
+                <Button  icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>Tạo hóa đơn mới</Button>
                 <Table columns={columnsInvoices} dataSource={filteredInvoices} pagination={false} />
             </div>
 
@@ -296,6 +314,8 @@ const convertNumberToWords = (num) => {
                                         <Button onClick={() => handleDefaultAmountClick(100000)}>100.000 VND</Button>
                                         <Button onClick={() => handleDefaultAmountClick(200000)}>200.000 VND</Button>
                                         <Button onClick={() => handleDefaultAmountClick(500000)}>500.000 VND</Button>
+                                        {/* <Button onClick={() => handleDefaultAmountClick(1000000)}>1.000.000 VND</Button>
+                                        <Button onClick={() => handleDefaultAmountClick(2000000)}>2.000.000 VND</Button> */}
                                     </Space>
                                 </Form.Item>
 

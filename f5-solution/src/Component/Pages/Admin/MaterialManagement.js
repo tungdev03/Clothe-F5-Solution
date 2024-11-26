@@ -158,7 +158,7 @@ const MaterialManagement = () => {
             title: "Hành động",
             key: "action",
             render: (_, record) => (
-                <Button className="button-s" type="primary" icon={<EditOutlined />} onClick={() => openModal(record)} style={{
+                <Button className="button-s" type="dark" icon={<EditOutlined />} onClick={() => openModal(record)} style={{
                     backgroundColor: "#ffffff",
                     color: "#000000",
                     marginRight: 10
@@ -180,7 +180,7 @@ const MaterialManagement = () => {
                         placeholder="Tìm kiếm tên chất liệu..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
+                        
                     />
                     <Select
                         value={statusFilter}
@@ -191,18 +191,18 @@ const MaterialManagement = () => {
                         <Option value="active">Hoạt động</Option>
                         <Option value="inactive">Ngừng hoạt động</Option>
                     </Select>
-                    <Button className="button" type="primary" onClick={handleFilter} style={{ marginTop: 10 }}>
+                    <Button className="button1"  onClick={handleFilter} style={{ marginTop: 10 }}>
                         Lọc
                     </Button>
                 </div>
 
                 <div className="main-content">
                     <Button
-                        type="primary"
+                        type="dark"
                         icon={<PlusOutlined />}
                         style={{ marginBottom: "20px" }}
                         onClick={() => openModal()}
-                        className="button"
+                        className="button1"
                     >
                         Thêm chất liệu mới
                     </Button>
@@ -239,7 +239,7 @@ const MaterialManagement = () => {
                             </Form.Item>
                             <Form.Item label="Trạng thái" name="trangThai" initialValue={1}>
                                 <Radio.Group style={{ display: "flex", flexDirection: "row" }}>
-                                    <Radio value={1}>Hoạt động</Radio>
+                                    <Radio type="dark" value={1}>Hoạt động</Radio>
                                     <Radio value={0}>Không hoạt động</Radio>
                                 </Radio.Group>
                             </Form.Item>
@@ -252,7 +252,7 @@ const MaterialManagement = () => {
                                         Hủy
                                     </Button>
                                     <Button
-                                        type="primary"
+                                        type="dark"
                                         htmlType="submit"
                                         style={{ flex: 1, height: '40px' }}
                                     >

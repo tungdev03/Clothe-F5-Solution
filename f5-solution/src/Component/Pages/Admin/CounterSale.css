@@ -1,175 +1,147 @@
 .counter-sale-container {
-    padding: 20px;
-    background-color: #fafafa;
     font-family: Arial, sans-serif;
-    color: #333;
+    padding: 20px;
+    background-color: #f9f9f9;
 }
 
-.top-banner {
-    background-color: #1890ff;
-    color: #fff;
-    padding: 12px;
-    text-align: center;
-    font-weight: bold;
-    font-size: 18px;
-    border-radius: 4px;
+.invoice-section, .product-details-section {
     margin-bottom: 20px;
 }
 
-.invoice-section, .product-details-section, .info-card, .add-product-btn {
-    background-color: #fff;
-    padding: 16px;
-    margin-bottom: 20px;
+.ant-input {
     border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.invoice-section input,
-.product-details-section input,
-.info-card input {
-    width: 100%;
-    padding: 8px;
+    height: 40px;
+    font-size: 16px;
     border: 1px solid #d9d9d9;
-    border-radius: 4px;
+    transition: all 0.3s;
 }
 
-/* Styles for the "Thêm mới" and "Thanh toán" buttons */
-.add-product-btn,
-button.ant-btn-primary {
-    background-color: #000; /* Black background */
-    border-color: #000; /* Black border */
-    color: #fff; /* White text */
-    font-weight: bold;
-    margin-top: 10px;
-    border-radius: 4px;
-    padding: 6px 12px;
+.ant-input:focus {
+    border-color: #40a9ff;
+    box-shadow: 0 0 8px rgba(64, 169, 255, 0.2);
 }
 
-button.ant-btn-primary:hover,
-.add-product-btn:hover {
-    background-color: #fff; /* White background on hover */
-    border-color: #fff; /* White border on hover */
-    color: #000; /* Black text on hover */
-}
-
-
-button.ant-btn {
-    margin-top: 10px;
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-weight: bold;
-}
-
-button.ant-btn-danger {
-    background-color: #ff4d4f;
-    border-color: #ff4d4f;
-    color: #fff;
-}
-
-button.ant-btn-danger:hover {
-    background-color: #d9363e;
-    border-color: #d9363e;
-}
-
-.ant-card {
+.ant-btn {
     border-radius: 8px;
-    border: 1px solid #f0f0f0;
+    font-size: 16px;
+    padding: 5px 15px;
+    transition: all 0.3s;
+}
+
+.ant-btn:hover {
+    background-color: #40a9ff;
+    color: white;
+    border-color: #40a9ff;
+}
+
+.add-product-btn {
+    background-color: #52c41a;
+    color: white;
+    margin-top: 20px;
+    border: none;
+}
+
+.add-product-btn:hover {
+    background-color: #389e0d;
 }
 
 .info-card {
-    background-color: #f7f9fc;
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-.ant-card-head {
-    background-color: #fafafa;
-    border-bottom: 1px solid #e8e8e8;
-    font-weight: bold;
-    text-align: center;
-    font-size: 16px;
+.info-card .ant-form-item {
+    margin-bottom: 12px;
+}
+
+.info-card .ant-input {
+    height: 36px;
+}
+
+.ant-table {
+    border-radius: 12px;
+    overflow: hidden;
+    background-color: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .ant-table-thead > tr > th {
     background-color: #fafafa;
     font-weight: bold;
-    color: #595959;
-    text-align: center;
-}
-
-.ant-table-tbody > tr > td {
-    text-align: center;
-}
-
-.ant-input {
-    border-radius: 4px;
-    border: 1px solid #d9d9d9;
-    padding: 8px;
     font-size: 14px;
 }
 
-.ant-btn-icon-only {
-    background-color: transparent;
-    border: none;
-    color: #1890ff;
+.ant-table-row {
+    transition: background-color 0.3s;
 }
 
-.ant-btn-icon-only:hover {
-    color: #40a9ff;
+.ant-table-row:hover {
+    background-color: #f5f5f5;
 }
 
-.tag {
-    font-weight: bold;
-    padding: 4px 8px;
-    border-radius: 4px;
-}
-
-.tag.pending {
-    background-color: #faad14;
-    color: #fff;
-}
-
-.tag.paid {
-    background-color: #000000;
-    color: #fff;
-}
-
-.tag:hover {
-    opacity: 0.9;
-}
-
-.modal-header, .modal-footer {
-    border: none;
-}
-
-.modal-footer {
+.qr-code-wrapper {
     display: flex;
     justify-content: center;
+    align-items: center;
+    margin-top: 20px;
 }
 
-.modal-footer button {
-    padding: 6px 12px;
-}
-
-.ant-table-pagination.ant-pagination {
-    margin-top: 16px;
-    display: flex;
-    justify-content: center;
-}
-
-.ant-table-tbody > tr:hover > td {
-    background-color: #fafafa;
+.image-qr {
+    border: 2px solid #40a9ff;
+    border-radius: 12px;
 }
 
 .ant-radio-group {
     display: flex;
-    justify-content: space-around;
-    margin-top: 10px;
+    gap: 20px;
 }
 
-.ant-list-item button {
+.ant-modal {
+    border-radius: 12px;
+}
+
+.ant-modal-title {
+    font-size: 20px;
     font-weight: bold;
-    color: #000000;
 }
 
-.ant-list-item button:hover {
-    color: #000000;
+.ant-modal-content {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.ant-list-item {
+    background-color: #f6f6f6;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    margin: 5px 0;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.ant-list-item:hover {
+    background-color: #e6f7ff;
+    box-shadow: 0 2px 8px rgba(64, 169, 255, 0.2);
+}
+
+.ant-tag {
+    font-size: 14px;
+    padding: 5px 10px;
+    border-radius: 16px;
+}
+
+.ant-tag-green {
+    background-color: #f6ffed;
+    color: #52c41a;
+    border-color: #b7eb8f;
+}
+
+.ant-tag-blue {
+    background-color: #e6f7ff;
+    color: #1890ff;
+    border-color: #91d5ff;
+}
+
+.ant-row {
+    margin-bottom: 20px;
 }

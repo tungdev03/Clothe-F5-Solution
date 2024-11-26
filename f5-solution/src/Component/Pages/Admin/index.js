@@ -25,6 +25,7 @@ import OriginalManagement from './OriginalManagement';
 import CategoriesManagement from './CategoriesManagement';
 import Brandmanagement from './Brandmanagement';
 import ProductManagement from './ProductManagement';
+import ImageManagement from './ImageManagement';
 const { Header, Sider, Content } = Layout;
 const { SubMenu } = Menu;
 
@@ -81,6 +82,9 @@ const Dashboard = () => {
                 break;
             case '4-1':
                 setCurrentContent(<EmployeeManagement />);
+                break;
+            case '2-3-7':
+                setCurrentContent(<ImageManagement />);
                 break;
             default:
                 break;
@@ -143,6 +147,9 @@ const Dashboard = () => {
                             </Menu.Item>
                             <Menu.Item key="2-3-6" onClick={() => handleMenuClick('2-3-6')}>
                                 Quản lý thương hiệu
+                            </Menu.Item>
+                            <Menu.Item key="2-3-7" onClick={() => handleMenuClick('2-3-7')}>
+                                Quản lý hình ảnh
                             </Menu.Item>
                         </SubMenu>
                     </Menu.ItemGroup>

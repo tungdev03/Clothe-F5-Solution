@@ -178,7 +178,7 @@ const OriginalManagement = () => {
                         placeholder="Tìm kiếm Xuất Xứ..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
+                        
                     />
                     <Select
                         value={statusFilter}
@@ -189,18 +189,18 @@ const OriginalManagement = () => {
                         <Option value="active">Hoạt động</Option>
                         <Option value="inactive">Ngừng hoạt động</Option>
                     </Select>
-                    <Button className="button" type="primary" onClick={handleFilter} style={{ marginTop: 10 }}>
+                    <Button className="button1"  onClick={handleFilter} style={{ marginTop: 10 }}>
                         Lọc
                     </Button>
                 </div>
 
                 <div className="main-content">
                     <Button
-                        type="primary"
+                        
                         icon={<PlusOutlined />}
                         style={{ marginBottom: "20px" }}
                         onClick={() => openModal()}
-                        className="button"
+                        className="button1"
                     >
                         Thêm Xuất Xứ mới
                     </Button>

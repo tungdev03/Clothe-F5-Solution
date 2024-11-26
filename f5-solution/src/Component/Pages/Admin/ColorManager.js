@@ -176,7 +176,7 @@ const ColorManagement = () => {
                         placeholder="Tìm kiếm tên màu sắc..."
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
+                        className=""
                     />
                     <Select
                         value={statusFilter}
@@ -187,18 +187,18 @@ const ColorManagement = () => {
                         <Option value="active">Hoạt động</Option>
                         <Option value="inactive">Ngừng hoạt động</Option>
                     </Select>
-                    <Button className="button" type="primary" onClick={handleFilter} style={{ marginTop: 10 }}>
+                    <Button className="button1"  onClick={handleFilter} style={{ marginTop: 10 }}>
                         Lọc
                     </Button>
                 </div>
 
                 <div className="main-content">
                     <Button
-                        type="primary"
+                        
                         icon={<PlusOutlined />}
                         style={{ marginBottom: "20px" }}
                         onClick={() => openModal()}
-                        className="button"
+                        className="button1"
                     >
                         Thêm màu sắc mới
                     </Button>

@@ -56,6 +56,7 @@ const ProductDetail = () => {
         const fetchProductDetails = async () => {
             try {
                 const data = await HomeView.ViewProductDetail(id); // Gọi API với id
+                console.log(data)
                 setProduct(data);
                 setMainImage(data.imageDefaul || ''); // Ảnh mặc định
             } catch (error) {
@@ -213,33 +214,33 @@ const ProductDetail = () => {
                                 <p style={{margin: "15px", fontWeight: 500}}>Chất liệu: {product?.chatLieu?.tenChatLieu || 'Không rõ'}</p>
                                 <div style={{margin: "60px 0px 0px 15px", fontWeight: 500}}>
                                     <p>Màu sắc:</p>
-                                    {product?.mauSac?.map((color) => (
+                                    {product?.sanPhamChiTiets?.map((detail) => (
                                         <Button
-                                            key={color.id}
+                                            key={detail.mauSac.id}
                                             shape="circle"
                                             style={{
-                                                backgroundColor: color.tenMauSac,
-                                                border: selectedColor === color.tenMauSac ? '2px solid black' : '1px solid #ddd',
+                                                backgroundColor: detail.mauSac.tenMauSac,
+                                                border: selectedColor === detail.mauSac.tenMauSac ? '2px solid black' : '1px solid #ddd',
                                             }}
-                                            onClick={() => handleSelectColor(color.tenMauSac)}
+                                            onClick={() => handleSelectColor(detail.mauSac.tenMauSac)}
                                         >
-                                            {selectedColor === color.tenMauSac && <CheckOutlined />}
+                                            {selectedColor === detail.mauSac.tenMauSac && <CheckOutlined />}
                                         </Button>
                                     ))}
                                 </div>
 
                                 <div style={{margin: "15px", fontWeight: 500}}>
                                     <p>Size:</p>
-                                    {product?.size?.map((size) => (
+                                    {product?.sanPhamChiTiets?.map((detail) => (
                                         <Button
-                                            key={size.id}
+                                            key={detail.size.id}
                                             style={{
                                                 marginRight: '10px',
-                                                border: selectedSize === size.tenSize ? '2px solid black' : '1px solid #ddd',
+                                                border: selectedSize === detail.size.tenSize ? '2px solid black' : '1px solid #ddd',
                                             }}
-                                            onClick={() => handleSelectSize(size.tenSize)}
+                                            onClick={() => handleSelectSize(detail.size.tenSize)}
                                         >
-                                            {size.tenSize}
+                                            {detail.size.tenSize}
                                         </Button>
                                     ))}
                                 </div>

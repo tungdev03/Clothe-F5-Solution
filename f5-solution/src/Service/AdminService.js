@@ -59,11 +59,18 @@ const AdminService = {
         try {
           // Tạo URL với các tham số Keyword và IsPublic
             const response = await http.get(`KhachHang/ma-khach-hang/${MaKh}`);
-
-            console.log("Phản hồi từ server:", response.data);
             return response.data;
         } catch (error) {
             throw error.response?.data || 'Lỗi không xác định';
+        }
+    },
+    getChucVu: async () => {
+        try {
+            const response = await http.get('ChucVu');
+            return response.data;
+        } catch (error) {
+            console.error('Caught an error:', error.toString()); // Log full error details
+            throw error.response?.data || 'Lỗi không xác định'; // Throw the most specific error possible
         }
     }
 };

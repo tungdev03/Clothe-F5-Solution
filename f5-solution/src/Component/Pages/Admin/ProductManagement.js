@@ -1,6 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Upload, Table, Button, Switch, Modal, Radio, Form, Input, message, Select, DatePicker } from "antd";
-import { EditOutlined, PlusOutlined, UploadOutlined } from "@ant-design/icons";
+import {
+    Upload,
+    Table,
+    Button,
+    Switch,
+    Drawer,
+    Form,
+    Input,
+    message,
+    Select,
+} from "antd";
+import { EditOutlined, PlusOutlined, UploadOutlined, DeleteOutlined } from "@ant-design/icons";
 import moment from "moment";
 import "./ProductManagement.css";
 import ProductService from "../../../Service/ProductService";
@@ -9,227 +19,192 @@ import OriginalService from "../../../Service/OriginalService";
 import MaterialService from "../../../Service/MaterialService";
 import CategoryService from "../../../Service/CategoryService";
 import DiscountService from "../../../Service/DiscountService";
+import ColorService from "../../../Service/ColorService";
+import SizeService from "../../../Service/SizeService";
 
 const { Option } = Select;
 
 const ProductManagement = () => {
     const [imageUrl, setImageUrl] = useState(null);
-    const [dateRange, setDateRange] = useState([moment(), moment()]); // Khởi tạo với giá trị mặc định là ngày hiện tại
+    const [dateRange, setDateRange] = useState([moment(), moment()]);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const [modalVisible, setModalVisible] = useState(false);
+    const [drawerVisible, setDrawerVisible] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
-    const [statusFilter, setStatusFilter] = useState("all"); // Trạng thái lọc
+    const [statusFilter, setStatusFilter] = useState("all");
     const [form] = Form.useForm();
     const pageSize = 10;
     const [materials, setMaterials] = useState([]);
+    const [colors, setColors] = useState([]);
+    const [sizes, setSizes] = useState([])
     const [categories, setCategories] = useState([]);
     const [originals, setOriginals] = useState([]);
     const [brands, setBrands] = useState([]);
     const [discounts, setDiscounts] = useState([]);
+    const [initialChiTietSanPhams, setInitialChiTietSanPhams] = useState([]);
 
-    const fetchProduct = async (search = "", status = "all") => {
+    const fetchData = async () => {
         setLoading(true);
         try {
-            const data = await ProductService.getAllProduct();
-            const filteredData = data.filter(product => {
-                const matchesSearch = product.tenSp ? product.tenSp.toLowerCase().includes(search.toLowerCase()) : false;
-                const matchesStatus = status === "all" || (status === "active" && product.trangThai === 1) || (status === "inactive" && product.trangThai === 0);
-                return matchesSearch && matchesStatus;
-            });
-            setProducts(filteredData);
-            console.log(data)
-            message.success("Lấy danh sách sản phẩm thành công");
+            const [
+                productData,
+                discountData,
+                brandData,
+                originalData,
+                materialData,
+                categoryData,
+                colorData,
+                sizeData,
+            ] = await Promise.all([
+                ProductService.getAllProduct(),
+                DiscountService.getAllDiscount(),
+                BrandService.getAllBrand(),
+                OriginalService.getAllOriginal(),
+                MaterialService.getAllMaterial(),
+                CategoryService.getAllCategory(),
+                ColorService.getAllColor(),
+                SizeService.getAllSize(),
+            ]);
+            setProducts(productData);
+            setDiscounts(discountData);
+            setBrands(brandData);
+            setOriginals(originalData);
+            setMaterials(materialData);
+            setCategories(categoryData);
+            setColors(colorData);
+            setSizes(sizeData);
+            message.success("Dữ liệu đã được tải thành công");
         } catch (error) {
-            message.error("Lỗi khi lấy danh sách sản phẩm");
+            message.error("Lỗi khi tải dữ liệu");
         } finally {
             setLoading(false);
         }
     };
 
-    const fetchDiscount = async () => {
-        const data = await DiscountService.getAllDiscount();
-        setDiscounts(data);
-    };
-
-    const fetchBrand = async () => {
-        const data = await BrandService.getAllBrand();
-        setBrands(data);
-    };
-
-    const fetchOriginal = async () => {
-        const data = await OriginalService.getAllOriginal();
-        setOriginals(data);
-    };
-
-    const fetchMaterial = async () => {
-        const data = await MaterialService.getAllMaterial();
-        setMaterials(data);
-    };
-
-    const fetchCategory = async () => {
-        const data = await CategoryService.getAllCategory();
-        setCategories(data);
-    };
-
-
     useEffect(() => {
-        fetchProduct();
-        fetchMaterial();
-        fetchCategory();
-        fetchOriginal();
-        fetchBrand();
-        fetchDiscount();
-
+        fetchData();
     }, []);
 
-
-    const openModal = (record = null) => {
-        setModalVisible(true);
-        setEditingProduct(record);
-        if (record) {
-            form.setFieldsValue({ ...record, trangThai: record.trangThai });
+    const openModal = async (record = null) => {
+        setDrawerVisible(true);
+    
+        if (record && record.id) {
+            try {
+                const productDetails = await ProductService.ViewProductDetail(record.id);
+    
+                if (productDetails) {
+                    form.setFieldsValue({
+                        ...productDetails,
+                        maSp: record.maSp || "",
+                        trangThai: productDetails.trangThai || 0,
+                        sanPhamChiTiets: productDetails.sanPhamChiTiets || [],
+                        tenSp: productDetails.tenSp || "",
+                        giaNhap: productDetails.giaNhap !== undefined ? productDetails.giaNhap : 0,
+                        giaBan: productDetails.giaBan || 0,
+                        ngayThem: productDetails.ngayThem ? moment(productDetails.ngayThem) : null,
+                        idDm: productDetails.idDm || null, // Danh Mục
+                        idCl: productDetails.idCl || null, // Chất Liệu
+                        moTa: productDetails.moTa || ""
+                    });
+                    setImageUrl(productDetails.imageDefaul || '');
+                } else {
+                    message.error('Không tìm thấy chi tiết sản phẩm.');
+                }
+            } catch (error) {
+                message.error('Lỗi khi tải chi tiết sản phẩm');
+            }
         } else {
+            setEditingProduct(null);
             form.resetFields();
+            setInitialChiTietSanPhams([]);
+            setImageUrl('');
         }
     };
 
-    const handleCreate = async () => {
+    const handleCreateOrUpdate = async () => {
         try {
             const values = await form.validateFields();
-            console.log('Submitting values for create:', values);
-            const newProduct = {
-                maSp: values.maSp,
-                tenSp: values.tenSp,
-                giaBan: values.giaBan,
-                giaNhap: values.giaNhap,
-                donGiaKhiGiam: values.donGiaKhiGiam,
-                moTa: values.moTa,
-                idDm: values.idDm,
-                idTh: values.idTh,
-                idXx: values.idXx,
-                idCl: values.idCl,
-                idGg: values.idGg,
-                theLoai: values.theLoai,
-                imageDefaul: values.imageDefaul,
-                ngayThemGiamGia: values.ngayThemGiamGia,
-                ngayThem: values.ngayThem,
-                trangThai: values.trangThai === 1 ? 1 : 0, // Giả sử 1 là true và 0 là false
+            const productData = {
+                ...values,
+                chiTietSanPhams: values.sanPhamChiTiets?.map(detail => ({
+                    idMs: detail.id || null,
+                    idSize: detail.id || null,
+                    soLuongTon: detail.soLuongTon || 0,
+                })) || []
             };
-            const response = await ProductService.createProduct(newProduct);
-            console.log('Create response:', response);
-            message.success("Thêm mới Sản Phẩm thành công");
-            setModalVisible(false);
-            fetchProduct(searchTerm, statusFilter); // Lọc lại theo từ khóa và trạng thái
+
+            if (editingProduct && editingProduct.id) {
+                await ProductService.updateProduct(editingProduct.id, productData);
+                message.success("Sản phẩm đã được cập nhật thành công");
+            } else {
+                await ProductService.createProduct(productData);
+                message.success("Sản phẩm đã được tạo thành công");
+            }
+
+            form.resetFields();
+            setDrawerVisible(false);
+            fetchData();
         } catch (error) {
             if (error.response && error.response.data) {
-                console.error("Error response data:", error.response.data);
-                message.error(`Lỗi: ${error.response.data}`);
+                const validationErrors = error.response.data.errors;
+                for (const key in validationErrors) {
+                    if (validationErrors.hasOwnProperty(key)) {
+                        message.error(`${key}: ${validationErrors[key].join(", ")}`);
+                    }
+                }
             } else {
-                message.error("Lỗi không xác định khi xử lý dữ liệu");
+                message.error("Không thể tạo hoặc cập nhật sản phẩm");
             }
-        }
-    };
-
-
-    const handleUpdate = async () => {
-        try {
-            const values = await form.validateFields();
-            console.log('Submitting values for update:', values);
-            const updatedValues = {
-                id: editingProduct.id,
-                maSp: values.maSp,
-                tenSp: values.tenSp,
-                giaBan: values.giaBan,
-                giaNhap: values.giaNhap,
-                donGiaKhiGiam: values.donGiaKhiGiam,
-                moTa: values.moTa,
-                idDm: values.idDm,
-                idTh: values.idTh,
-                idXx: values.idXx,
-                idCl: values.idCl,
-                idGg: values.idGg,
-                theLoai: values.theLoai,
-                imageDefaul: values.imageDefaul,
-                ngayThemGiamGia: values.ngayThemGiamGia,
-                ngayThem: values.ngayThem,
-                trangThai: values.trangThai === 1 ? 1 : 0, // Giả sử 1 là true và 0 là false
-            };
-            const response = await ProductService.updateProduct(editingProduct.id, updatedValues);
-            console.log('Update response:', response);
-            message.success("Cập nhật Sản Phẩm thành công");
-            setModalVisible(false);
-            fetchProduct(searchTerm, statusFilter); // Lọc lại theo từ khóa và trạng thái
-        } catch (error) {
-            if (error.response && error.response.data) {
-                console.error("Error response data:", error.response.data);
-                message.error(`Lỗi: ${error.response.data}`);
-            } else {
-                message.error("Lỗi không xác định khi xử lý dữ liệu");
-            }
-        }
-    };
-
-    const handleOk = async () => {
-        if (editingProduct) {
-            await handleUpdate();
-        } else {
-            await handleCreate();
         }
     };
 
     const handleStatusChange = async (product, newStatus) => {
         try {
-            const updateProduct = {
+            const chiTietSanPhams = product.chiTietSanPhams || [];
+            const updatedProduct = {
                 ...product,
                 trangThai: newStatus ? 1 : 0,
+                chiTietSanPhams: chiTietSanPhams.map(chiTietSanPham => ({
+                    ...chiTietSanPham,
+                    trangThai: newStatus ? 1 : 0
+                }))
             };
-            await ProductService.updateProduct(product.id, updateProduct);
-            message.success("Chuyển trạng thái Sản Phẩm thành công");
-            fetchProduct(searchTerm, statusFilter); // Reload lại dữ liệu sau khi cập nhật
+
+            await ProductService.createProduct(updatedProduct);
+            message.success('Chuyển trạng thái thành công');
+            fetchData();
         } catch (error) {
-            message.error("Lỗi khi chuyển trạng thái Danh Mục");
+            message.error('Lỗi khi chuyển trạng thái: ' + error.message);
         }
     };
 
     const handleFilter = () => {
-        fetchProduct(searchTerm, statusFilter); // Gọi hàm lọc khi người dùng nhấn nút Lọc
+        const filteredData = products.filter(product => {
+            const matchesSearch = product.tenSp ? product.tenSp.toLowerCase().includes(searchTerm.toLowerCase()) : false;
+            const matchesStatus = statusFilter === "all" || (statusFilter === "active" && product.trangThai === 1) || (statusFilter === "inactive" && product.trangThai === 0);
+            return matchesSearch && matchesStatus;
+        });
+        setProducts(filteredData);
     };
-
-
 
     const handleUploadChange = ({ fileList }) => {
         if (fileList.length > 0) {
-            const file = fileList[0].originFileObj; // Lấy tệp gốc
-            
+            const file = fileList[0].originFileObj;
             const reader = new FileReader();
             reader.onloadend = () => {
-                // Cập nhật giá trị hình ảnh trong form là URL
-                form.setFieldsValue({ imageDefaul: reader.result }); // Lưu trữ URL hình ảnh
-                setImageUrl(reader.result); // Cập nhật state với URL hình ảnh
+                form.setFieldsValue({ imageDefaul: reader.result });
+                setImageUrl(reader.result);
             };
-
             if (file) {
-                reader.readAsDataURL(file); // Đọc tệp dưới dạng URL
+                reader.readAsDataURL(file);
             }
         } else {
-            // Nếu không có tệp nào, đặt giá trị hình ảnh về null hoặc chuỗi rỗng
             form.setFieldsValue({ imageDefaul: '' });
-            setImageUrl(''); // Reset lại URL hình ảnh
+            setImageUrl('');
         }
     };
-
-
-    const handleDateChange = (dates) => {
-        if (dates && dates[0] && dates[1]) {
-            setDateRange(dates); // Cập nhật state với ngày chọn
-        } else {
-            setDateRange(null); // Đặt lại nếu không có ngày nào hợp lệ
-        }
-    };
-
 
     const columns = [
         {
@@ -250,9 +225,8 @@ const ProductManagement = () => {
             title: "Hình Ảnh",
             dataIndex: "imageDefaul",
             key: "imageDefaul",
-            render: (text) => <img src={text} alt="Product" style={{ width: 80, height: 80 }} />, // Hiển thị hình ảnh
+            render: (text) => <img src={text} alt="Product" style={{ width: 80, height: 80 }} />,
             align: "center",
-
         },
         {
             title: "Tên Sản Phẩm",
@@ -261,17 +235,21 @@ const ProductManagement = () => {
             align: "center",
         },
         {
-            title: "Thể Loại",
-            dataIndex: "tenDanhMuc",
-            key: "theLoai",
+            title: "Số lượng tồn",
+            dataIndex: "soLuongTon",
+            key: "soLuongTon",
             align: "center",
+            render: (text, record) => {
+                const totalQuantity = record.sanPhamChiTiets?.reduce((sum, item) => sum + item.soLuongTon, 0);
+                return totalQuantity ? totalQuantity : 0;
+            },
         },
         {
             title: "Giá Bán",
             dataIndex: "giaBan",
             key: "giaBan",
+            render: (text) => text.toLocaleString("vi-VN") + " VNĐ",
             align: "center",
-            render: (text) => text.toLocaleString("vi-VN") + " VNĐ", // Định dạng giá
         },
         {
             title: "Ngày Thêm",
@@ -298,11 +276,7 @@ const ProductManagement = () => {
                     type="primary"
                     icon={<EditOutlined />}
                     onClick={() => openModal(record)}
-                    style={{
-                        backgroundColor: "#ffffff",
-                        color: "#000000",
-                        marginRight: 10,
-                    }}
+                    style={{ backgroundColor: "#ffffff", color: "#000000", marginRight: 10 }}
                 >
                     Sửa
                 </Button>
@@ -332,13 +306,10 @@ const ProductManagement = () => {
                         <Option value="active">Hoạt động</Option>
                         <Option value="inactive">Ngừng hoạt động</Option>
                     </Select>
-
-
                     <Button className="button" type="primary" onClick={handleFilter} style={{ marginTop: 10 }}>
                         Lọc
                     </Button>
                 </div>
-
                 <div className="main-content">
                     <Button
                         type="primary"
@@ -349,7 +320,6 @@ const ProductManagement = () => {
                     >
                         Thêm sản phẩm mới
                     </Button>
-
                     <Table
                         columns={columns}
                         dataSource={products}
@@ -362,22 +332,25 @@ const ProductManagement = () => {
                             onChange: (page) => setCurrentPage(page),
                         }}
                     />
-
-                    <Modal
+                    <Drawer
                         title={editingProduct ? "Cập nhật Sản Phẩm" : "Thêm mới Sản Phẩm"}
-                        open={modalVisible}
-                        onCancel={() => setModalVisible(false)}
-                        footer={null}
+                        placement="right"
+                        open={drawerVisible}
+                        onClose={() => setDrawerVisible(false)}
+                        width={720}
                     >
-                        <Form form={form} layout="vertical" onFinish={handleOk}>
+                        <Form
+                            form={form}
+                            layout="vertical"
+                            onFinish={handleCreateOrUpdate}
+                        >
                             <Form.Item
                                 label="Mã Sản Phẩm"
                                 name="maSp"
                                 rules={[{ required: true, message: "Vui lòng nhập Mã Sản Phẩm" }]}
                             >
-                                <Input placeholder="Nhập tên Sản Phẩm" />
+                                <Input placeholder="Nhập mã Sản Phẩm" />
                             </Form.Item>
-
 
                             <Form.Item
                                 label="Hình Ảnh"
@@ -387,17 +360,26 @@ const ProductManagement = () => {
                                 <Upload
                                     name="image"
                                     listType="picture"
-                                    beforeUpload={(file) => {
-                                        return false; // Ngăn chặn upload tự động
-                                    }}
-                                    onChange={handleUploadChange} // Gọi hàm xử lý thay đổi khi có tệp được chọn
-                                    maxCount={1} // Giới hạn chỉ một file
-                                    accept="image/*" // Chấp nhận chỉ các file hình ảnh
+                                    beforeUpload={() => false}
+                                    onChange={handleUploadChange}
+                                    maxCount={1}
+                                    accept="image/*"
+                                    defaultFileList={
+                                        editingProduct?.imageDefaul
+                                            ? [
+                                                {
+                                                    uid: '-1',
+                                                    name: 'Hình ảnh mặc định',
+                                                    status: 'done',
+                                                    url: editingProduct.imageDefaul,
+                                                },
+                                            ]
+                                            : []
+                                    }
                                 >
                                     <Button icon={<UploadOutlined />}>Chọn Ảnh</Button>
                                 </Upload>
                             </Form.Item>
-
 
                             <Form.Item
                                 label="Tên Sản Phẩm"
@@ -407,13 +389,13 @@ const ProductManagement = () => {
                                 <Input placeholder="Nhập tên Sản Phẩm" />
                             </Form.Item>
 
-
-                            <Form.Item label="Thể Loại"
+                            <Form.Item
+                                label="Thể Loại"
                                 name="theLoai"
-                                rules={[{ required: true, message: "Vui lòng nhập Thể loại của sản phẩm" }]}>
+                                rules={[{ required: true, message: "Vui lòng nhập Thể loại của sản phẩm" }]}
+                            >
                                 <Input placeholder="Thể loại Nam hoặc Nữ" />
                             </Form.Item>
-
 
                             <Form.Item
                                 label="Giá Bán"
@@ -423,121 +405,134 @@ const ProductManagement = () => {
                                 <Input placeholder="Nhập giá bán Sản Phẩm" />
                             </Form.Item>
 
-
                             <Form.Item
                                 label="Ngày Thêm"
                                 name="ngayThem"
-                                initialValue={moment()} // Thiết lập giá trị mặc định là ngày hiện tại
+                                rules={[{ required: true, message: "Vui lòng chọn ngày!" }]}
                             >
-                                <DatePicker
-                                    format="DD/MM/YYYY"
-                                    value={dateRange}
-                                    onChange={handleDateChange}
-                                    style={{ marginBottom: '20px' }}
-                                    disabled
-                                />
+                                <Input type="date" placeholder="Chọn ngày thêm" />
                             </Form.Item>
-
 
                             <Form.Item
                                 label="Giá Nhập"
                                 name="giaNhap"
                                 rules={[{ required: true, message: "Vui lòng nhập giá nhập" }]}
                             >
-                                <Input placeholder="Nhập giá bán" />
+                                <Input placeholder="Nhập giá nhập" />
                             </Form.Item>
 
-
-                            <Form.Item label="Đơn Giá Khi Giảm" name="donGiaKhiGiam">
+                            <Form.Item
+                                label="Đơn Giá Khi Giảm"
+                                name="donGiaKhiGiam"
+                            >
                                 <Input placeholder="Nhập đơn giá khi giảm" />
                             </Form.Item>
 
-
-                            <Form.Item label="Danh Mục" name="idDm" rules={[{ required: true }]}>
+                            <Form.Item
+                                label="Danh Mục"
+                                name="idDm"
+                            >
                                 <Select placeholder="Chọn Danh Mục">
                                     {categories.map(dm => (
-                                        <Option key={dm.id} value={dm.id}>{dm.tenDanhMuc}</Option>
+                                        <Option key={dm.id} value={dm.id}>
+                                            {dm.tenDanhMuc}
+                                        </Option>
                                     ))}
                                 </Select>
                             </Form.Item>
 
-
-                            <Form.Item label="Thương Hiệu" name="idTh" rules={[{ required: true }]}>
-                                <Select placeholder="Chọn Thương Hiệu">
-                                    {brands.map(th => (
-                                        <Option key={th.id} value={th.id}>{th.tenThuongHieu}</Option>
-                                    ))}
-                                </Select>
-                            </Form.Item>
-
-
-                            <Form.Item label="Giảm Giá" name="idGg" rules={[{ required: true }]}>
-                                <Select placeholder="Chọn Giảm Giá">
-                                    {discounts.map(gg => (
-                                        <Option key={gg.id} value={gg.id}>{gg.tenGiamGia}</Option>
-                                    ))}
-                                </Select>
-                            </Form.Item>
-
-
-                            <Form.Item label="Xuất Xứ" name="idXx" rules={[{ required: true }]}>
-                                <Select placeholder="Chọn Xuất Xứ">
-                                    {originals.map(xx => (
-                                        <Option key={xx.id} value={xx.id}>{xx.tenXuatXu}</Option>
-                                    ))}
-                                </Select>
-                            </Form.Item>
-
-
-                            <Form.Item label="Chất Liệu" name="idCl" rules={[{ required: true }]}>
+                            <Form.Item
+                                label="Chất Liệu"
+                                name="idCl"
+                                rules={[{ required: true, message: "Vui lòng chọn chất liệu" }]}
+                            >
                                 <Select placeholder="Chọn chất liệu">
                                     {materials.map(cl => (
-                                        <Option key={cl.id} value={cl.id}>{cl.tenChatLieu}</Option>
+                                        <Option key={cl.id} value={cl.id}>
+                                            {cl.tenChatLieu}
+                                        </Option>
                                     ))}
                                 </Select>
                             </Form.Item>
-
-
-                            <Form.Item label="Ngày Thêm Giảm Giá" name="ngayThemGiamGia">
-                                <DatePicker
-                                    format="DD/MM/YYYY"
-                                    value={dateRange}
-                                    onChange={handleDateChange}
-                                    style={{ marginBottom: '20px' }}
-                                />
-                            </Form.Item>
-
 
                             <Form.Item label="Mô tả" name="moTa">
                                 <Input.TextArea placeholder="Nhập mô tả cho sản phẩm" rows={4} />
                             </Form.Item>
 
-                            <Form.Item label="Trạng thái" name="trangThai" initialValue={1}>
-                                <Radio.Group style={{ display: "flex", flexDirection: "row" }}>
-                                    <Radio value={1}>Hoạt động</Radio>
-                                    <Radio value={0}>Không hoạt động</Radio>
-                                </Radio.Group>
-                            </Form.Item>
+                            <Form.List
+                                name="sanPhamChiTiets"
+                                initialValue={initialChiTietSanPhams}
+                            >
+                                {(fields, { add, remove }) => (
+                                    <>
+                                        {fields.map(({ key, name, ...restField }) => (
+                                            <div key={key} style={{ marginBottom: 16 }}>
+                                                <Form.Item
+                                                    {...restField}
+                                                    label="Màu sắc"
+                                                    name={[name, 'id']}
+                                                    rules={[{ required: true, message: "Vui lòng chọn màu sắc" }]}
+                                                >
+                                                    <Select placeholder="Chọn Màu Sắc">
+                                                        {colors.map(color => (
+                                                            <Select.Option key={color.id} value={color.id}>
+                                                                {color.tenMauSac}
+                                                            </Select.Option>
+                                                        ))}
+                                                    </Select>
+                                                </Form.Item>
+
+                                                <Form.Item
+                                                    {...restField}
+                                                    label="Kích thước"
+                                                    name={[name, 'id']}
+                                                    rules={[{ required: true, message: "Vui lòng chọn kích thước" }]}
+                                                >
+                                                    <Select placeholder="Chọn Kích Thước">
+                                                        {sizes.map(size => (
+                                                            <Select.Option key={size.id} value={size.id}>
+                                                                {size.tenSize}
+                                                            </Select.Option>
+                                                        ))}
+                                                    </Select>
+                                                </Form.Item>
+
+                                                <Form.Item
+                                                    {...restField}
+                                                    label="Số lượng tồn"
+                                                    name={[name, 'soLuongTon']}
+                                                    rules={[{ required: true, message: "Vui lòng nhập số lượng tồn" }]}
+                                                >
+                                                    <Input min={0} type="number" style={{ width: "100%" }} />
+                                                </Form.Item>
+
+                                                <Form.Item>
+                                                    <Button
+                                                        type="danger"
+                                                        onClick={() => remove(name)}
+                                                        icon={<DeleteOutlined />}
+                                                    >
+                                                        Xóa
+                                                    </Button>
+                                                </Form.Item>
+                                            </div>
+                                        ))}
+                                        <Form.Item>
+                                            <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />}>
+                                                Thêm Chi Tiết
+                                            </Button>
+                                        </Form.Item>
+                                    </>
+                                )}
+                            </Form.List>
 
                             <Form.Item>
-                                <div style={{ display: 'flex', gap: '16px' }}>
-                                    <Button
-                                        onClick={() => setModalVisible(false)}
-                                        style={{ flex: 1, height: '40px' }}
-                                    >
-                                        Hủy
-                                    </Button>
-                                    <Button
-                                        type="primary"
-                                        htmlType="submit"
-                                        style={{ flex: 1, height: '40px' }}
-                                    >
-                                        Lưu
-                                    </Button>
-                                </div>
+                                <Button type="primary" htmlType="submit">
+                                    {editingProduct ? 'Cập nhật' : 'Thêm mới'}
+                                </Button>
                             </Form.Item>
                         </Form>
-                    </Modal>
+                    </Drawer>
                 </div>
             </div>
         </div>

@@ -88,67 +88,104 @@ const ProductManagement = () => {
     }, []);
 
     const openModal = async (record = null) => {
-        setDrawerVisible(true);
-    
-        if (record && record.id) {
-            try {
+        try {
+            // Mở Drawer và reset trạng thái
+            setDrawerVisible(true);
+            console.log("Mở modal với record ID:", record?.id);
+            setEditingProduct(null);
+
+            // Kiểm tra nếu có `record` và `id`
+            if (record && record.id) {
+                // Gọi API để lấy chi tiết sản phẩm
                 const productDetails = await ProductService.ViewProductDetail(record.id);
-    
+
+                console.log("Chi tiết sản phẩm nhận được từ API:", productDetails);
+
+                // Kiểm tra nếu dữ liệu tồn tại
                 if (productDetails) {
+                    // Thiết lập giá trị vào form
                     form.setFieldsValue({
                         ...productDetails,
-                        maSp: record.maSp || "",
+                        maSp: productDetails.maSp || "",
                         trangThai: productDetails.trangThai || 0,
                         sanPhamChiTiets: productDetails.sanPhamChiTiets || [],
                         tenSp: productDetails.tenSp || "",
                         giaNhap: productDetails.giaNhap !== undefined ? productDetails.giaNhap : 0,
                         giaBan: productDetails.giaBan || 0,
                         ngayThem: productDetails.ngayThem ? moment(productDetails.ngayThem) : null,
-                        idDm: productDetails.idDm || null, // Danh Mục
-                        idCl: productDetails.idCl || null, // Chất Liệu
-                        moTa: productDetails.moTa || ""
+                        idDm: productDetails.danhMuc?.id || null, // Danh Mục
+                        idCl: productDetails.chatLieu?.id || null, // Chất Liệu
+                        moTa: productDetails.moTa || "",
                     });
+
+                    // Cập nhật URL hình ảnh
                     setImageUrl(productDetails.imageDefaul || '');
+
+                    // Lưu trạng thái bản ghi đang chỉnh sửa
+                    setEditingProduct(record);
                 } else {
-                    message.error('Không tìm thấy chi tiết sản phẩm.');
+                    message.error("Không tìm thấy chi tiết sản phẩm.");
                 }
-            } catch (error) {
-                message.error('Lỗi khi tải chi tiết sản phẩm');
+            } else {
+                console.log("Không có ID sản phẩm, thiết lập để thêm mới sản phẩm.");
+                // Nếu không có `record`, reset form để thêm mới sản phẩm
+                form.resetFields();
+                setInitialChiTietSanPhams([]);
+                setImageUrl('');
             }
-        } else {
-            setEditingProduct(null);
-            form.resetFields();
-            setInitialChiTietSanPhams([]);
-            setImageUrl('');
+        } catch (error) {
+            console.error("Lỗi khi lấy chi tiết sản phẩm:", error);
+            message.error("Lỗi khi tải chi tiết sản phẩm");
         }
     };
 
     const handleCreateOrUpdate = async () => {
         try {
             const values = await form.validateFields();
+            console.log("Dữ liệu từ form trước khi xử lý:", values);
+    
             const productData = {
                 ...values,
+                id: editingProduct?.id || null,
                 chiTietSanPhams: values.sanPhamChiTiets?.map(detail => ({
-                    idMs: detail.id || null,
-                    idSize: detail.id || null,
+                    id: detail.mauSac?.id || detail.idMs, // Chuyển idMs thành id
+                    idSize: detail.size?.id || detail.idSize, // Chuyển idSize thành id
                     soLuongTon: detail.soLuongTon || 0,
                 })) || []
             };
-
+    
+            console.log("Dữ liệu sản phẩm sau khi xử lý:", productData);
+    
+            // Kiểm tra nếu đang chỉnh sửa hay tạo mới
             if (editingProduct && editingProduct.id) {
-                await ProductService.updateProduct(editingProduct.id, productData);
+                console.log("Cập nhật sản phẩm với ID:", editingProduct.id);
+                await ProductService.createProduct(productData);
                 message.success("Sản phẩm đã được cập nhật thành công");
             } else {
+                console.log("Tạo mới sản phẩm:");
                 await ProductService.createProduct(productData);
+                console.log("Dữ liệu sản phẩm gửi đi:", productData);
                 message.success("Sản phẩm đã được tạo thành công");
             }
-
+    
+            // Đặt lại form và đóng drawer
             form.resetFields();
             setDrawerVisible(false);
-            fetchData();
+            fetchData(); // Tải lại dữ liệu
         } catch (error) {
+            console.error("Lỗi khi tạo hoặc cập nhật sản phẩm:", error);
+    
+            // Kiểm tra lỗi do dữ liệu không đầy đủ từ form
+            if (error.message) {
+                message.error(error.message);
+                return;
+            }
+    
+            // Xử lý lỗi từ server (nếu có)
             if (error.response && error.response.data) {
                 const validationErrors = error.response.data.errors;
+                console.error("Lỗi từ server:", validationErrors);
+    
                 for (const key in validationErrors) {
                     if (validationErrors.hasOwnProperty(key)) {
                         message.error(`${key}: ${validationErrors[key].join(", ")}`);
@@ -159,6 +196,8 @@ const ProductManagement = () => {
             }
         }
     };
+    
+
 
     const handleStatusChange = async (product, newStatus) => {
         try {
@@ -248,7 +287,7 @@ const ProductManagement = () => {
             title: "Giá Bán",
             dataIndex: "giaBan",
             key: "giaBan",
-            render: (text) => text.toLocaleString("vi-VN") + " VNĐ",
+            render: (value) => (value ? value.toLocaleString() : "N/A"),
             align: "center",
         },
         {
@@ -470,7 +509,7 @@ const ProductManagement = () => {
                                                 <Form.Item
                                                     {...restField}
                                                     label="Màu sắc"
-                                                    name={[name, 'id']}
+                                                    name={[name, 'idMs']}
                                                     rules={[{ required: true, message: "Vui lòng chọn màu sắc" }]}
                                                 >
                                                     <Select placeholder="Chọn Màu Sắc">
@@ -485,7 +524,7 @@ const ProductManagement = () => {
                                                 <Form.Item
                                                     {...restField}
                                                     label="Kích thước"
-                                                    name={[name, 'id']}
+                                                    name={[name, 'idSize']}
                                                     rules={[{ required: true, message: "Vui lòng chọn kích thước" }]}
                                                 >
                                                     <Select placeholder="Chọn Kích Thước">

@@ -216,15 +216,15 @@ const ProductDetail = () => {
                                     <p>Màu sắc:</p>
                                     {product?.sanPhamChiTiets?.map((detail) => (
                                         <Button
-                                            key={detail.mauSac.id}
+                                            key={detail.id}
                                             shape="circle"
                                             style={{
-                                                backgroundColor: detail.mauSac.tenMauSac,
-                                                border: selectedColor === detail.mauSac.tenMauSac ? '2px solid black' : '1px solid #ddd',
+                                                backgroundColor: detail.tenMauSac,
+                                                border: selectedColor === detail.tenMauSac ? '2px solid black' : '1px solid #ddd',
                                             }}
-                                            onClick={() => handleSelectColor(detail.mauSac.tenMauSac)}
+                                            onClick={() => handleSelectColor(detail.tenMauSac)}
                                         >
-                                            {selectedColor === detail.mauSac.tenMauSac && <CheckOutlined />}
+                                            {selectedColor === detail.tenMauSac && <CheckOutlined />}
                                         </Button>
                                     ))}
                                 </div>

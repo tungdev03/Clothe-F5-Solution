@@ -4,6 +4,7 @@ import { Row, Col, Button, Layout, Menu, Dropdown, Input, Space, Card, Carousel,
 import {
     UpOutlined,
     DownOutlined,
+    LogoutOutlined,
     UserOutlined,
     ShoppingCartOutlined,
     CheckOutlined,
@@ -28,10 +29,9 @@ const ProductDetail = () => {
     const navigate = useNavigate();
     const { id } = useParams();
     const [product, setProduct] = useState(null);
-    const [username, setUsername] = useState('');
+    const [TaiKhoan, setUsername] = useState('');
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
-
     const [mainImage, setMainImage] = useState('');
     const [selectedColor, setSelectedColor] = useState('');
     const [selectedSize, setSelectedSize] = useState('');
@@ -40,7 +40,14 @@ const ProductDetail = () => {
     const [availableSizes, setAvailableSizes] = useState([]);
     const [selectedProductId, setSelectedProductId] = useState('');
     const visibleImages = 3;
+    useEffect(() => {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            const user = JSON.parse(storedUser);
+            setUsername(user.TaiKhoan);
+        }
 
+    }, []);
     useEffect(() => {
         const fetchNewProducts = async () => {
             try {
@@ -80,16 +87,33 @@ const ProductDetail = () => {
         };
         fetchProductDetails();
     }, [id]);
+    const handleLoginClick = () => {
+        navigate('/login');
+    };
+    const handleProfileClick = () => {
+        const storedUser = localStorage.getItem('user');
+        const user = JSON.parse(storedUser);
+        console.log(user.MaKh)
+        setUsername(user.MaKh);
+        if (user.MaKh) {
+            navigate(`/Profile/${user.MaKh}`);
+        }
 
+    };
+    const handleLogoutClick = () => {
+        // Xử lý đăng xuất
+        localStorage.removeItem('user');
+        setUsername(null); // Reset lại state username
+        navigate('/'); // Điều hướng tới trang chủ sau khi đăng xuất
+    };
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             const user = JSON.parse(storedUser);
             console.log(user)
-            setUsername(user.username);
+            setUsername(user.TaiKhoan);
         }
     }, []);
-
     useEffect(() => {
         if (selectedColor && product && Array.isArray(product.size) && Array.isArray(product.mauSac)) {
             const sanPhamChiTietIds = product.mauSac
@@ -157,24 +181,28 @@ const ProductDetail = () => {
             }
         });
     }
-
+    const handleOncartClick = () => {
+        // Kiểm tra nếu người dùng không đăng nhập
+        const storedUser = JSON.parse(localStorage.getItem('user')); // Parse dữ liệu từ localStorage
+        // Kiểm tra nếu người dùng không đăng nhập
+        if (!storedUser || !storedUser.TaiKhoan) {
+            message.info("Vui lòng đăng nhập để xem giỏ hàng");
+            navigate('/Login');
+        } else {
+            // Điều hướng đến giỏ hàng của người dùng đã đăng nhập
+            navigate(`/cart/${storedUser.TaiKhoan}`);
+        }
+    }
     const increaseQuantity = () => setQuantity((prev) => prev + 1);
     const decreaseQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
     const uniqueColors = Array.from(uniqueColorsMap.values());
+
     const userMenu = (
         <Menu>
-            <Menu.Item key="1" onClick={() => navigate('/profile')}>
+            <Menu.Item key="1" onClick={handleProfileClick}>
                 Thông tin cá nhân
             </Menu.Item>
-            <Menu.Item
-                key="2"
-                danger
-                onClick={() => {
-                    localStorage.removeItem('user');
-                    setUsername('');
-                    navigate('/');
-                }}
-            >
+            <Menu.Item key="2" danger onClick={handleLogoutClick} icon={<LogoutOutlined />}>
                 Đăng xuất
             </Menu.Item>
         </Menu>
@@ -222,24 +250,17 @@ const ProductDetail = () => {
                 </div>
 
                 <div className="actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <Button type="link" icon={<ShoppingCartOutlined />} style={{ fontSize: '16px' }}>
-                        Giỏ hàng
-                    </Button>
-                    {username ? (
+                    <Button onClick={handleOncartClick} type="link" icon={<ShoppingCartOutlined />} style={{ fontSize: '16px' }}>Giỏ hàng</Button>
+                    {TaiKhoan ? (
                         <Dropdown overlay={userMenu} placement="bottomRight">
                             <Button type="link">
                                 <Space>
-                                    <span style={{ fontSize: '16px' }}>Xin chào, {username}</span>
+                                    <span style={{ fontSize: '16px' }}>Xin chào, {TaiKhoan}</span>
                                 </Space>
                             </Button>
                         </Dropdown>
                     ) : (
-                        <Button
-                            type="link"
-                            icon={<UserOutlined />}
-                            style={{ fontSize: '16px' }}
-                            onClick={() => navigate('/login')}
-                        >
+                        <Button type="link" icon={<UserOutlined />} style={{ fontSize: '16px' }} onClick={handleLoginClick}>
                             Đăng nhập
                         </Button>
                     )}

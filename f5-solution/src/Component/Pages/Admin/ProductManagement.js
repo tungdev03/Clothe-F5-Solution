@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
+    Divider,
     Upload,
     Table,
     Button,
@@ -9,9 +10,10 @@ import {
     Input,
     message,
     Select,
-    Radio
+    Radio,
+    Modal
 } from "antd";
-import { EditOutlined, PlusOutlined, UploadOutlined, DeleteOutlined } from "@ant-design/icons";
+import { EditOutlined, PlusOutlined, UploadOutlined, MinusCircleOutlined } from "@ant-design/icons";
 import moment from "moment";
 import "./ProductManagement.css";
 import ProductService from "../../../Service/ProductService";
@@ -27,7 +29,6 @@ const { Option } = Select;
 
 const ProductManagement = () => {
     const [imageUrl, setImageUrl] = useState(null);
-    const [dateRange, setDateRange] = useState([moment(), moment()]);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
@@ -38,14 +39,16 @@ const ProductManagement = () => {
     const pageSize = 10;
     const [materials, setMaterials] = useState([]);
     const [colors, setColors] = useState([]);
-    const [sizes, setSizes] = useState([])
+    const [sizes, setSizes] = useState([]);
     const [categories, setCategories] = useState([]);
     const [originals, setOriginals] = useState([]);
     const [brands, setBrands] = useState([]);
     const [discounts, setDiscounts] = useState([]);
-    const [statusFilter, setStatusFilter] = useState("all"); // Trạng thái lọc
-    const [productDetails, setProductDetails] = useState([]); // State cho chi tiết sản phẩm
-    const [detailsModalVisible, setDetailsModalVisible] = useState(false); // State cho trạng thái mở modal
+    const [statusFilter, setStatusFilter] = useState("all");
+    const [productDetails, setProductDetails] = useState([]);
+    const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+    const [error, setError] = useState("");
+    const [currentProductId, setCurrentProductId] = useState(null);
     const fetchData = async () => {
         setLoading(true);
         try {
@@ -129,13 +132,13 @@ const ProductManagement = () => {
 
                     setImageUrl(productDetails.imageDefaul || '');
                     setEditingProduct(record);
+                    setCurrentProductId(record.id);
                 } else {
                     message.error("Không tìm thấy chi tiết sản phẩm.");
                 }
                 console.log(productDetails);
 
             } else {
-                // Nếu không có `record`, reset form để thêm mới sản phẩm
                 form.resetFields();
                 setImageUrl('');
             }
@@ -145,35 +148,127 @@ const ProductManagement = () => {
         }
     };
 
+    const handleOpenDetailsModal = async () => {
+        if (!currentProductId) {
+            message.error("Không có sản phẩm nào được chọn.");
+            return;
+        }
+        setDetailsModalVisible(true);
+        setLoading(true);
+        setError("");
+
+        try {
+            const details = await ProductService.getSanPhamChiTietByIdSanPham(currentProductId);
+
+            const formattedDetails = details.map(item => ({
+                Id: item.id,
+                color: item.idMs,
+                size: item.idSize,
+                quantity: item.soLuongTon,
+            }));
+            console.log(formattedDetails);
+            setProductDetails(formattedDetails);
+        } catch (e) {
+            setError(e.message || "Có lỗi xảy ra khi tải thông tin sản phẩm.");
+        } finally {
+            setLoading(false);
+        }
+    };
+    useEffect(() => {
+        if (detailsModalVisible) {
+            handleOpenDetailsModal();
+        }
+    }, [detailsModalVisible]);
+
+    useEffect(() => {
+        if (productDetails.length) {
+            form.setFieldsValue({
+                fields: productDetails.map(item => ({
+                    Id: item.id,
+                    name: item.color,
+                    IdSp: currentProductId,
+                    type: item.size,
+                    options: item.quantity,
+                }))
+            });
+            console.log("aaaaaaaaaaaaaaaaaaâ", productDetails)
+        }
+    }, [productDetails, form]);
+    const handleSingleAddOrUpdate = async (fieldData) => {
+        // Kiểm tra nếu dữ liệu không tồn tại để ngăn chạy tiếp
+        if (!fieldData) {
+            message.error('Dữ liệu chi tiết sản phẩm hiện không xác định.');
+            return;
+        }
+
+        // Lấy các thuộc tính cần thiết từ fieldData
+        const {
+            id,         // ID sản phẩm chi tiết (nếu có
+            idSp,       // ID sản phẩm mẹ
+            idMs,       // Mã định danh màu sắc
+            idSize,     // Mã định danh kích thước
+            soLuongTon, // Số lượng tồn kho
+            moTa = "",      // Mô tả sản phẩm, mặc định là chuỗi rỗng nếu không có
+            qrCode = "",    // Mã QR, mặc định là chuỗi rỗng nếu không có
+            trangThai = 0,  // Trạng thái sản phẩm, mặc định là 0
+            ngayTao = new Date().toISOString() // Ngày tạo, dùng thời gian hiện tại nếu không có
+        } = fieldData;
+
+        console.log(fieldData)
+        // Tạo đối tượng chiTietSanPham dựa trên dữ liệu đầu vào
+        const chiTietSanPham = {
+            id,
+            idSp,
+            idMs,
+            idSize,
+            soLuongTon,
+            moTa,
+            qrCode,
+            trangThai,
+            ngayTao,
+        };
+
+        // Đặt chiTietSanPham vào payload gửi lên API
+        const payload = {
+            chiTietDtos: [chiTietSanPham]
+        };
+
+        try {
+            if (id) {
+                // Cập nhật chi tiết sản phẩm hiện tại
+                await ProductService.updateProductDetail(payload);
+                message.success('Chi tiết sản phẩm đã được cập nhật thành công');
+            } else {
+                // Thêm mới chi tiết sản phẩm
+                await ProductService.createProductDetail(payload);
+                message.success('Chi tiết sản phẩm mới đã được thêm thành công');
+            }
+        } catch (error) {
+            message.error(`Thêm hoặc cập nhật chi tiết sản phẩm thất bại: ${error.message || 'Lỗi không xác định'}`);
+        }
+    };
     const handleCreateOrUpdate = async (values) => {
         try {
-            // Kiểm tra nếu đang chỉnh sửa hay tạo mới
             if (editingProduct && editingProduct.id) {
-                // Cập nhật sản phẩm
                 await ProductService.createProduct({
                     id: editingProduct.id,
                     ...values
                 });
                 message.success("Sản phẩm đã được cập nhật thành công");
             } else {
-                // Tạo mới sản phẩm
                 await ProductService.createProduct(values);
                 message.success("Sản phẩm đã được tạo thành công");
             }
-            // Đặt lại form và đóng drawer
             form.resetFields();
             setDrawerVisible(false);
-            fetchData(); // Tải lại dữ liệu
+            fetchData();
         } catch (error) {
             console.error("Lỗi khi tạo hoặc cập nhật sản phẩm:", error);
 
-            // Kiểm tra lỗi do dữ liệu không đầy đủ từ form
             if (error.message) {
                 message.error(error.message);
                 return;
             }
-
-            // Xử lý lỗi từ server (nếu có)
             if (error.response && error.response.data) {
                 const validationErrors = error.response.data.errors;
                 console.error("Lỗi từ server:", validationErrors);
@@ -196,7 +291,7 @@ const ProductManagement = () => {
                 trangThai: newStatus ? 1 : 0
             };
 
-            await ProductService.updateProduct(updatedProduct);
+            await ProductService.createProduct(updatedProduct);
             message.success('Chuyển trạng thái thành công');
             fetchData();
         } catch (error) {
@@ -207,7 +302,16 @@ const ProductManagement = () => {
     const handleFilter = () => {
         fetchProduct(searchTerm, statusFilter);
     };
+    const handleCancel = () => {
+        setDetailsModalVisible(false);
+        form.resetFields();
+    };
 
+    const handleSubmit = (values) => {
+        console.log('Form Values:', values);
+        // Xử lý submit
+        setDetailsModalVisible(false);
+    };
     const handleUploadChange = ({ fileList }) => {
         if (fileList.length > 0) {
             const file = fileList[0].originFileObj;
@@ -224,9 +328,7 @@ const ProductManagement = () => {
             setImageUrl('');
         }
     };
-    const handleOpenDetailsModal = () => {
-        setDetailsModalVisible(true);
-    };
+
 
     const handleCloseDetailsModal = () => {
         setDetailsModalVisible(false);
@@ -494,6 +596,92 @@ const ProductManagement = () => {
                             </Button>
                         </Form>
                     </Drawer>
+                    <Modal
+                        title="Chi Tiết Sản Phẩm"
+                        visible={detailsModalVisible}
+                        onCancel={handleCancel}
+                        footer={[
+                            <Button key="back" onClick={handleCancel}>
+                                Cancel
+                            </Button>,
+                        ]}
+                        width={800}
+                    >
+                        <Form form={form}>
+                            <Form.List name="fields">
+                                {(fields, { add, remove }) => (
+                                    <div>
+                                        {fields.map((field, index) => (
+                                            <div key={field.key}>
+                                                <Divider>Chi tiết sản phẩm {index + 1}</Divider>
+                                                <Form.Item
+                                                    {...field}
+                                                    name={[field.name, 'name']}
+                                                    label="Màu Sắc"
+                                                    rules={[{ required: true, message: 'Vui lòng chọn màu sắc!' }]}
+                                                >
+                                                    <Select placeholder="Chọn màu sắc">
+                                                        {colors.map((color) => (
+                                                            <Option key={color.id} value={color.id}>
+                                                                {color.tenMauSac}
+                                                            </Option>
+                                                        ))}
+                                                    </Select>
+                                                </Form.Item>
+                                                <Form.Item
+                                                    {...field}
+                                                    name={[field.name, 'type']}
+                                                    label="Size"
+                                                    rules={[{ required: true, message: 'Vui lòng chọn size!' }]}
+                                                >
+                                                    <Select placeholder="Chọn size">
+                                                        {sizes.map((size) => (
+                                                            <Option key={size.id} value={size.id}>
+                                                                {size.tenSize}
+                                                            </Option>
+                                                        ))}
+                                                    </Select>
+                                                </Form.Item>
+                                                <Form.Item
+                                                    {...field}
+                                                    name={[field.name, 'options']}
+                                                    label="Số Lượng Tồn"
+                                                >
+                                                    <Input type="number" min={0} placeholder="Nhập số lượng tồn" />
+                                                </Form.Item>
+                                                <Button
+                                                    type="dashed"
+                                                    onClick={() => handleSingleAddOrUpdate(form.getFieldValue('fields')[field.name])}
+                                                    style={{ marginRight: 8 }}
+                                                >
+                                                    Add/Update
+                                                </Button>
+                                                {fields.length > 1 ? (
+                                                    <Button
+                                                        type="danger"
+                                                        onClick={() => remove(field.name)}
+                                                        icon={<MinusCircleOutlined />}
+                                                    >
+                                                        Remove chi tiết
+                                                    </Button>
+                                                ) : null}
+                                            </div>
+                                        ))}
+                                        <Divider />
+                                        <Form.Item>
+                                            <Button
+                                                type="dashed"
+                                                onClick={() => add()}
+                                                style={{ width: '60%' }}
+                                            >
+                                                <PlusOutlined /> Thêm chi tiết
+                                            </Button>
+                                        </Form.Item>
+                                    </div>
+                                )}
+                            </Form.List>
+                        </Form>
+                    </Modal>
                 </div>
             </div>
         </div>

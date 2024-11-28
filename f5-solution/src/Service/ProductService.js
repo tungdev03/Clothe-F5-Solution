@@ -40,28 +40,28 @@ const ProductService = {
 
      getSanPhamChiTietByIdSanPham: async (productId) => {
           try {
-               const response = await http.get(`${productId}/detail`); // Gọi API để lấy danh sách
-               return response.data;
+            const response = await http.get(`SanPham/GetBySanPhamId/${productId}`);
+            return response.data;
           } catch (error) {
-               throw error.response?.data || "Lỗi không xác định";
+            throw error.response?.data || "Lỗi không xác định";
           }
      },
      createProductDetail: async (productData) => {
           try {
-               const response = await http.post('SanPham/SanPhamChiTiet', productData);
-               return response.data;
+            const response = await http.post(`SanPham/AddOrUpdate`, productData);
+            return response.data;
           } catch (error) {
-               throw error.response?.data || "Lỗi không xác định";             
-          }         
+            throw error.response?.data || "Lỗi không xác định";             
+          }      
      },
      
      updateProductDetail: async (id, productData) => {
           try {
-              const response = await http.put(`SanPham//SanPhamChiTiet/${id}`, productData);
-              return response.data;
+            const response = await http.put(`SanPham/Update/${id}`, productData);
+            return response.data;
           } catch (error) {
-               throw error.response?.data || "Lỗi không xác định";             
-          }     
+            throw error.response?.data || "Lỗi không xác định";             
+          }       
      },
 };
 

@@ -9,6 +9,7 @@ import {
     Input,
     message,
     Select,
+    Radio
 } from "antd";
 import { EditOutlined, PlusOutlined, UploadOutlined, DeleteOutlined } from "@ant-design/icons";
 import moment from "moment";
@@ -33,7 +34,6 @@ const ProductManagement = () => {
     const [drawerVisible, setDrawerVisible] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [searchTerm, setSearchTerm] = useState("");
-    const [statusFilter, setStatusFilter] = useState("all");
     const [form] = Form.useForm();
     const pageSize = 10;
     const [materials, setMaterials] = useState([]);
@@ -44,7 +44,7 @@ const ProductManagement = () => {
     const [brands, setBrands] = useState([]);
     const [discounts, setDiscounts] = useState([]);
     const [initialChiTietSanPhams, setInitialChiTietSanPhams] = useState([]);
-
+    const [statusFilter, setStatusFilter] = useState("all"); // Trạng thái lọc
     const fetchData = async () => {
         setLoading(true);
         try {
@@ -75,7 +75,6 @@ const ProductManagement = () => {
             setCategories(categoryData);
             setColors(colorData);
             setSizes(sizeData);
-            message.success("Dữ liệu đã được tải thành công");
         } catch (error) {
             message.error("Lỗi khi tải dữ liệu");
         } finally {
@@ -86,6 +85,26 @@ const ProductManagement = () => {
     useEffect(() => {
         fetchData();
     }, []);
+    console.log('initialChiTietSanPhams', initialChiTietSanPhams);
+
+    const fetchProduct = async (search = "", status = "all") => {
+        setLoading(true);
+        try {
+            const data = await ProductService.getAllProduct();
+            const filteredData = data.filter(product => {
+                const matchesSearch = product.tenSp ? product.tenSp.toLowerCase().includes(search.toLowerCase()) : false;
+                const matchesStatus = status === "all" || (status === "active" && product.trangThai === 1) || (status === "inactive" && product.trangThai === 0);
+                return matchesSearch && matchesStatus;
+            });
+            setProducts(filteredData);
+            console.log(data)
+            message.success("Lấy danh sách sản phẩm thành công");
+        } catch (error) {
+            message.error("Lỗi khi lấy danh sách sản phẩm");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const openModal = async (record = null) => {
         try {
@@ -100,8 +119,6 @@ const ProductManagement = () => {
                 const productDetails = await ProductService.ViewProductDetail(record.id);
 
                 console.log("Chi tiết sản phẩm nhận được từ API:", productDetails);
-
-                // Kiểm tra nếu dữ liệu tồn tại
                 if (productDetails) {
                     // Thiết lập giá trị vào form
                     form.setFieldsValue({
@@ -117,6 +134,7 @@ const ProductManagement = () => {
                         idCl: productDetails.chatLieu?.id || null, // Chất Liệu
                         moTa: productDetails.moTa || "",
                     });
+                    setInitialChiTietSanPhams(productDetails.sanPhamChiTiets)
 
                     // Cập nhật URL hình ảnh
                     setImageUrl(productDetails.imageDefaul || '');
@@ -139,53 +157,79 @@ const ProductManagement = () => {
         }
     };
 
-    const handleCreateOrUpdate = async () => {
+    const handleCreateOrUpdate = async (values) => {
+        console.log(values)
+        // setProducts(update)
+        const changeItem = values.sanPhamChiTiets.map((item => {
+            console.log('item', item);
+            const color = colors.find((cod => cod?.id === item?.mauSac))
+            return {
+                ...item,
+                mauSac: { id: color.id, tenMauSac: color.tenMauSac },
+            }
+        }))
+        console.log('changeItem', changeItem);
+
+        values = {... values, sanPhamChiTiets:changeItem}
+        // setProducts((prev=> ))
+        const itemProd = products.find((item => {
+            return item.id === editingProduct?.id
+        }))
+        //    const prod = products.map((item => {
+        //         console.log('item', item);
+        //         return {
+        //             ...item,
+        //             sanPhamChiTiets: item.id === values.id ? changeItem : item.sanPhamChiTiets
+        //         }
+        //     }))
+        console.log("eeeeê",itemProd);
+
         try {
-            const values = await form.validateFields();
-            console.log("Dữ liệu từ form trước khi xử lý:", values);
-    
-            const productData = {
-                ...values,
-                id: editingProduct?.id || null,
-                chiTietSanPhams: values.sanPhamChiTiets?.map(detail => ({
-                    id: detail.mauSac?.id || detail.idMs, // Chuyển idMs thành id
-                    idSize: detail.size?.id || detail.idSize, // Chuyển idSize thành id
-                    soLuongTon: detail.soLuongTon || 0,
-                })) || []
-            };
-    
-            console.log("Dữ liệu sản phẩm sau khi xử lý:", productData);
-    
+            console.log("Dữ liệu từ form trước khi xử lý:", itemProd);
+            // const productData = {
+            //     ...values,
+            //     // id: editingProduct?.id || null,
+            //     chiTietSanPhams: values.sanPhamChiTiets?.map(detail => ({
+            //         idMauSac: detail.colors?.id || detail.idMs, // Chuyển idMs thành id
+            //         idSize: detail.size?.id || detail.idSize, // Chuyển idSize thành id
+            //         soLuongTon: detail.soLuongTon || 0,
+            //         mauSac: {
+            //             ...detail.mauSac,
+            //             tenMauSac: detail.mauSac.tenMauSac
+            //         }
+            //     })) || []
+            // };
+            // setProducts(productData)
+
             // Kiểm tra nếu đang chỉnh sửa hay tạo mới
             if (editingProduct && editingProduct.id) {
                 console.log("Cập nhật sản phẩm với ID:", editingProduct.id);
-                await ProductService.createProduct(productData);
+                await ProductService.createProduct(itemProd);
                 message.success("Sản phẩm đã được cập nhật thành công");
             } else {
                 console.log("Tạo mới sản phẩm:");
-                await ProductService.createProduct(productData);
-                console.log("Dữ liệu sản phẩm gửi đi:", productData);
+                await ProductService.createProduct(itemProd);
+                console.log("Dữ liệu sản phẩm gửi đi:", itemProd);
                 message.success("Sản phẩm đã được tạo thành công");
             }
-    
             // Đặt lại form và đóng drawer
             form.resetFields();
             setDrawerVisible(false);
             fetchData(); // Tải lại dữ liệu
         } catch (error) {
             console.error("Lỗi khi tạo hoặc cập nhật sản phẩm:", error);
-    
+
             // Kiểm tra lỗi do dữ liệu không đầy đủ từ form
             if (error.message) {
                 message.error(error.message);
                 return;
             }
-    
+
             // Xử lý lỗi từ server (nếu có)
             if (error.response && error.response.data) {
                 const validationErrors = error.response.data.errors;
                 console.error("Lỗi từ server:", validationErrors);
-    
+
                 for (const key in validationErrors) {
                     if (validationErrors.hasOwnProperty(key)) {
                         message.error(`${key}: ${validationErrors[key].join(", ")}`);
@@ -196,7 +240,9 @@ const ProductManagement = () => {
             }
         }
     };
-    
+    console.log("Dữ liệu sản phẩm sau khi xử lý:", products);
+
+
 
 
     const handleStatusChange = async (product, newStatus) => {
@@ -220,12 +266,7 @@ const ProductManagement = () => {
     };
 
     const handleFilter = () => {
-        const filteredData = products.filter(product => {
-            const matchesSearch = product.tenSp ? product.tenSp.toLowerCase().includes(searchTerm.toLowerCase()) : false;
-            const matchesStatus = statusFilter === "all" || (statusFilter === "active" && product.trangThai === 1) || (statusFilter === "inactive" && product.trangThai === 0);
-            return matchesSearch && matchesStatus;
-        });
-        setProducts(filteredData);
+        fetchProduct(searchTerm, statusFilter);
     };
 
     const handleUploadChange = ({ fileList }) => {
@@ -447,7 +488,7 @@ const ProductManagement = () => {
                             <Form.Item
                                 label="Ngày Thêm"
                                 name="ngayThem"
-                                rules={[{ required: true, message: "Vui lòng chọn ngày!" }]}
+                                rules={[{ required: false, message: "Vui lòng chọn ngày!" }]}
                             >
                                 <Input type="date" placeholder="Chọn ngày thêm" />
                             </Form.Item>
@@ -500,70 +541,104 @@ const ProductManagement = () => {
 
                             <Form.List
                                 name="sanPhamChiTiets"
-                                initialValue={initialChiTietSanPhams}
+                            // initialValue={initialChiTietSanPhams} // Dữ liệu ban đầu
                             >
-                                {(fields, { add, remove }) => (
-                                    <>
-                                        {fields.map(({ key, name, ...restField }) => (
-                                            <div key={key} style={{ marginBottom: 16 }}>
-                                                <Form.Item
-                                                    {...restField}
-                                                    label="Màu sắc"
-                                                    name={[name, 'idMs']}
-                                                    rules={[{ required: true, message: "Vui lòng chọn màu sắc" }]}
-                                                >
-                                                    <Select placeholder="Chọn Màu Sắc">
-                                                        {colors.map(color => (
-                                                            <Select.Option key={color.id} value={color.id}>
-                                                                {color.tenMauSac}
-                                                            </Select.Option>
-                                                        ))}
-                                                    </Select>
-                                                </Form.Item>
+                                {(fields, { add, remove }) => {
+                                    return (
+                                        <>
+                                            {fields.map(({ key, name, ...restField }, index) => {
+                                                // Lấy dữ liệu hiện tại của sản phẩm chi tiết
+                                                const currentChiTiet = fields[key] || {};
+                                                const currentProd = initialChiTietSanPhams[key]
+                                                console.log('currentProd', currentProd);
 
-                                                <Form.Item
-                                                    {...restField}
-                                                    label="Kích thước"
-                                                    name={[name, 'idSize']}
-                                                    rules={[{ required: true, message: "Vui lòng chọn kích thước" }]}
-                                                >
-                                                    <Select placeholder="Chọn Kích Thước">
-                                                        {sizes.map(size => (
-                                                            <Select.Option key={size.id} value={size.id}>
-                                                                {size.tenSize}
-                                                            </Select.Option>
-                                                        ))}
-                                                    </Select>
-                                                </Form.Item>
+                                                return (
+                                                    <div key={key} style={{ marginBottom: 16 }}>
+                                                        {/* Màu sắc */}
+                                                        <Form.Item
+                                                            // {...restField}
+                                                            label="Màu sắc"
+                                                            name={[index, 'mauSac']}
+                                                            rules={[{ required: true, message: "Vui lòng chọn màu sắc" }]}
+                                                            initialValue={currentProd?.mauSac?.id}
+                                                        >
+                                                            <Select placeholder="Chọn Màu Sắc" defaultValue={currentProd.mauSac.id}>
+                                                                {colors.map(color => (
+                                                                    <Select.Option key={color.id} value={color.id}>
+                                                                        {color.tenMauSac}
+                                                                    </Select.Option>
+                                                                ))}
+                                                            </Select>
+                                                        </Form.Item>
 
-                                                <Form.Item
-                                                    {...restField}
-                                                    label="Số lượng tồn"
-                                                    name={[name, 'soLuongTon']}
-                                                    rules={[{ required: true, message: "Vui lòng nhập số lượng tồn" }]}
-                                                >
-                                                    <Input min={0} type="number" style={{ width: "100%" }} />
-                                                </Form.Item>
+                                                        {/* Kích thước */}
+                                                        <Form.Item
+                                                            // {...restField}
+                                                            label="Kích thước"
+                                                            name={[index, 'idSize']}
+                                                            rules={[{ required: true, message: "Vui lòng chọn kích thước" }]}
+                                                            initialValue={currentProd?.size?.id} // Dữ liệu mặc định
+                                                        >
+                                                            <Select placeholder="Chọn Kích Thước" defaultValue={currentProd.size.id}>
+                                                                {sizes.map(size => (
+                                                                    <Select.Option key={size.id} value={size.id}>
+                                                                        {size.tenSize}
+                                                                    </Select.Option>
+                                                                ))}
+                                                            </Select>
+                                                        </Form.Item>
 
-                                                <Form.Item>
-                                                    <Button
-                                                        type="danger"
-                                                        onClick={() => remove(name)}
-                                                        icon={<DeleteOutlined />}
-                                                    >
-                                                        Xóa
-                                                    </Button>
-                                                </Form.Item>
-                                            </div>
-                                        ))}
-                                        <Form.Item>
-                                            <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />}>
-                                                Thêm Chi Tiết
-                                            </Button>
-                                        </Form.Item>
-                                    </>
-                                )}
+                                                        {/* Số lượng tồn */}
+                                                        <Form.Item
+                                                            // {...restField}
+                                                            label="Số lượng tồn"
+                                                            name={[index, 'soLuongTon']}
+                                                            rules={[{ required: true, message: "Vui lòng nhập số lượng tồn" }]}
+                                                            initialValue={currentChiTiet.soLuongTon} // Dữ liệu mặc định
+                                                        >
+                                                            <Input
+                                                                type="number"
+                                                                min={0}
+                                                                placeholder="Nhập số lượng tồn"
+                                                                defaultValue={currentChiTiet.soLuongTon}
+                                                            />
+                                                        </Form.Item>
+
+                                                        {/* Nút xóa */}
+                                                        <Form.Item>
+                                                            <Button
+                                                                type="danger"
+                                                                onClick={() => remove(name)}
+                                                                icon={<DeleteOutlined />}
+                                                            >
+                                                                Xóa
+                                                            </Button>
+                                                        </Form.Item>
+                                                    </div>
+                                                );
+                                            })}
+
+                                            {/* Nút thêm chi tiết */}
+                                            <Form.Item>
+                                                <Button
+                                                    type="dashed"
+                                                    onClick={() => add()}
+                                                    icon={<PlusOutlined />}
+                                                    className="w-full"
+                                                >
+                                                    Thêm Chi Tiết
+                                                </Button>
+                                            </Form.Item>
+                                        </>
+                                    )
+                                }}
                             </Form.List>
+                            <Form.Item label="Trạng thái" name="trangThai" initialValue={1}>
+                                <Radio.Group style={{ display: "flex", flexDirection: "row" }}>
+                                    <Radio value={1}>Hoạt động</Radio>
+                                    <Radio value={0}>Không hoạt động</Radio>
+                                </Radio.Group>
+                            </Form.Item>
 
                             <Form.Item>
                                 <Button type="primary" htmlType="submit">

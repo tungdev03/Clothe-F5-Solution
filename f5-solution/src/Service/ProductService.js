@@ -12,7 +12,6 @@ const ProductService = {
      updateProduct: async (id, productData) => {
           try {
               const response = await http.put(`SanPham/${id}`, productData);
-              console.log('Updating product:', response);
               return response.data;
           } catch (error) {
                throw error.response?.data || "Lỗi không xác định";             
@@ -37,6 +36,32 @@ const ProductService = {
           } catch (error) {
                throw error.response?.data || "Lỗi không xác định";
           }
+     },
+
+     getSanPhamChiTietByIdSanPham: async (productId) => {
+          try {
+               const response = await http.get(`${productId}/detail`); // Gọi API để lấy danh sách
+               return response.data;
+          } catch (error) {
+               throw error.response?.data || "Lỗi không xác định";
+          }
+     },
+     createProductDetail: async (productData) => {
+          try {
+               const response = await http.post('SanPham/SanPhamChiTiet', productData);
+               return response.data;
+          } catch (error) {
+               throw error.response?.data || "Lỗi không xác định";             
+          }         
+     },
+     
+     updateProductDetail: async (id, productData) => {
+          try {
+              const response = await http.put(`SanPham//SanPhamChiTiet/${id}`, productData);
+              return response.data;
+          } catch (error) {
+               throw error.response?.data || "Lỗi không xác định";             
+          }     
      },
 };
 

@@ -9,6 +9,7 @@ const { Option } = Select;
 
 const CounterSale = () => {
     // Định nghĩa hàm fetchInvoices ngoài useEffect
+    
     const fetchInvoices = async () => {
         try {
             const response = await axios.get('https://localhost:7030/api/HoaDon');
@@ -17,7 +18,6 @@ const CounterSale = () => {
             }
 
             const data = response.data;
-
             // Log để kiểm tra dữ liệu
             console.log("Customer data:", data[0]?.idKhNavigation);
             console.log("Staff data:", data[0]?.idNvNavigation);
@@ -31,6 +31,7 @@ const CounterSale = () => {
                 status: item.trangThai,
             }));
             setInvoices(filteredData);
+            console.log(filteredData)
         } catch (error) {
             console.error("Error fetching invoice data:", error);
             message.error("Không thể tải dữ liệu hóa đơn.");
@@ -265,13 +266,13 @@ const CounterSale = () => {
         if (amountPaid >= totalAmount) {
             try {
                 const dataString = localStorage.getItem("user");
-                let IdKhachhang = null;
+                let IdNhanVien = null;
 
                 if (dataString) {
                     try {
                         const parsedData = JSON.parse(dataString);
-                        if (parsedData && parsedData.IdKhachhang) {
-                            IdKhachhang = parsedData.IdKhachhang;
+                        if (parsedData && parsedData.IdNhanVien) {
+                            IdNhanVien = parsedData.IdNhanVien;
                         } else {
                             console.error("Không tìm thấy id nhân viên trong dữ liệu! vui lòng đăng nhập");
                         }
@@ -282,12 +283,12 @@ const CounterSale = () => {
                     console.error("Không tìm thấy dữ liệu trong localStorage!");
                     return;
                 }
-                console.log("Kiểu dữ liệu của IdKhachhang:", IdKhachhang);
+                console.log("Kiểu dữ liệu của IDNhanvien:", IdNhanVien);
 
                 // Dữ liệu cần gửi tới API
                 const invoiceData = {
                     idKh: selectedCustomer.key,
-                    idNv: IdKhachhang || null, // Thay thế bằng ID nhân viên thực tế
+                    idNv: IdNhanVien || null, // Thay thế bằng ID nhân viên thực tế
                     loaiHoaDon: 1, // Hóa đơn tại quầy
                     trangThai: 1,
                     hoaDonChiTiets: invoiceDetails.map(detail => ({

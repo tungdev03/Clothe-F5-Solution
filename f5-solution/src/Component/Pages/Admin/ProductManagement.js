@@ -43,8 +43,9 @@ const ProductManagement = () => {
     const [originals, setOriginals] = useState([]);
     const [brands, setBrands] = useState([]);
     const [discounts, setDiscounts] = useState([]);
-    const [initialChiTietSanPhams, setInitialChiTietSanPhams] = useState([]);
     const [statusFilter, setStatusFilter] = useState("all"); // Trạng thái lọc
+    const [productDetails, setProductDetails] = useState([]); // State cho chi tiết sản phẩm
+    const [detailsModalVisible, setDetailsModalVisible] = useState(false); // State cho trạng thái mở modal
     const fetchData = async () => {
         setLoading(true);
         try {
@@ -85,7 +86,6 @@ const ProductManagement = () => {
     useEffect(() => {
         fetchData();
     }, []);
-    console.log('initialChiTietSanPhams', initialChiTietSanPhams);
 
     const fetchProduct = async (search = "", status = "all") => {
         setLoading(true);
@@ -97,7 +97,6 @@ const ProductManagement = () => {
                 return matchesSearch && matchesStatus;
             });
             setProducts(filteredData);
-            console.log(data)
             message.success("Lấy danh sách sản phẩm thành công");
         } catch (error) {
             message.error("Lỗi khi lấy danh sách sản phẩm");
@@ -106,49 +105,38 @@ const ProductManagement = () => {
         }
     };
 
-    const openModal = async (record = null) => {
+    const openDrawer = async (record = null) => {
         try {
-            // Mở Drawer và reset trạng thái
             setDrawerVisible(true);
-            console.log("Mở modal với record ID:", record?.id);
             setEditingProduct(null);
-
-            // Kiểm tra nếu có `record` và `id`
             if (record && record.id) {
-                // Gọi API để lấy chi tiết sản phẩm
                 const productDetails = await ProductService.ViewProductDetail(record.id);
 
-                console.log("Chi tiết sản phẩm nhận được từ API:", productDetails);
                 if (productDetails) {
-                    // Thiết lập giá trị vào form
                     form.setFieldsValue({
                         ...productDetails,
                         maSp: productDetails.maSp || "",
                         trangThai: productDetails.trangThai || 0,
-                        sanPhamChiTiets: productDetails.sanPhamChiTiets || [],
                         tenSp: productDetails.tenSp || "",
+                        theLoai: productDetails.theLoai || 1,
                         giaNhap: productDetails.giaNhap !== undefined ? productDetails.giaNhap : 0,
                         giaBan: productDetails.giaBan || 0,
                         ngayThem: productDetails.ngayThem ? moment(productDetails.ngayThem) : null,
-                        idDm: productDetails.danhMuc?.id || null, // Danh Mục
-                        idCl: productDetails.chatLieu?.id || null, // Chất Liệu
+                        idDm: productDetails.danhMuc?.id || null,
+                        idCl: productDetails.chatLieu?.id || null,
                         moTa: productDetails.moTa || "",
                     });
-                    setInitialChiTietSanPhams(productDetails.sanPhamChiTiets)
 
-                    // Cập nhật URL hình ảnh
                     setImageUrl(productDetails.imageDefaul || '');
-
-                    // Lưu trạng thái bản ghi đang chỉnh sửa
                     setEditingProduct(record);
                 } else {
                     message.error("Không tìm thấy chi tiết sản phẩm.");
                 }
+                console.log(productDetails);
+
             } else {
-                console.log("Không có ID sản phẩm, thiết lập để thêm mới sản phẩm.");
                 // Nếu không có `record`, reset form để thêm mới sản phẩm
                 form.resetFields();
-                setInitialChiTietSanPhams([]);
                 setImageUrl('');
             }
         } catch (error) {
@@ -158,58 +146,18 @@ const ProductManagement = () => {
     };
 
     const handleCreateOrUpdate = async (values) => {
-        console.log(values)
-        // setProducts(update)
-        const changeItem = values.sanPhamChiTiets.map((item => {
-            console.log('item', item);
-            const color = colors.find((cod => cod?.id === item?.mauSac))
-            return {
-                ...item,
-                mauSac: { id: color.id, tenMauSac: color.tenMauSac },
-            }
-        }))
-        console.log('changeItem', changeItem);
-
-        values = {... values, sanPhamChiTiets:changeItem}
-        // setProducts((prev=> ))
-        const itemProd = products.find((item => {
-            return item.id === editingProduct?.id
-        }))
-        //    const prod = products.map((item => {
-        //         console.log('item', item);
-        //         return {
-        //             ...item,
-        //             sanPhamChiTiets: item.id === values.id ? changeItem : item.sanPhamChiTiets
-        //         }
-        //     }))
-        console.log("eeeeê",itemProd);
-
         try {
-            console.log("Dữ liệu từ form trước khi xử lý:", itemProd);
-            // const productData = {
-            //     ...values,
-            //     // id: editingProduct?.id || null,
-            //     chiTietSanPhams: values.sanPhamChiTiets?.map(detail => ({
-            //         idMauSac: detail.colors?.id || detail.idMs, // Chuyển idMs thành id
-            //         idSize: detail.size?.id || detail.idSize, // Chuyển idSize thành id
-            //         soLuongTon: detail.soLuongTon || 0,
-            //         mauSac: {
-            //             ...detail.mauSac,
-            //             tenMauSac: detail.mauSac.tenMauSac
-            //         }
-            //     })) || []
-            // };
-            // setProducts(productData)
-
             // Kiểm tra nếu đang chỉnh sửa hay tạo mới
             if (editingProduct && editingProduct.id) {
-                console.log("Cập nhật sản phẩm với ID:", editingProduct.id);
-                await ProductService.createProduct(itemProd);
+                // Cập nhật sản phẩm
+                await ProductService.createProduct({
+                    id: editingProduct.id,
+                    ...values
+                });
                 message.success("Sản phẩm đã được cập nhật thành công");
             } else {
-                console.log("Tạo mới sản phẩm:");
-                await ProductService.createProduct(itemProd);
-                console.log("Dữ liệu sản phẩm gửi đi:", itemProd);
+                // Tạo mới sản phẩm
+                await ProductService.createProduct(values);
                 message.success("Sản phẩm đã được tạo thành công");
             }
             // Đặt lại form và đóng drawer
@@ -240,24 +188,15 @@ const ProductManagement = () => {
             }
         }
     };
-    console.log("Dữ liệu sản phẩm sau khi xử lý:", products);
-
-
-
 
     const handleStatusChange = async (product, newStatus) => {
         try {
-            const chiTietSanPhams = product.chiTietSanPhams || [];
             const updatedProduct = {
                 ...product,
-                trangThai: newStatus ? 1 : 0,
-                chiTietSanPhams: chiTietSanPhams.map(chiTietSanPham => ({
-                    ...chiTietSanPham,
-                    trangThai: newStatus ? 1 : 0
-                }))
+                trangThai: newStatus ? 1 : 0
             };
 
-            await ProductService.createProduct(updatedProduct);
+            await ProductService.updateProduct(updatedProduct);
             message.success('Chuyển trạng thái thành công');
             fetchData();
         } catch (error) {
@@ -284,6 +223,13 @@ const ProductManagement = () => {
             form.setFieldsValue({ imageDefaul: '' });
             setImageUrl('');
         }
+    };
+    const handleOpenDetailsModal = () => {
+        setDetailsModalVisible(true);
+    };
+
+    const handleCloseDetailsModal = () => {
+        setDetailsModalVisible(false);
     };
 
     const columns = [
@@ -355,7 +301,7 @@ const ProductManagement = () => {
                     className="button-s"
                     type="primary"
                     icon={<EditOutlined />}
-                    onClick={() => openModal(record)}
+                    onClick={() => openDrawer(record)}
                     style={{ backgroundColor: "#ffffff", color: "#000000", marginRight: 10 }}
                 >
                     Sửa
@@ -395,7 +341,7 @@ const ProductManagement = () => {
                         type="primary"
                         icon={<PlusOutlined />}
                         style={{ marginBottom: "20px" }}
-                        onClick={() => openModal()}
+                        onClick={() => openDrawer()}
                         className="button"
                     >
                         Thêm sản phẩm mới
@@ -431,7 +377,6 @@ const ProductManagement = () => {
                             >
                                 <Input placeholder="Nhập mã Sản Phẩm" />
                             </Form.Item>
-
                             <Form.Item
                                 label="Hình Ảnh"
                                 name="imageDefaul"
@@ -460,7 +405,6 @@ const ProductManagement = () => {
                                     <Button icon={<UploadOutlined />}>Chọn Ảnh</Button>
                                 </Upload>
                             </Form.Item>
-
                             <Form.Item
                                 label="Tên Sản Phẩm"
                                 name="tenSp"
@@ -468,7 +412,6 @@ const ProductManagement = () => {
                             >
                                 <Input placeholder="Nhập tên Sản Phẩm" />
                             </Form.Item>
-
                             <Form.Item
                                 label="Thể Loại"
                                 name="theLoai"
@@ -476,7 +419,6 @@ const ProductManagement = () => {
                             >
                                 <Input placeholder="Thể loại Nam hoặc Nữ" />
                             </Form.Item>
-
                             <Form.Item
                                 label="Giá Bán"
                                 name="giaBan"
@@ -484,7 +426,6 @@ const ProductManagement = () => {
                             >
                                 <Input placeholder="Nhập giá bán Sản Phẩm" />
                             </Form.Item>
-
                             <Form.Item
                                 label="Ngày Thêm"
                                 name="ngayThem"
@@ -492,7 +433,6 @@ const ProductManagement = () => {
                             >
                                 <Input type="date" placeholder="Chọn ngày thêm" />
                             </Form.Item>
-
                             <Form.Item
                                 label="Giá Nhập"
                                 name="giaNhap"
@@ -500,14 +440,12 @@ const ProductManagement = () => {
                             >
                                 <Input placeholder="Nhập giá nhập" />
                             </Form.Item>
-
                             <Form.Item
                                 label="Đơn Giá Khi Giảm"
                                 name="donGiaKhiGiam"
                             >
                                 <Input placeholder="Nhập đơn giá khi giảm" />
                             </Form.Item>
-
                             <Form.Item
                                 label="Danh Mục"
                                 name="idDm"
@@ -520,7 +458,6 @@ const ProductManagement = () => {
                                     ))}
                                 </Select>
                             </Form.Item>
-
                             <Form.Item
                                 label="Chất Liệu"
                                 name="idCl"
@@ -534,117 +471,27 @@ const ProductManagement = () => {
                                     ))}
                                 </Select>
                             </Form.Item>
-
                             <Form.Item label="Mô tả" name="moTa">
                                 <Input.TextArea placeholder="Nhập mô tả cho sản phẩm" rows={4} />
                             </Form.Item>
-
-                            <Form.List
-                                name="sanPhamChiTiets"
-                            // initialValue={initialChiTietSanPhams} // Dữ liệu ban đầu
-                            >
-                                {(fields, { add, remove }) => {
-                                    return (
-                                        <>
-                                            {fields.map(({ key, name, ...restField }, index) => {
-                                                // Lấy dữ liệu hiện tại của sản phẩm chi tiết
-                                                const currentChiTiet = fields[key] || {};
-                                                const currentProd = initialChiTietSanPhams[key]
-                                                console.log('currentProd', currentProd);
-
-                                                return (
-                                                    <div key={key} style={{ marginBottom: 16 }}>
-                                                        {/* Màu sắc */}
-                                                        <Form.Item
-                                                            // {...restField}
-                                                            label="Màu sắc"
-                                                            name={[index, 'mauSac']}
-                                                            rules={[{ required: true, message: "Vui lòng chọn màu sắc" }]}
-                                                            initialValue={currentProd?.mauSac?.id}
-                                                        >
-                                                            <Select placeholder="Chọn Màu Sắc" defaultValue={currentProd.mauSac.id}>
-                                                                {colors.map(color => (
-                                                                    <Select.Option key={color.id} value={color.id}>
-                                                                        {color.tenMauSac}
-                                                                    </Select.Option>
-                                                                ))}
-                                                            </Select>
-                                                        </Form.Item>
-
-                                                        {/* Kích thước */}
-                                                        <Form.Item
-                                                            // {...restField}
-                                                            label="Kích thước"
-                                                            name={[index, 'idSize']}
-                                                            rules={[{ required: true, message: "Vui lòng chọn kích thước" }]}
-                                                            initialValue={currentProd?.size?.id} // Dữ liệu mặc định
-                                                        >
-                                                            <Select placeholder="Chọn Kích Thước" defaultValue={currentProd.size.id}>
-                                                                {sizes.map(size => (
-                                                                    <Select.Option key={size.id} value={size.id}>
-                                                                        {size.tenSize}
-                                                                    </Select.Option>
-                                                                ))}
-                                                            </Select>
-                                                        </Form.Item>
-
-                                                        {/* Số lượng tồn */}
-                                                        <Form.Item
-                                                            // {...restField}
-                                                            label="Số lượng tồn"
-                                                            name={[index, 'soLuongTon']}
-                                                            rules={[{ required: true, message: "Vui lòng nhập số lượng tồn" }]}
-                                                            initialValue={currentChiTiet.soLuongTon} // Dữ liệu mặc định
-                                                        >
-                                                            <Input
-                                                                type="number"
-                                                                min={0}
-                                                                placeholder="Nhập số lượng tồn"
-                                                                defaultValue={currentChiTiet.soLuongTon}
-                                                            />
-                                                        </Form.Item>
-
-                                                        {/* Nút xóa */}
-                                                        <Form.Item>
-                                                            <Button
-                                                                type="danger"
-                                                                onClick={() => remove(name)}
-                                                                icon={<DeleteOutlined />}
-                                                            >
-                                                                Xóa
-                                                            </Button>
-                                                        </Form.Item>
-                                                    </div>
-                                                );
-                                            })}
-
-                                            {/* Nút thêm chi tiết */}
-                                            <Form.Item>
-                                                <Button
-                                                    type="dashed"
-                                                    onClick={() => add()}
-                                                    icon={<PlusOutlined />}
-                                                    className="w-full"
-                                                >
-                                                    Thêm Chi Tiết
-                                                </Button>
-                                            </Form.Item>
-                                        </>
-                                    )
-                                }}
-                            </Form.List>
                             <Form.Item label="Trạng thái" name="trangThai" initialValue={1}>
                                 <Radio.Group style={{ display: "flex", flexDirection: "row" }}>
                                     <Radio value={1}>Hoạt động</Radio>
                                     <Radio value={0}>Không hoạt động</Radio>
                                 </Radio.Group>
                             </Form.Item>
-
                             <Form.Item>
                                 <Button type="primary" htmlType="submit">
                                     {editingProduct ? 'Cập nhật' : 'Thêm mới'}
                                 </Button>
                             </Form.Item>
+                            <Button
+                                type="primary"
+                                onClick={handleOpenDetailsModal}
+                                style={{ margin: '20px 0' }}
+                            >
+                                Chi tiết Sản Phẩm
+                            </Button>
                         </Form>
                     </Drawer>
                 </div>

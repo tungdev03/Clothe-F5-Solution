@@ -27,7 +27,14 @@ const ProductService = {
                throw error.response?.data || "API không hoạt động";             
           }  
      },
-
+     getProductDetailID: async (productId) => {
+          try {
+               const response = await http.get(`SanPham/sanPhamChiTiet//${productId}`);
+               return response.data;
+          } catch (error) {
+               throw error.response?.data || "API không hoạt động";             
+          }  
+     },
      // Hàm lấy danh sách tất cả các Chất liệu
      getAllProduct: async () => {
           try {
@@ -48,7 +55,7 @@ const ProductService = {
      },
      createProductDetail: async (productData) => {
           try {
-            const response = await http.post(`SanPham/AddOrUpdate`, productData);
+            const response = await http.post(`SanPham/AddOrUpdate/`, productData);
             return response.data;
           } catch (error) {
             throw error.response?.data || "Lỗi không xác định";             

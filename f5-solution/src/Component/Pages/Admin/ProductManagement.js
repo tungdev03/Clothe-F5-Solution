@@ -46,6 +46,7 @@ const ProductManagement = () => {
     const [discounts, setDiscounts] = useState([]);
     const [statusFilter, setStatusFilter] = useState("all");
     const [productDetails, setProductDetails] = useState([]);
+    const [productDetailEdit, setEditingProductDetail] = useState([]);
     const [detailsModalVisible, setDetailsModalVisible] = useState(false);
     const [error, setError] = useState("");
     const [currentProductId, setCurrentProductId] = useState(null);
@@ -114,7 +115,6 @@ const ProductManagement = () => {
             setEditingProduct(null);
             if (record && record.id) {
                 const productDetails = await ProductService.ViewProductDetail(record.id);
-
                 if (productDetails) {
                     form.setFieldsValue({
                         ...productDetails,
@@ -136,7 +136,6 @@ const ProductManagement = () => {
                 } else {
                     message.error("Không tìm thấy chi tiết sản phẩm.");
                 }
-                console.log(productDetails);
 
             } else {
                 form.resetFields();
@@ -148,25 +147,31 @@ const ProductManagement = () => {
         }
     };
 
-    const handleOpenDetailsModal = async () => {
-        if (!currentProductId) {
-            message.error("Không có sản phẩm nào được chọn.");
-            return;
-        }
-        setDetailsModalVisible(true);
-        setLoading(true);
-        setError("");
-
+    const handleOpenDetailsModal = async (value = null) => {
         try {
+            setDetailsModalVisible(true);
+            setEditingProductDetail(null);  // Đặt editingProductDetail về null hoặc phụ thuộc vào trường hợp sử dụng
+            setLoading(true);
+            setError("");
+    
+            if (currentProductId == null) {
+                throw new Error("Product ID không hợp lệ");
+            }
+    
             const details = await ProductService.getSanPhamChiTietByIdSanPham(currentProductId);
-
+            
+            // Verify the response
+            if (!details || !Array.isArray(details)) {
+                throw new Error("Dữ liệu API không hợp lệ");
+            }
+    
             const formattedDetails = details.map(item => ({
                 Id: item.id,
                 color: item.idMs,
                 size: item.idSize,
                 quantity: item.soLuongTon,
             }));
-            console.log(formattedDetails);
+            
             setProductDetails(formattedDetails);
         } catch (e) {
             setError(e.message || "Có lỗi xảy ra khi tải thông tin sản phẩm.");
@@ -174,77 +179,60 @@ const ProductManagement = () => {
             setLoading(false);
         }
     };
+    
     useEffect(() => {
         if (detailsModalVisible) {
             handleOpenDetailsModal();
         }
     }, [detailsModalVisible]);
-
+    
     useEffect(() => {
         if (productDetails.length) {
             form.setFieldsValue({
                 fields: productDetails.map(item => ({
-                    Id: item.id,
+                    Id: item.Id,  // Ensure it's 'Id' not 'id' if that's how your backend returns the field
                     name: item.color,
                     IdSp: currentProductId,
                     type: item.size,
                     options: item.quantity,
                 }))
             });
-            console.log("aaaaaaaaaaaaaaaaaaâ", productDetails)
         }
     }, [productDetails, form]);
-    const handleSingleAddOrUpdate = async (fieldData) => {
-        // Kiểm tra nếu dữ liệu không tồn tại để ngăn chạy tiếp
+    
+    const handleSaveProductDetail = async (fieldData) => {
         if (!fieldData) {
-            message.error('Dữ liệu chi tiết sản phẩm hiện không xác định.');
+            message.error('Dữ liệu chi tiết sản phẩm không xác định.');
             return;
         }
-
-        // Lấy các thuộc tính cần thiết từ fieldData
-        const {
-            id,         // ID sản phẩm chi tiết (nếu có
-            idSp,       // ID sản phẩm mẹ
-            idMs,       // Mã định danh màu sắc
-            idSize,     // Mã định danh kích thước
-            soLuongTon, // Số lượng tồn kho
-            moTa = "",      // Mô tả sản phẩm, mặc định là chuỗi rỗng nếu không có
-            qrCode = "",    // Mã QR, mặc định là chuỗi rỗng nếu không có
-            trangThai = 0,  // Trạng thái sản phẩm, mặc định là 0
-            ngayTao = new Date().toISOString() // Ngày tạo, dùng thời gian hiện tại nếu không có
-        } = fieldData;
-
-        console.log(fieldData)
-        // Tạo đối tượng chiTietSanPham dựa trên dữ liệu đầu vào
-        const chiTietSanPham = {
-            id,
-            idSp,
-            idMs,
-            idSize,
-            soLuongTon,
-            moTa,
-            qrCode,
-            trangThai,
-            ngayTao,
-        };
-
-        // Đặt chiTietSanPham vào payload gửi lên API
-        const payload = {
-            chiTietDtos: [chiTietSanPham]
-        };
-
+    
         try {
-            if (id) {
-                // Cập nhật chi tiết sản phẩm hiện tại
-                await ProductService.updateProductDetail(payload);
-                message.success('Chi tiết sản phẩm đã được cập nhật thành công');
+            if (fieldData.Id) {  // Ensure the check is on fieldData not productDetails
+                await ProductService.createProductDetail({
+                    id: fieldData.Id,
+                    idMs: fieldData.name,
+                    idSize: fieldData.type,
+                    soLuongTon: fieldData.options,
+                    ...fieldData
+                });
+                message.success("Sản phẩm chi tiết đã được cập nhật thành công");
             } else {
-                // Thêm mới chi tiết sản phẩm
-                await ProductService.createProductDetail(payload);
-                message.success('Chi tiết sản phẩm mới đã được thêm thành công');
+                await ProductService.createProductDetail({
+                    id: fieldData.Id,
+                    idMs: fieldData.name,
+                    IdSp: currentProductId,
+                    idSize: fieldData.type,
+                    soLuongTon: fieldData.options,
+                    ...fieldData
+                });
+                message.success("Sản phẩm chi tiết mới đã được tạo thành công");
             }
+            form.resetFields();
+            console.log('Kết quả:', fieldData);
+            handleOpenDetailsModal(); // Refresh details
         } catch (error) {
-            message.error(`Thêm hoặc cập nhật chi tiết sản phẩm thất bại: ${error.message || 'Lỗi không xác định'}`);
+            console.error("Lỗi khi thêm hoặc cập nhật chi tiết sản phẩm:", error);
+            message.error(`Thêm hoặc cập nhật chi tiết sản phẩm thất bại: ${error}`);
         }
     };
     const handleCreateOrUpdate = async (values) => {
@@ -259,6 +247,7 @@ const ProductManagement = () => {
                 await ProductService.createProduct(values);
                 message.success("Sản phẩm đã được tạo thành công");
             }
+
             form.resetFields();
             setDrawerVisible(false);
             fetchData();
@@ -308,8 +297,6 @@ const ProductManagement = () => {
     };
 
     const handleSubmit = (values) => {
-        console.log('Form Values:', values);
-        // Xử lý submit
         setDetailsModalVisible(false);
     };
     const handleUploadChange = ({ fileList }) => {
@@ -651,7 +638,10 @@ const ProductManagement = () => {
                                                 </Form.Item>
                                                 <Button
                                                     type="dashed"
-                                                    onClick={() => handleSingleAddOrUpdate(form.getFieldValue('fields')[field.name])}
+                                                    onClick={() => {
+                                                        const fieldData = form.getFieldValue('fields')[field.name];
+                                                        handleSaveProductDetail(fieldData); // Gọi hàm đã gộp xử lý thêm/cập nhật
+                                                    }}
                                                     style={{ marginRight: 8 }}
                                                 >
                                                     Add/Update

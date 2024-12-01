@@ -54,7 +54,6 @@ const f5Blogs = [
 
 const Home = () => {
   const navigate = useNavigate();
-  let {id} = useParams()
   const [TaiKhoan, setUsername] = useState(null);
   const [products, setProducts] = useState([]);
   useEffect(() => {

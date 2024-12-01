@@ -214,26 +214,37 @@ const handlePlaceOrder = async () => {
 
 
 
-const handleDeliveryMethodChange = (method) => { 
+const handleDeliveryMethodChange = async (method) => { 
   setDeliveryMethod(method);
 
-  // Giả sử "00000000-0000-0000-0000-000000000000" là ID cửa hàng
-  const IdCuaHang = "00000000-0000-0000-0000-000000000000"; // Đặt GUID cửa hàng mặc định
-
   if (method === "Nhận tại cửa hàng") {
-    // Gán GUID cửa hàng khi chọn "Nhận tại cửa hàng"
-    setAddresses(IdCuaHang); 
+    // Thiết lập các giá trị mặc định cho nhận tại cửa hàng
+    const IdCuaHang = "00000000-0000-0000-0000-000000000000"; // Đặt GUID mặc định của cửa hàng
+    setAddresses([{ id: IdCuaHang, diaChiChiTiet: "Cửa hàng BBQ - 123 Đường ABC, Quận 1, TP. Hồ Chí Minh" }]);
     setGhiChu("Nhận tại cửa hàng");
-    setNgayNhan(new Date().toISOString());
-    // Gán ngày nhận là ngày hiện tại
-
+    setNgayNhan(new Date().toISOString().split("T")[0]); // Gán ngày hiện tại
   } else if (method === "Giao hàng") {
-    // Khi chọn giao hàng, xóa các giá trị
-    setAddresses([]); // Đặt lại địa chỉ
-    setGhiChu(""); // Đặt lại ghi chú
-    setNgayNhan(""); // Đặt lại ngày nhận
+    try {
+      // Lấy danh sách địa chỉ của khách hàng từ máy chủ
+      const data = await DiaChiService.getAddressById(userId);
+      if (data && data.length > 0) {
+        setAddresses(data); // Cập nhật danh sách địa chỉ
+        setSelectedAddress(data[0].id); // Đặt mặc định địa chỉ đầu tiên
+      } else {
+        setAddresses([]); // Xóa danh sách địa chỉ nếu không có
+        message.info("Bạn chưa có địa chỉ nào, hãy thêm mới.");
+      }
+    } catch (error) {
+      console.error("Lỗi khi lấy danh sách địa chỉ:", error);
+      message.error("Không thể tải danh sách địa chỉ. Vui lòng thử lại!");
+    }
+
+    // Xóa ghi chú và ngày nhận (nếu cần)
+    setGhiChu("");
+    setNgayNhan("");
   }
 };
+
 
 
   const handleOpenModal = () => {

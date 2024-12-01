@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, Input, Form, Select, Row, Col, Card, Tag, Modal, notification, Space, List, Radio, Switch, Image } from 'antd';
+import axios from 'axios';
+import { Table, Button, Input, Form, Select, Row, Col, Card, Tag, Modal, notification, Space, List, Radio, Switch, Image, message } from 'antd';
 import { PlusOutlined, DeleteOutlined, EditOutlined, MinusOutlined } from '@ant-design/icons';
 import './CounterSale.css';
 import Anh1 from './Anh1.png';
@@ -7,21 +8,45 @@ import Anh1 from './Anh1.png';
 const { Option } = Select;
 
 const CounterSale = () => {
-    const [invoices, setInvoices] = useState([
-        { key: 1, code: 'HD001', staff: 'Nguyễn Văn Toàn', dateCreated: '2024-03-01 09:00:00', customer: 'Khánh Lê', type: 'Tại quầy', status: 'Chờ thanh toán' },
-        { key: 2, code: 'HD002', staff: 'Trần Văn Bình', dateCreated: '2024-03-02 10:00:00', customer: 'Minh Phương', type: 'Giao hàng', status: 'Đã thanh toán' },
-        { key: 3, code: 'HD003', staff: 'Trần Văn Hình', dateCreated: '2024-03-02 10:00:00', customer: 'Minh Phương', type: 'Giao hàng', status: 'Đã thanh toán' }
-    ]);
+    // Định nghĩa hàm fetchInvoices ngoài useEffect
+    
+    const fetchInvoices = async () => {
+        try {
+            const response = await axios.get('https://localhost:7030/api/HoaDon');
+            if (!response.data) {
+                throw new Error('Không có dữ liệu');
+            }
 
-    const [invoiceDetails, setInvoiceDetails] = useState([
-        { key: 1, image: 'https://via.placeholder.com/50', product: 'Áo thun nam', quantity: 2, unitPrice: 120000, totalPrice: 240000 }
-    ]);
+            const data = response.data;
+            // Log để kiểm tra dữ liệu
+            console.log("Customer data:", data[0]?.idKhNavigation);
+            console.log("Staff data:", data[0]?.idNvNavigation);
+            const filteredData = data.map(item => ({
+                key: item.id,
+                code: item.maHoaDon,
+                customer: item.idKhNavigation?.hoVaTenKh || 'Không có',
+                dateCreated: item.ngayTao ? new Date(item.ngayTao).toLocaleString() : 'Chưa xác định',
+                staff: item.idNvNavigation?.HoVaTenNv || 'Không có',
+                type: item.loaiHoaDon,
+                status: item.trangThai,
+            }));
+            setInvoices(filteredData);
+            console.log(filteredData)
+        } catch (error) {
+            console.error("Error fetching invoice data:", error);
+            message.error("Không thể tải dữ liệu hóa đơn.");
+        }
+    };
 
+    useEffect(() => {
+        fetchInvoices();
+    }, []);
+
+    const [invoices, setInvoices] = useState([]);
+    const [invoiceDetails, setInvoiceDetails] = useState([]);
     const [searchText, setSearchText] = useState("");
     const [isModalVisible, setIsModalVisible] = useState(false);
-    const [editingInvoice, setEditingInvoice] = useState(null);
     const [isProductModalVisible, setIsProductModalVisible] = useState(false);
-    const [editingProduct, setEditingProduct] = useState(null);
     const [form] = Form.useForm();
     const [productForm] = Form.useForm();
     const [totalAmount, setTotalAmount] = useState(0);
@@ -34,66 +59,122 @@ const CounterSale = () => {
     const [showQRCode, setShowQRCode] = useState(false);
     const [amountInWords, setAmountInWords] = useState("");
 
-    // Danh sách sản phẩm và khách hàng mẫu
-    const productList = [
-        { key: 1, name: 'Áo thun nam', price: 120000 },
-        { key: 2, name: 'Quần jeans nữ', price: 350000 },
-        { key: 3, name: 'Giày thể thao', price: 500000 }
-    ];
+    const [productList, setProductList] = useState([]);
+    const [cart, setCart] = useState([]);
+    const showProductModal = () => {
+        setIsProductSelectVisible(true);  // Mở modal chọn sản phẩm
+    };
+    const handleSelectCustomer = (customer) => {
+        setSelectedCustomer(customer);  // Lưu toàn bộ thông tin khách hàng vào state
+        setIsCustomerSelectVisible(false);  // Đóng modal chọn khách hàng
+        console.log(customer)
+    };
 
-    const customerList = [
-        { key: 1, name: 'Khánh Lê', phone: '0123456789' },
-        { key: 2, name: 'Minh Phương', phone: '0987654321' }
-    ];
+    // Hàm lấy dữ liệu sản phẩm từ API
+    useEffect(() => {
+        let isMounted = true;
+
+        const fetchProducts = async () => {
+            try {
+                const response = await axios.get('https://localhost:7030/api/SanPham/GetAll');
+                if (isMounted && response.data) {
+                    const filteredData = response.data.flatMap(item =>
+                        item.sanPhamChiTiets.map(chiTiet => ({
+                            key: chiTiet.id,
+                            id: item.id,
+                            idSpct: chiTiet.id,
+                            name: `${item.tenSp} - ${chiTiet.kichThuoc?.tenSize || 'N/A'} - ${chiTiet.mauSac?.tenMauSac || 'N/A'}`,
+                            price: item.giaBan,
+                            image: item.imageDefaul,
+                            soLuongTon: chiTiet.soLuongTon
+                        }))
+                    ).filter(product => product.soLuongTon > 0);
+                    setProductList(filteredData);
+                }
+            } catch (error) {
+                if (isMounted) {
+                    console.error("Error fetching product data:", error);
+                    message.error("Không thể tải dữ liệu sản phẩm.");
+                }
+            }
+        };
+
+        fetchProducts();
+
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
+    const [customerList, setCustomerList] = useState([]);
+    useEffect(() => {
+        const fetchCustomers = async () => {
+            try {
+                const response = await axios.get('https://localhost:7030/api/KhachHang');
+                const data = response.data;
+                const filteredData = data.map(item => ({
+                    key: item.id,
+                    name: item.hoVaTenKh,
+                    phone: item.soDienThoai,
+                }));
+                setCustomerList(filteredData);
+            } catch (error) {
+                console.error("Error fetching customer data:", error);
+                message.error("Không thể tải dữ liệu khách hàng.");
+            }
+        };
+        fetchCustomers();
+    }, []);
+
 
     useEffect(() => {
         const total = invoiceDetails.reduce((sum, item) => sum + item.totalPrice, 0);
         setTotalAmount(total);
     }, [invoiceDetails]);
 
-   // Hàm chuyển đổi số thành chữ (tiếng Việt)
-const convertNumberToWords = (num) => {
-    const units = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
-    const tens = ["", "mười", "hai mươi", "ba mươi", "bốn mươi", "năm mươi", "sáu mươi", "bảy mươi", "tám mươi", "chín mươi"];
-    const scales = ["", "nghìn", "triệu", "tỷ"];
+    // Hàm chuyển đổi số thành chữ (tiếng Việt)
+    const convertNumberToWords = (num) => {
+        const units = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
+        const tens = ["", "mười", "hai mươi", "ba mươi", "bốn mươi", "năm mươi", "sáu mươi", "bảy mươi", "tám mươi", "chín mươi"];
+        const scales = ["", "nghìn", "triệu", "tỷ"];
 
-    if (num === 0) return "không đồng";
+        if (num === 0) return "không đồng";
 
-    let words = "";
-    let scaleIndex = 0;
+        let words = "";
+        let scaleIndex = 0;
 
-    while (num > 0) {
-        let part = num % 1000;
-        if (part > 0) {
-            let partWords = "";
+        while (num > 0) {
+            let part = num % 1000;
+            if (part > 0) {
+                let partWords = "";
 
-            // Xử lý hàng trăm
-            const hundreds = Math.floor(part / 100);
-            const remainder = part % 100;
-            if (hundreds > 0) {
-                partWords += `${units[hundreds]} trăm `;
-            }
-
-            // Xử lý hàng chục và đơn vị
-            if (remainder > 0) {
-                if (remainder < 10) {
-                    partWords += `lẻ ${units[remainder]}`;
-                } else {
-                    const tensPart = Math.floor(remainder / 10);
-                    const unitsPart = remainder % 10;
-                    partWords += `${tens[tensPart]} ${units[unitsPart]}`.trim();
+                // Xử lý hàng trăm
+                const hundreds = Math.floor(part / 100);
+                const remainder = part % 100;
+                if (hundreds > 0) {
+                    partWords += `${units[hundreds]} trăm`;
                 }
+
+                // Xử lý hàng chục và đơn vị
+                if (remainder > 0) {
+                    if (remainder < 10) {
+                        partWords += `lẻ ${units[remainder]}`;
+                    } else {
+                        const tensPart = Math.floor(remainder / 10);
+                        const unitsPart = remainder % 10;
+                        partWords += `${tens[tensPart]} ${units[unitsPart]}`.trim();
+                    }
+                }
+
+                words = `${partWords} ${scales[scaleIndex]} ${words}`.trim();
             }
 
-            words = `${partWords} ${scales[scaleIndex]} ${words}`.trim();
+            num = Math.floor(num / 1000);
+            scaleIndex++;
         }
 
-        num = Math.floor(num / 1000);
-        scaleIndex++;
-    }
-
-    return words + " đồng";
-};
+        return words + " đồng";
+    };
 
 
     // Cập nhật số tiền thành chữ khi amountPaid thay đổi
@@ -128,47 +209,17 @@ const convertNumberToWords = (num) => {
         ));
     };
 
-    const handleSaveInvoice = (values) => {
-        if (editingInvoice) {
-            setInvoices(invoices.map(invoice => invoice.key === editingInvoice.key
-                ? { ...values, key: editingInvoice.key, status: paymentStatus }
-                : invoice
-            ));
-            notification.success({ message: 'Hóa đơn đã được cập nhật!' });
-        } else {
-            const newInvoice = {
-                ...values, key: invoices.length + 1, dateCreated: new Date().toLocaleString(), status: paymentStatus
-            };
-            setInvoices([...invoices, newInvoice]);
-            notification.success({ message: 'Hóa đơn mới đã được tạo!' });
+    const handleDeleteInvoice = async (key) => {
+        try {
+            await axios.delete(`https://localhost:7030/api/HoaDon/${key}`);
+            setInvoices(invoices.filter(invoice => invoice.key !== key));
+            notification.success({ message: 'Hóa đơn đã bị xóa!' });
+
+        } catch (error) {
+            notification.error({ message: 'Xóa hóa đơn không thành công!' });
         }
-        setIsModalVisible(false);
-        form.resetFields();
-        setEditingInvoice(null);
-    };
 
-    const handleDeleteInvoice = (key) => {
-        setInvoices(invoices.filter(invoice => invoice.key !== key));
-        notification.success({ message: 'Hóa đơn đã bị xóa!' });
     };
-
-    const handleSaveProduct = (values) => {
-        const totalPrice = values.quantity * values.unitPrice;
-        if (editingProduct) {
-            setInvoiceDetails(invoiceDetails.map(product =>
-                product.key === editingProduct.key ? { ...values, totalPrice, key: editingProduct.key } : product
-            ));
-            notification.success({ message: 'Sản phẩm đã được cập nhật!' });
-        } else {
-            const newProduct = { ...values, key: invoiceDetails.length + 1, totalPrice };
-            setInvoiceDetails([...invoiceDetails, newProduct]);
-            notification.success({ message: 'Sản phẩm mới đã được thêm!' });
-        }
-        setIsProductModalVisible(false);
-        productForm.resetFields();
-        setEditingProduct(null);
-    };
-
     const handleDeleteProduct = (key) => {
         setInvoiceDetails(invoiceDetails.filter(product => product.key !== key));
         notification.success({ message: 'Sản phẩm đã bị xóa!' });
@@ -176,29 +227,133 @@ const convertNumberToWords = (num) => {
 
     const handleSelectProduct = (product) => {
         const newProduct = {
-            key: invoiceDetails.length + 1, product: product.name, quantity: 1, unitPrice: product.price, totalPrice: product.price
+            key: invoiceDetails.length + 1,
+            id: product.id,
+            idSpct: product.idSpct,
+            product: product.name,
+            quantity: 1,
+            unitPrice: product.price,
+            totalPrice: product.price
         };
         setInvoiceDetails([...invoiceDetails, newProduct]);
         setIsProductSelectVisible(false);
     };
 
-    const handlePayment = () => {
+    const [customerFormData, setCustomerFormData] = useState(null); // Dữ liệu khách hàng
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(''); // Phương thức thanh toán
+    const [selectedProducts, setSelectedProducts] = useState([]); // Danh sách sản phẩm
+    const [notes, setNotes] = useState(''); // Ghi chú
+
+    const handlePayment = async () => {
+        if (isNaN(amountPaid) || amountPaid <= 0) {
+            notification.error({ message: 'Số tiền thanh toán không hợp lệ!' });
+            return;
+        }
+        if (!selectedCustomer) {
+            notification.error({ message: 'Vui lòng chọn khách hàng trước khi thanh toán!' });
+            return;
+        }
+
+        if (invoiceDetails.length === 0) {
+            notification.error({ message: 'Vui lòng chọn sản phẩm trước khi thanh toán!' });
+            return;
+        }
+        if (!invoiceDetails.every(detail => detail.id && detail.quantity > 0 && detail.unitPrice > 0)) {
+            notification.error({ message: 'Dữ liệu sản phẩm không hợp lệ!' });
+            return;
+        }
+
         if (amountPaid >= totalAmount) {
-            setInvoices(invoices.map(invoice =>
-                invoice.key === editingInvoice?.key ? { ...invoice, status: 'Đã thanh toán' } : invoice
-            ));
-            notification.success({ message: 'Thanh toán thành công!' });
-            setPaymentStatus('Đã thanh toán');
+            try {
+                const dataString = localStorage.getItem("user");
+                let IdNhanVien = null;
+
+                if (dataString) {
+                    try {
+                        const parsedData = JSON.parse(dataString);
+                        if (parsedData && parsedData.IdNhanVien) {
+                            IdNhanVien = parsedData.IdNhanVien;
+                        } else {
+                            console.error("Không tìm thấy id nhân viên trong dữ liệu! vui lòng đăng nhập");
+                        }
+                    } catch (error) {
+                        console.error("Lỗi khi phân tích dữ liệu JSON!", error);
+                    }
+                } else {
+                    console.error("Không tìm thấy dữ liệu trong localStorage!");
+                    return;
+                }
+                console.log("Kiểu dữ liệu của IDNhanvien:", IdNhanVien);
+
+                // Dữ liệu cần gửi tới API
+                const invoiceData = {
+                    idKh: selectedCustomer.key,
+                    idNv: IdNhanVien || null, // Thay thế bằng ID nhân viên thực tế
+                    loaiHoaDon: 1, // Hóa đơn tại quầy
+                    trangThai: 1,
+                    hoaDonChiTiets: invoiceDetails.map(detail => ({
+                        idSpct: detail.idSpct, // Sử dụng idSpct thay vì productId
+                        soLuong: detail.quantity,
+                        donGia: detail.unitPrice,
+                        trangThai: 1
+                    })),
+                    ghiChu: notes || "",
+                    thanhTien: totalAmount,
+                    giaTriGiam: 0, // Nếu có áp dụng giảm giá
+                    tienKhachDua: amountPaid,
+                    tienThua: amountPaid - totalAmount,
+                    hinhThucThanhToan: paymentMethod === 'cash' ? 1 : 2
+                };
+
+
+                // Gọi API thêm hóa đơn
+                const response = await axios.post('https://localhost:7030/api/HoaDon', invoiceData);
+                // Kiểm tra nếu trả về status 201 thì là thành công
+                if (response.status === 201) {
+                    notification.success({ message: 'Thanh toán thành công!' });
+                    setInvoices([...invoices, response.data]);
+                    setPaymentStatus('Đã thanh toán');
+                    // Reset form sau khi thanh toán thành công
+                    setSelectedCustomer(null);
+                    setInvoiceDetails([]);
+                    setAmountPaid(0);
+                    setPaymentMethod('cash');
+                    setNotes('');
+                    await fetchInvoices();
+                }
+            } catch (error) {
+                console.error('Lỗi khi thêm hóa đơn:', error);
+                notification.error({
+                    message: 'Đã xảy ra lỗi khi thanh toán! vui lòng đăng nhập bẳng tài khoản nhân viên',
+                    description: error.response ? error.response.data.message : 'Vui lòng thử lại sau',
+                });
+                return;
+
+            }
         } else {
-            notification.error({ message: 'Thanh toán không đủ!' });
+            notification.error({ message: 'Số tiền thanh toán không đủ!' });
             setPaymentStatus('Chờ thanh toán');
         }
     };
 
-    const filteredInvoices = invoices.filter(
-        invoice => invoice.code.toLowerCase().includes(searchText.toLowerCase()) ||
-            invoice.customer.toLowerCase().includes(searchText.toLowerCase())
-    );
+    const filteredInvoices = invoices.filter(invoice => {
+        // Kiểm tra nếu invoice là null hoặc undefined
+        if (!invoice) return false;
+
+        const searchTextLower = searchText.toLowerCase();
+
+        // Kiểm tra code
+        const codeMatch = invoice.code ?
+            invoice.code.toLowerCase().includes(searchTextLower) :
+            false;
+
+        // Kiểm tra customer
+        const customerMatch = invoice.customer ?
+            invoice.customer.toLowerCase().includes(searchTextLower) :
+            false;
+
+        return codeMatch || customerMatch;
+    });
 
     const columnsInvoices = [
         { title: 'Mã Hóa Đơn', dataIndex: 'code', key: 'code' },
@@ -214,15 +369,15 @@ const convertNumberToWords = (num) => {
             title: 'Thao tác', key: 'action',
             render: (text, record) => (
                 <Space size="middle">
-                    <Button icon={<EditOutlined />} onClick={() => setEditingInvoice(record)}>Sửa</Button>
                     <Button icon={<DeleteOutlined />} onClick={() => handleDeleteInvoice(record.key)} danger>Xóa</Button>
                 </Space>
             )
         }
     ];
 
+
     const columnsProductDetails = [
-        { title: 'STT', dataIndex: 'key', key: 'key' },
+        { title: 'STT', dataIndex: 'key', key: 'stt' },
         { title: 'Ảnh', dataIndex: 'image', key: 'image', render: image => <img src={image} alt="Product" style={{ width: 50 }} /> },
         { title: 'Sản phẩm', dataIndex: 'product', key: 'product' },
         {
@@ -235,22 +390,34 @@ const convertNumberToWords = (num) => {
                 </Space>
             )
         },
-        { title: 'Đơn giá', dataIndex: 'unitPrice', key: 'unitPrice', render: price => `${price.toLocaleString('vi-VN')} vnđ` },
-        { title: 'Tổng tiền', dataIndex: 'totalPrice', key: 'totalPrice', render: total => `${total.toLocaleString('vi-VN')} vnđ` },
+        {
+            title: 'Đơn giá',
+            dataIndex: 'unitPrice',
+            key: 'unitPrice',
+            render: price => `${price.toLocaleString('vi-VN')} vnđ`
+        },
+        {
+            title: 'Tổng tiền',
+            dataIndex: 'totalPrice',
+            key: 'totalPrice',
+            render: total => `${total.toLocaleString('vi-VN')} vnđ`
+        },
         {
             title: 'Thao tác', key: 'action',
             render: (text, record) => (
                 <Space size="middle">
-                    <Button icon={<EditOutlined />} onClick={() => setEditingProduct(record)}>Sửa</Button>
                     <Button icon={<DeleteOutlined />} onClick={() => handleDeleteProduct(record.key)} danger>Xóa</Button>
                 </Space>
             )
         }
     ];
-
+    // Đóng modal
+    const closeProductModal = () => {
+        setIsProductSelectVisible(false);
+    };
     return (
-        
-             <div className="counter-sale-container">
+
+        <div className="counter-sale-container">
             <div className="invoice-section">
                 <Input placeholder="Tìm kiếm hóa đơn..." value={searchText} onChange={e => setSearchText(e.target.value)} style={{ marginBottom: 20, width: 300 }} />
                 <Button icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>Tạo hóa đơn mới</Button>
@@ -266,7 +433,9 @@ const convertNumberToWords = (num) => {
                 <Col span={12}>
                     <Card title="Thông tin khách hàng" className="info-card">
                         <Form layout="vertical">
-                            <Form.Item label="Tên khách hàng"><Input value={selectedCustomer} readOnly /></Form.Item>
+                            <Form.Item label="Tên khách hàng">
+                                <Input value={selectedCustomer ? selectedCustomer.name : ''} readOnly />
+                            </Form.Item>
                             <Form.Item><Button onClick={() => setIsCustomerSelectVisible(true)}>Chọn khách hàng</Button></Form.Item>
                         </Form>
                     </Card>
@@ -334,39 +503,55 @@ const convertNumberToWords = (num) => {
             </Row>
 
             {/* Các Modal */}
-            <Modal title="Chọn sản phẩm" visible={isProductSelectVisible} onCancel={() => setIsProductSelectVisible(false)} footer={null}>
-                <List dataSource={productList} renderItem={item => (
-                    <List.Item><Button onClick={() => handleSelectProduct(item)}>{item.name} - {item.price.toLocaleString('vi-VN')} vnđ</Button></List.Item>
-                )} />
-            </Modal>
+            <div style={{ padding: '20px' }}>
 
-            <Modal title="Chọn khách hàng" visible={isCustomerSelectVisible} onCancel={() => setIsCustomerSelectVisible(false)} footer={null}>
-                <Input.Search placeholder="Tìm kiếm theo tên hoặc số điện thoại" onSearch={value => console.log(value)} />
-                <List dataSource={customerList} renderItem={item => (
-                    <List.Item><Button onClick={() => setSelectedCustomer(item.name)}>{item.name} - {item.phone}</Button></List.Item>
-                )} />
-            </Modal>
 
-            <Modal title={editingInvoice ? "Sửa hóa đơn" : "Thêm hóa đơn"} visible={isModalVisible} onCancel={() => setIsModalVisible(false)} footer={null}>
-                <Form form={form} onFinish={handleSaveInvoice} layout="vertical">
-                    <Form.Item name="code" label="Mã hóa đơn" rules={[{ required: true }]}><Input /></Form.Item>
-                    <Form.Item name="staff" label="Nhân viên" rules={[{ required: true }]}><Input /></Form.Item>
-                    <Form.Item name="customer" label="Khách hàng" rules={[{ required: true }]}><Input /></Form.Item>
-                    <Form.Item name="type" label="Loại đơn" rules={[{ required: true }]}><Select><Option value="Tại quầy">Tại quầy</Option><Option value="Giao hàng">Giao hàng</Option></Select></Form.Item>
-                    <Form.Item><Button htmlType="submit">Lưu</Button></Form.Item>
-                </Form>
-            </Modal>
 
-            <Modal title={editingProduct ? "Sửa sản phẩm" : "Thêm sản phẩm"} visible={isProductModalVisible} onCancel={() => setIsProductModalVisible(false)} footer={null}>
-                <Form form={productForm} onFinish={handleSaveProduct} layout="vertical">
-                    <Form.Item name="product" label="Sản phẩm" rules={[{ required: true }]}><Input /></Form.Item>
-                    <Form.Item name="quantity" label="Số lượng" rules={[{ required: true }]}><Input type="number" /></Form.Item>
-                    <Form.Item name="unitPrice" label="Đơn giá" rules={[{ required: true }]}><Input type="number" /></Form.Item>
-                    <Form.Item><Button htmlType="submit">Lưu</Button></Form.Item>
-                </Form>
+                <Modal
+                    title="Chọn sản phẩm"
+                    open={isProductSelectVisible}
+                    onCancel={closeProductModal}
+                    footer={null}
+                >
+                    <List
+                        dataSource={productList} // Dữ liệu sản phẩm từ API
+                        renderItem={item => (
+                            <List.Item>
+                                <Image src={item.image} alt={item.name} width={50} style={{ marginRight: 10 }} />
+                                <Button onClick={() => handleSelectProduct(item)}>
+                                    {item.name} - {item.price ? item.price.toLocaleString('vi-VN') : 'Liên hệ'} vnđ
+                                </Button>
+                            </List.Item>
+                        )}
+                    />
+                </Modal>
+
+
+            </div>
+
+            <Modal
+                title="Chọn khách hàng"
+                open={isCustomerSelectVisible}
+                onCancel={() => setIsCustomerSelectVisible(false)}
+                footer={null}
+            >
+                <Input.Search
+                    placeholder="Tìm kiếm theo tên hoặc số điện thoại"
+                    onSearch={value => console.log(value)}
+                />
+                <List
+                    dataSource={customerList}
+                    renderItem={item => (
+                        <List.Item>
+                            <Button onClick={() => handleSelectCustomer(item)}>
+                                {item.name} - {item.phone}
+                            </Button>
+                        </List.Item>
+                    )}
+                />
             </Modal>
         </div>
-       
+
     );
 };
 

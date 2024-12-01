@@ -42,24 +42,43 @@ const GiohangService = {
   // Thêm sản phẩm vào giỏ hàng
   addGioHang: async (addDto) => {
     try {
-      const response = await http.post(`GioHang/AddGioHang`, addDto);
-      return response.data;
+      const response = await http.post(`GioHang`, addDto);
+      return response.data; // API trả về thông báo thành công
     } catch (error) {
-      console.error("Error adding cart item:", error.response?.data || error.message);
+      console.error("Lỗi khi thêm sản phẩm vào giỏ hàng:", error.response?.data || error.message);
       throw error;
     }
   },
 
   // Cập nhật giỏ hàng
-  updateGioHang: async (updateDto) => {
+  updateGioHang: async (id, soLuong) => {
+    // Kiểm tra dữ liệu đầu vào
+    if (!id || soLuong <= 0) {
+      throw new Error("ID không hợp lệ hoặc số lượng phải lớn hơn 0.");
+    }
+  
     try {
-      const response = await http.put(`GioHang/UpdateGioHang`, updateDto);
+      // Gọi API
+      const response = await http.put(`GioHang/UpdateGioHang`, {
+        id,
+        SoLuong: soLuong,
+      });
+  
+      // Trả về dữ liệu phản hồi
       return response.data;
     } catch (error) {
-      console.error("Error updating cart item:", error.response?.data || error.message);
-      throw error;
+      // Xử lý lỗi API
+      if (error.response) {
+        throw new Error(error.response.data.Message || "Có lỗi xảy ra!");
+      } else {
+        const connectionError = "Không thể kết nối tới server!";
+        console.error(connectionError, error); // Log lỗi
+        throw new Error(connectionError);
+      }
     }
   },
+  
+
 
   // Xóa sản phẩm khỏi giỏ hàng
   deleteGioHang: async (id) => {

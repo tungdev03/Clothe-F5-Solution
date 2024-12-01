@@ -81,20 +81,32 @@ const Cart = () => {
             return;
         }
         try {
+            // Tạo đối tượng cập nhật
             const updatedItem = { ...record, soLuong: value };
-            await GioHangService.updateGioHang(updatedItem);
+            await GioHangService.updateGioHang(record.id, value);
+    
+            // Cập nhật lại danh sách giỏ hàng
             setCartItems((prevItems) =>
-                prevItems.map((item) => (item.id === record.id ? { ...item, soLuong: value } : item))
+                prevItems.map((item) =>
+                    item.id === record.id
+                        ? { ...item, soLuong: value, tongTien: value * item.donGia } // Cập nhật số lượng và tổng tiền
+                        : item
+                )
             );
             message.success("Cập nhật số lượng thành công");
         } catch (error) {
             console.error("Error updating cart item:", error);
-            message.error("Cập nhật số lượng thất bại");
+            message.error(error.response?.data?.Message || "Cập nhật số lượng thất bại");
         }
     };
-
+    
     const columns = [
-        { title: 'Imag', dataIndex: 'hinhAnh', render: (text) => <img src={text} alt="product" style={{ width: 50, height: 50 }} />, align: 'center' },
+        {
+            title: 'Hình Ảnh',
+            dataIndex: 'hinhAnh',
+            render: (text) => <img src={text} alt="product" style={{ width: 50, height: 50 }} />,
+            align: 'center',
+        },
         { title: 'Tên Sản Phẩm', dataIndex: 'tenSp', align: 'center' },
         { title: 'Màu Sắc', dataIndex: 'tenMauSac', align: 'center' },
         { title: 'Kích Cỡ', dataIndex: 'tenSize', align: 'center' },
@@ -107,16 +119,24 @@ const Cart = () => {
                     min={1}
                     value={text}
                     onChange={(value) => handleQuantityChange(value, record)}
-                    style={{ width: '120px', textAlign: 'center' }} // Center the number and input
-                    size="small" // Make the input smaller
+                    style={{ width: '120px', textAlign: 'center' }}
+                    size="small"
                 />
             ),
         },
         { title: 'Giá', dataIndex: 'donGia', render: (text) => `${text.toLocaleString()} VNĐ`, align: 'center' },
         { title: 'Tổng Tiền', dataIndex: 'tongTien', render: (text) => `${text.toLocaleString()} VNĐ`, align: 'center' },
-        { title: '', render: (_, record) => <Button type="danger" onClick={() => handleDelete(record.id)}><DeleteTwoTone /></Button>, align: 'center' }
+        {
+            title: '',
+            render: (_, record) => (
+                <Button type="danger" onClick={() => handleDelete(record.id)}>
+                    <DeleteTwoTone />
+                </Button>
+            ),
+            align: 'center',
+        },
     ];
-
+    
     const handleCheckoutClick = () => {
         if (cartItems.length === 0) {
             message.warning("Giỏ hàng của bạn hiện tại không có sản phẩm để thanh toán. Bạn vui lòng chọn Sản Phẩm vào giỏ hàng !");

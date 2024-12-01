@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base target="_top">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+
+    <style>
+        * {
+            font-size: 14px;
+            color: #555;
+            font-family: "Meiryo UI", "MS UI Gothic", "MS PGothic", "ＭＳ Ｐゴシック", "MS Gothic", "ＭＳ ゴシック", sans-serif !important;
+            ;
+        }
+
+        .updateModal {
+            display: flex;
+            flex-direction: column;
+            row-gap: 15px;
+        }
+
+        .updateModal-dialog-content {
+            display: grid;
+            grid-template-rows: 2fr auto;
+            row-gap: 20px;
+            padding-top: 15px;
+            height: fit-content;
+        }
+
+        .updateModal-dialog-content .dialog-inputs {
+            display: grid;
+            grid-template-rows: auto 1fr;
+            row-gap: 10px;
+            width: 100%;
+        }
+
+        .updateModal-dialog-content .dialog-inputs .dialog-inputs__option {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            column-gap: 5px
+        }
+
+        .updateModal-dialog-content .dialog-inputs .dialog-inputs__duration {
+            display: grid;
+            grid-template-rows: 0.5fr 1fr 20px 1fr;
+            column-gap: 5px
+        }
+
+        /*--- circle loading ---*/
+        #loading {
+            /* margin: 14rem auto; */
+            /* padding-left: 15px;
+            padding-right: 15px; */
+        }
+
+        .modal {
+            position: relative;
+        }
+
+        .modal-dialog {
+            max-width: 100%;
+        }
+
+        .progress {
+            position: relative;
+        }
+
+        .progress-bar {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+        }
+
+        .script-application-sidebar-header {
+            background-color: #01932e;
+            border-color: #01932e;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="updateModal container-fluid">
+        <div class="updateModal-dialog-content">
+            <div class="dialog-inputs">
+                <div class="dialog-inputs__duration">
+                    <p style="margin: 0;">作業日</p>
+                    <input type="text" class="form-control input-date text-center" placeholder="作業From"
+                        name="event_date_from">
+                    <span class="mx-1 my-auto text-center">～</span>
+                    <input type="text" class="form-control input-date text-center" placeholder="作業To"
+                        name="event_date_to">
+                </div>
+                <div>
+                    <p style="margin: 2px;">データ集計の種類</p>
+                    <div class="dialog-inputs__option">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="renew" id="renew">
+                            <label class="form-check-label" for="renew">新規集計</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="update" id="update">
+                            <label class="form-check-label" for="update">追加集計</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-12 d-flex justify-content-center">
+                <button type="button" class="btn btn-success mx-auto" id="submit">更新する</button>
+            </div>
+        </div>
+        <div class="modal" id="loading" data-backdrop="static" style="z-index: 2000;">
+            <div class="modal-dialog" style="margin: auto;">
+                <div class="progress">
+                    <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0"
+                        aria-valuemax="100"></div>
+                </div>
+            </div>
+            <span class="loading-msg" style="font-size: 12px;margin: auto;">データ読み取り中。しばらくお待ちください。</span>
+        </div>
+
+        <div class="success" style="display: none;">
+            <p style="margin: 0;">プロセスが完了しました。</p>
+            <p id="project-count" style="margin: 0;">合計0プロジェクト。</p>
+            <p id="row-count" style="margin: 0;">合計0個の新しいデータ行。</p>
+            <p id="user-count" style="margin: 0;">合計0ユーザー。</p>
+            <p>管理ページには<a id="manage-link" href="" target="_blank">こちら</a>からアクセスしてください。</p>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.1/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+    <script
+        src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.10.0/locales/bootstrap-datepicker.ja.min.js"
+        integrity="sha512-zI0UB5DgB1Bvvrob7MyykjmbEI4e6Qkf5Aq+VJow4nwRZrL2hYKGqRf6zgH3oBQUpxPLcF2IH5PlKrW6O3y3Qw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script>
+        var form = {}
+        var numberProject = 0;
+        var numberRow = 0;
+        var numberUser = 0;
+        var URLManage = null;
+
+        var dataLogGetCalendar = {};
+        var dataTotal = [];
+        var dataProject = [];
+        var dataUser = [];
+
+        $(document).ready(function () {
+            $('.input-date').datepicker({
+                format: 'yyyy年mm月dd日',
+                autoclose: true,
+                todayHighlight: true,
+                forceParse: false,
+                language: 'ja',
+                endDate: new Date(),
+                zIndexOffset: 100
+            }).on('changeDate', ({ target }) => {
+                let name = target.name;
+                let value = target.value;
+                console.log({ value })
+                form[name] = value
+            })
+
+            document.addEventListener('change', ({ target }) => {
+                let name = target.name;
+                let value = target.value;
+                console.log({ name, value })
+                if (name === 'renew') {
+                    form['option'] = name
+                    $('input[name="update"]').prop('checked', false)
+                } else if (name === 'update') {
+                    form['option'] = name
+                    $('input[name="renew"]').prop('checked', false)
+                }
+            })
+
+            init()
+
+            $('#submit').on('click', (event) => {
+                event.preventDefault()
+                console.log({ form })
+
+                if (!form['event_date_from']) {
+                    $('input[name="event_date_from"]').focus();
+                    return
+                }
+
+                if (!form['event_date_to']) {
+                    $('input[name="event_date_to"]').focus();
+                    return
+                }
+
+                document.getElementById('loading').style.display = 'block'
+
+                let startDate = new Date(toGlobalDate(form.event_date_from));
+                let stopDate = new Date(toGlobalDate(form.event_date_to));
+                let dateArray = getListDate(startDate, stopDate);
+
+                updateEventAt(dateArray, 0, form.option)
+            })
+
+        });
+
+        function init() {
+            $('input[name="update"]').prop('checked', true);
+            let now = new Date();
+            let yesterday = new Date(now.setDate(now.getDate() - 1));
+            let firstDate = new Date(now.getFullYear(), now.getMonth(), 1);
+
+            function formatDate(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0'); // Thêm số 0 nếu cần
+                const day = String(date.getDate()).padStart(2, '0'); // Thêm số 0 nếu cần
+                return `${year}年${month}月${day}日`;
+            }
+
+            let valYesterday = formatDate(yesterday);
+            let valFirstDate = formatDate(firstDate);
+
+            $('input[name="event_date_to"]').val(valYesterday);
+            $('input[name="event_date_from"]').val(valFirstDate);
+
+            form['option'] = 'update';
+            form['event_date_to'] = valYesterday;
+            form['event_date_from'] = valFirstDate;
+        }
+
+        function getListDate(startDate, stopDate) {
+            var dateArray = new Array();
+            var currentDate = startDate;
+            while (currentDate <= stopDate) {
+                dateArray.push(new Intl.DateTimeFormat('ja-JP').format(new Date(currentDate)));
+                currentDate = new Date(currentDate.setDate(currentDate.getDate() + 1))
+            }
+            return dateArray;
+        }
+
+        function updateProgress(percentage) {
+            let progressEl = document.querySelector('.progress-bar');
+            progressEl.style.width = `${percentage}%`;
+            progressEl.setAttribute('aria-valuenow', percentage)
+            progressEl.innerHTML = `${percentage}%`;
+        }
+
+        function toGlobalDate(date) {
+            return date.replace('年', '/').replace('月', '/').replace('日', '')
+        }
+
+        function updateEventAt(arr, index, option) {
+            // Ẩn log
+            const successElements = document.getElementsByClassName('success');
+            if (successElements.length > 0) {
+                successElements[0].style.display = 'none';
+            }
+            const logCalendarElements = successElements[0].querySelectorAll('.logCalendar');
+            logCalendarElements.forEach(element => {
+                element.remove();
+            });
+            // Thống kê dữ liệu
+            if (index > arr.length) {
+                setTimeout(() => {
+                    document.getElementById('loading').style.display = ''
+                }, 3000)
+                // Thống kê dữ liệu tổng
+                dataTotal.forEach(item => {
+                    if (!dataProject.includes(item.project_name)) {
+                        dataProject.push(item.project_name);
+                    }
+
+                    if (!dataUser.includes(item.user_email)) {
+                        dataUser.push(item.user_email);
+                    }
+                });
+                numberUser = dataUser.length;
+                numberProject = dataProject.length;
+                numberRow = dataTotal.length;
+                dataProject = [];
+                dataUser = [];
+                dataTotal = [];
+                google.script.run
+                    .withSuccessHandler((res) => {
+                        if (res) {
+                            let pageObject = { page: "projects", event_date_from: form['event_date_from'], event_date_to: form['event_date_to'] };
+                            let encodedPageParam = encodeURIComponent(JSON.stringify(pageObject));
+                            let url = `${res.full_url}?page=${encodedPageParam}`;
+                            URLManage = 'https://myportal.sateraito.jp/gas?url=' + url;
+                            // URLManage = res['sort_url'];
+                        }
+                        console.log(numberProject, numberRow, numberUser, URLManage);
+                        // Chèn thêm vào log thông tin lấy calendar
+                        const successDiv = document.querySelector('.success');
+                        for (const [email, status] of Object.entries(dataLogGetCalendar)) {
+                            const message = status
+                                ? `ユーザー ${email} からカレンダーデータの取得に成功しました。`
+                                : `ユーザー ${email} からカレンダーデータの取得に失敗しました。`;
+                            // Tạo một thẻ <p> mới và thêm nội dung
+                            const newParagraph = document.createElement('p');
+                            newParagraph.textContent = message;
+                            newParagraph.style.margin = '0';
+                            newParagraph.classList.add('logCalendar');
+                            // Chèn vào div success
+                            successDiv.prepend(newParagraph);
+                        }
+                        // Hiển thị log
+                        const successElements = document.getElementsByClassName('success');
+                        if (successElements.length > 0) {
+                            document.getElementById('project-count').textContent = `合計${numberProject}プロジェクト。`;
+                            document.getElementById('row-count').textContent = `合計${numberRow}個の新しいデータ行。`;
+                            document.getElementById('user-count').textContent = `合計${numberUser}ユーザー。`;
+                            document.getElementById('manage-link').setAttribute('href', URLManage);
+                            successElements[0].style.display = 'block';
+                        }
+                    })
+                    .withFailureHandler((error) => {
+                        console.log({ error })
+                    })
+                    .getDataSetting();
+                return
+            }
+            let newForm = {
+                option: option === 'renew' ? (index === 0 ? 'renew' : 'update') : option,
+                event_date_from: arr[index],
+                event_date_to: arr[index]
+            }
+            // console.log({ newForm })
+            let percentage = Math.round(index * 100 / arr.length);
+            updateProgress(percentage)
+
+            google.script.run
+                .withSuccessHandler((res) => {
+                    // console.log({ res })
+                    dataTotal = [...res.data, ...dataTotal];
+                    dataLogGetCalendar = res.dataLogGetCalendar;
+                    console.log(dataLogGetCalendar);
+                    // updateProgress(percentage)
+                    updateEventAt(arr, index + 1, option)
+                })
+                .withFailureHandler((error) => {
+                    console.log({ error })
+                    // updateProgress(percentage)
+                })
+                .updateEventAt(newForm);
+        }
+
+        function getIframe() {
+            let frames = window.frames;
+            console.log({ frames })
+
+            for (let i = 0; i < frames.length; i++) {
+                console.log({ i: frames[i] })
+            }
+
+            return null
+        }
+
+    </script>
+</body>
+
+</html>

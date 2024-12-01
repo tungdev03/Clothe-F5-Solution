@@ -270,7 +270,7 @@ const InvoiceManagement = () => {
         >
             <InputNumber style={{ width: '100%' }} />
         </Form.Item>
-        <Form.Item>
+        <Form.Item>z
             <Button type="primary" htmlType="submit">
                 {editingInvoice ? 'Cập nhật hóa đơn' : 'Tạo hóa đơn'}
             </Button>

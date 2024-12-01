@@ -24,9 +24,9 @@ const CounterSale = () => {
             const filteredData = data.map(item => ({
                 key: item.id,
                 code: item.maHoaDon,
-                customer: item.idKhNavigation?.hoVaTenKh || 'Không có',
+                customer: item.idKh || 'Không có',
                 dateCreated: item.ngayTao ? new Date(item.ngayTao).toLocaleString() : 'Chưa xác định',
-                staff: item.idNvNavigation?.HoVaTenNv || 'Không có',
+                staff: item.idNv || 'Không có',
                 type: item.loaiHoaDon,
                 status: item.trangThai,
             }));
@@ -309,6 +309,7 @@ const CounterSale = () => {
                 const response = await axios.post('https://localhost:7030/api/HoaDon', invoiceData);
                 // Kiểm tra nếu trả về status 201 thì là thành công
                 if (response.status === 201) {
+                    await fetchInvoices();
                     notification.success({ message: 'Thanh toán thành công!' });
                     setInvoices([...invoices, response.data]);
                     setPaymentStatus('Đã thanh toán');

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { UserOutlined, ShoppingCartOutlined, LogoutOutlined, DeleteTwoTone } from '@ant-design/icons';
 import { Layout, Menu, Button, Dropdown, Space, Input, Table, Row, Col, message, Image, Spin, Modal, Form, Input as AntdInput } from 'antd';
 import logo_v1 from '../../../assets/images/Logo.png';
+import Checkout from './CheckoutPage';
 import './Home.css';
 const { Header, Content } = Layout;
 
@@ -109,7 +110,7 @@ const Cart = () => {
     ];
 
     const handleCheckoutClick = () => {
-        setCheckoutVisible(true); // Show the checkout form when the user clicks "Checkout"
+        navigate('/checkout');
     };
 
     const handleCheckoutCancel = () => {

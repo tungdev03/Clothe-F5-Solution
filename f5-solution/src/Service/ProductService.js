@@ -19,15 +19,22 @@ const ProductService = {
      },
 
      // Hàm lấy thông tin thuộc tính theo Id
-     getProductById: async (id) => {
+     ViewProductDetail: async (productId) => {
           try {
-               const response = await http.get(`SanPham/${id}`);
+               const response = await http.get(`SanPham/details/${productId}`);
                return response.data;
           } catch (error) {
-               throw error.response?.data || "Lỗi không xác định";
-          }
+               throw error.response?.data || "API không hoạt động";             
+          }  
      },
-
+     getProductDetailID: async (productId) => {
+          try {
+               const response = await http.get(`SanPham/sanPhamChiTiet//${productId}`);
+               return response.data;
+          } catch (error) {
+               throw error.response?.data || "API không hoạt động";             
+          }  
+     },
      // Hàm lấy danh sách tất cả các Chất liệu
      getAllProduct: async () => {
           try {
@@ -36,6 +43,32 @@ const ProductService = {
           } catch (error) {
                throw error.response?.data || "Lỗi không xác định";
           }
+     },
+
+     getSanPhamChiTietByIdSanPham: async (productId) => {
+          try {
+            const response = await http.get(`SanPham/GetBySanPhamId/${productId}`);
+            return response.data;
+          } catch (error) {
+            throw error.response?.data || "Lỗi không xác định";
+          }
+     },
+     createProductDetail: async (productData) => {
+          try {
+            const response = await http.post(`SanPham/AddOrUpdate/`, productData);
+            return response.data;
+          } catch (error) {
+            throw error.response?.data || "Lỗi không xác định";             
+          }      
+     },
+     
+     updateProductDetail: async (id, productData) => {
+          try {
+            const response = await http.put(`SanPham/Update/${id}`, productData);
+            return response.data;
+          } catch (error) {
+            throw error.response?.data || "Lỗi không xác định";             
+          }       
      },
 };
 

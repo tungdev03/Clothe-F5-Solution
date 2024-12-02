@@ -55,24 +55,39 @@
 }
 
 /* Ẩn nút "Xem thêm" mặc định */
+/* Hiển thị nút "Xem thêm" với trạng thái mặc định */
 .view-more-overlay {
     position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    color: white;
+    color: white; /* Màu chữ trắng */
     background-color: transparent; /* Nền trong suốt */
     border: 1px solid white; /* Viền trắng */
     padding: 10px 20px;
     cursor: pointer;
-    transition: all 0.3s ease;
-    z-index: 2; /* Đảm bảo nút luôn hiển thị trên dải màu */
-    font-size: 11px; /* Tăng kích thước font chữ */
-    text-transform: uppercase; /* In hoa chữ */
-    letter-spacing: 1px; /* Khoảng cách giữa các chữ */
-    border-radius: 0px;
-    opacity: 0; /* Ẩn nút xem thêm khi chưa hover */
+    transition: all 0.3s ease; /* Thời gian chuyển đổi */
+    z-index: 2; /* Đảm bảo nút hiển thị trên overlay */
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-radius: 4px;
+    opacity: 0; /* Ẩn nút khi chưa hover */
+    /* size: 300px; */
 }
+
+/* Trạng thái hover trên toàn album card */
+.album-card-image-container:hover .view-more-overlay {
+    opacity: 1; /* Hiển thị nút khi hover */
+}
+
+/* Trạng thái hover của nút "Xem thêm" */
+.view-more-overlay:hover {
+    background-color: white; /* Nền trắng khi hover */
+    color: black; /* Chữ màu đen khi hover */
+    border: 1px solid rgb(255, 255, 255); /* Viền đen khi hover */
+}
+
 
 /* Khi hover vào album card, dải màu di chuyển vào và nút xuất hiện */
 .album-card-image-container:hover .view-more-overlay {
@@ -85,6 +100,7 @@
 
 .album-card-image-container:hover .album-card-image {
     transform: scale(1.1); /* Phóng to ảnh khi hover */
+    color: white; /* Chữ màu trắng */
 }
 
 .view-more-btn:hover {

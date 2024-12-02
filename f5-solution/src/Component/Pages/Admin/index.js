@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     MenuFoldOutlined,
     MenuUnfoldOutlined,
@@ -8,11 +8,11 @@ import {
     TeamOutlined,
     TagsOutlined,
 } from '@ant-design/icons';
-import { Avatar, Button, Layout, Menu, theme, ConfigProvider } from 'antd';
+import { Avatar, Button, Layout, Menu, theme, ConfigProvider, message } from 'antd';
 import StatisticsPage from './StatisticsPage';
 import VoucherManagement from './VoucherManagement';
 import logo from '../../../assets/images/Logo.png';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import NhanVienPage from './NhanVienPage';
 import KhachHangPage from './KhachHangPage';
 import ColorManager from './ColorManager';
@@ -25,18 +25,28 @@ import OriginalManagement from './OriginalManagement';
 import CategoriesManagement from './CategoriesManagement';
 import Brandmanagement from './Brandmanagement';
 import ProductManagement from './ProductManagement';
+import AuthService from '../../../Service/AuthService';
+import jwtDecode from 'jwt-decode';
+
 const { Header, Sider, Content } = Layout;
 const { SubMenu } = Menu;
 
 const Dashboard = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const [collapsed, setCollapsed] = useState(false);
-    const [currentContent, setCurrentContent] = useState(<StatisticsPage />); // Mặc định hiển thị StatisticsPage
-    const [isAuthenticated, setIsAuthenticated] = useState(false); // Trạng thái đăng nhập
+    const [currentContent, setCurrentContent] = useState(<StatisticsPage />);
+    const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
 
     const {
         token: { colorBgContainer, borderRadiusLG },
     } = theme.useToken();
+
+    useEffect(() => {
+        if (location.pathname === '/LoginAdmin' && localStorage.getItem('token')) {
+            setIsAuthenticated(true);
+        }
+    }, [location]);
 
     const handleMenuClick = (key) => {
         switch (key) {
@@ -89,13 +99,33 @@ const Dashboard = () => {
 
     const handleLoginLogout = () => {
         if (isAuthenticated) {
-            // Thực hiện đăng xuất
+            // Đăng xuất
             setIsAuthenticated(false);
+            localStorage.removeItem('token');
+            message.info('Bạn đã đăng xuất.');
         } else {
-            // Thực hiện đăng nhập (có thể là điều hướng tới trang đăng nhập hoặc hiển thị form)
-            // Giả sử đăng nhập thành công
-            navigate("/LoginAdmin")
-            setIsAuthenticated(true);
+            // Điều hướng đến trang đăng nhập
+            navigate('/LoginAdmin');
+        }
+    };
+
+    const renderLoginLogoutButton = () => {
+        if (isAuthenticated) {
+            return (
+                <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                    <Button type="primary" onClick={handleLoginLogout}>
+                        Đăng xuất
+                    </Button>
+                </div>
+            );
+        } else {
+            return (
+                <div style={{ textAlign: 'center', marginTop: '20px' }}>
+                    <Button type="primary" onClick={() => navigate('/LoginAdmin')}>
+                        Đăng nhập
+                    </Button>
+                </div>
+            );
         }
     };
 
@@ -117,7 +147,7 @@ const Dashboard = () => {
                 <Menu theme="light" mode="inline" defaultSelectedKeys={['1']}>
                     <Menu.ItemGroup key="g1" title="Tổng quan" icon={<AppstoreOutlined />}>
                         <Menu.Item key="1-1" onClick={() => handleMenuClick('1-1')}>
-                        Thống kê
+                            Thống kê
                         </Menu.Item>
                     </Menu.ItemGroup>
 
@@ -173,16 +203,23 @@ const Dashboard = () => {
                             Quản lý voucher giảm giá
                         </Menu.Item>
                     </Menu.ItemGroup>
+                    {renderLoginLogoutButton()}
                 </Menu>
             </Sider>
             <Layout>
+                <ConfigProvider
+                    theme={{
+                        Layout: {
+                            siderBg: 'red'
+                        }
+                    }}
+                />
                 <Header style={{ padding: 0, background: colorBgContainer, display: 'flex', justifyContent: 'space-between' }}>
                     <Button
                         type="text" icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
                         onClick={() => setCollapsed(!collapsed)}
                         style={{ fontSize: '16px', width: 64, height: 64 }}
                     />
-                    {/* Nút đăng nhập / đăng xuất */}
                 </Header>
                 <Content
                     style={{

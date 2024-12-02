@@ -1,59 +1,34 @@
-import React, { useState } from 'react';
-import { Table, Button, Input, Space, Select, Tag, Row, Col, Card, Modal, Form, notification } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Table, Button, Input, Space, Select, Tag, Row, Col, Card, Modal, Form, notification, InputNumber } from 'antd';
 import { EditOutlined, DeleteOutlined, PlusOutlined } from '@ant-design/icons';
+import axios from 'axios'; 
 import './InvoiceManagement.css';
 
 const { Option } = Select;
 
 const InvoiceManagement = () => {
-    const [invoices, setInvoices] = useState([
-        {
-            key: 1,
-            code: 'HD001',
-            customer: 'Nguyễn Văn Toàn',
-            dateCreated: '2024-03-01',
-            phoneNumber: '0965452400',
-            total: 529000,
-            type: 'Đơn lẻ',
-            status: 'Chờ xác nhận',
-        },
-        {
-            key: 2,
-            code: 'HD002',
-            customer: 'Nguyễn Văn Toàn',
-            dateCreated: '2024-03-01',
-            phoneNumber: '0965452400',
-            total: 658000,
-            type: 'Đơn lẻ',
-            status: 'Đã xác nhận',
-        },
-        {
-            key: 3,
-            code: 'HD003',
-            customer: 'Khánh Lê',
-            dateCreated: '2024-03-05',
-            phoneNumber: '0985142321',
-            total: 230000,
-            type: 'Đơn lẻ',
-            status: 'Hoàn thành',
-        },
-        {
-            key: 4,
-            code: 'HD004',
-            customer: 'Hoàng',
-            dateCreated: '2024-03-12',
-            phoneNumber: '0905213900',
-            total: 230000,
-            type: 'Đơn trả lại',
-            status: 'Đơn huỷ',
-        },
-    ]);
-
+    const [invoices, setInvoices] = useState([]);
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [editingInvoice, setEditingInvoice] = useState(null);
     const [searchText, setSearchText] = useState('');
     const [selectedStatus, setSelectedStatus] = useState('all');
     const [form] = Form.useForm();
+
+    // Lấy dữ liệu hóa đơn từ API
+    const fetchInvoices = async () => {
+        try {
+            const response = await axios.get("https://localhost:7030/api/HoaDon"); // Thay đổi URL theo API của bạn
+            const data = response.data;
+            setInvoices(data || []);
+        } catch (error) {
+            console.error("Lỗi khi lấy dữ liệu hóa đơn:", error);
+            notification.error({ message: "Không thể lấy dữ liệu hóa đơn từ API." });
+        }
+    };
+
+    useEffect(() => {
+        fetchInvoices();
+    }, []);
 
     const handleAddNew = () => {
         setEditingInvoice(null);
@@ -61,19 +36,26 @@ const InvoiceManagement = () => {
         setIsModalVisible(true);
     };
 
-    const handleSave = (values) => {
+    const handleSave = async (values) => {
         if (editingInvoice) {
+            // Cập nhật hóa đơn
+            const updatedInvoice = {
+                ...editingInvoice,
+                ...values
+            };
+            const response = await axios.put(`https://localhost:7030/api/HoaDon/${editingInvoice.id}`, updatedInvoice);
             setInvoices(invoices.map((invoice) =>
-                invoice.key === editingInvoice.key ? { ...values, key: editingInvoice.key, dateCreated: editingInvoice.dateCreated } : invoice
+                invoice.id === editingInvoice.id ? updatedInvoice : invoice
             ));
             notification.success({ message: 'Hóa đơn đã được cập nhật!' });
         } else {
+            // Thêm mới hóa đơn
             const newInvoice = {
                 ...values,
-                key: invoices.length + 1,
-                dateCreated: new Date().toISOString().slice(0, 10),
+                dateCreated: new Date().toISOString(),
             };
-            setInvoices([...invoices, newInvoice]);
+            const response = await axios.post("https://localhost:7030/api/HoaDon", newInvoice);
+            setInvoices([...invoices, response.data]);
             notification.success({ message: 'Hóa đơn đã được thêm mới!' });
         }
         setIsModalVisible(false);
@@ -85,80 +67,90 @@ const InvoiceManagement = () => {
         setIsModalVisible(true);
     };
 
-    const handleDelete = (key) => {
-        setInvoices(invoices.filter((invoice) => invoice.key !== key));
+    const handleDelete = async (id) => {
+        await axios.delete(`https://localhost:7030/api/HoaDon/${id}`);
+        setInvoices(invoices.filter((invoice) => invoice.id !== id));
         notification.success({ message: 'Hóa đơn đã bị xóa!' });
     };
 
     const filteredInvoices = invoices.filter((invoice) => {
         const matchesSearchText =
-            invoice.code.toLowerCase().includes(searchText.toLowerCase()) ||
-            invoice.customer.toLowerCase().includes(searchText.toLowerCase());
+            (invoice.maHoaDon && invoice.maHoaDon.toLowerCase().includes(searchText.toLowerCase())) ||
+            (invoice.tenNguoiNhan && invoice.tenNguoiNhan.toLowerCase().includes(searchText.toLowerCase()));
 
         const matchesStatus =
-            selectedStatus === 'all' || invoice.status === selectedStatus;
+            selectedStatus === 'all' || invoice.trangThai === selectedStatus;
 
         return matchesSearchText && matchesStatus;
     });
 
     const statusCounts = {
-        'Chờ xác nhận': invoices.filter((invoice) => invoice.status === 'Chờ xác nhận').length,
-        'Đã xác nhận': invoices.filter((invoice) => invoice.status === 'Đã xác nhận').length,
-        'Chờ giao': invoices.filter((invoice) => invoice.status === 'Chờ giao').length,
-        'Hoàn thành': invoices.filter((invoice) => invoice.status === 'Hoàn thành').length,
-        'Đơn huỷ': invoices.filter((invoice) => invoice.status === 'Đơn huỷ').length,
+        1: invoices.filter((invoice) => invoice.trangThai === 1).length,
+        2: invoices.filter((invoice) => invoice.trangThai === 2).length,
+        3: invoices.filter((invoice) => invoice.trangThai === 3).length,
+        4: invoices.filter((invoice) => invoice.trangThai === 4).length,
+        5: invoices.filter((invoice) => invoice.trangThai === 5).length,
     };
 
     const columns = [
         {
             title: 'STT',
-            dataIndex: 'key',
-            key: 'key',
+            dataIndex: 'id',
+            key: 'id',
+            render: (text, record, index) => index + 1,
         },
         {
             title: 'Mã hóa đơn',
-            dataIndex: 'code',
-            key: 'code',
+            dataIndex: 'maHoaDon',
+            key: 'maHoaDon',
             render: (text) => <a>{text}</a>,
         },
         {
-            title: 'Tên khách hàng',
-            dataIndex: 'customer',
-            key: 'customer',
+            title: 'Tên người nhận',
+            dataIndex: 'tenNguoiNhan',
+            key: 'tenNguoiNhan',
         },
         {
             title: 'Ngày tạo',
-            dataIndex: 'dateCreated',
-            key: 'dateCreated',
+            dataIndex: 'ngayTao',
+            key: 'ngayTao',
+            render: (date) => new Date(date).toLocaleDateString(),
         },
         {
-            title: 'Số điện thoại khách',
-            dataIndex: 'phoneNumber',
-            key: 'phoneNumber',
+            title: 'Số điện thoại',
+            dataIndex: 'sdtnguoiNhan',
+            key: 'sdtnguoiNhan',
         },
         {
             title: 'Thành tiền',
-            dataIndex: 'total',
-            key: 'total',
-            render: (total) => `${total.toLocaleString('vi-VN')} vnđ`,
-        },
-        {
-            title: 'Loại đơn',
-            dataIndex: 'type',
-            key: 'type',
+            dataIndex: 'tienKhachTra',
+            key: 'tienKhachTra',
+            render: (total) => `${total?.toLocaleString('vi-VN')} vnđ`,
         },
         {
             title: 'Trạng thái',
-            dataIndex: 'status',
-            key: 'status',
+            dataIndex: 'trangThai',
+            key: 'trangThai',
             render: (status) => {
                 let color = 'green';
-                if (status === 'Chờ xác nhận') {
-                    color = 'volcano';
-                } else if (status === 'Đơn huỷ') {
-                    color = 'red';
-                } else if (status === 'Đã xác nhận') {
-                    color = 'blue';
+                switch (status) {
+                    case 1:
+                        color = 'volcano';
+                        break;
+                    case 2:
+                        color = 'blue';
+                        break;
+                    case 3:
+                        color = 'orange';
+                        break;
+                    case 4:
+                        color = 'cyan';
+                        break;
+                    case 5:
+                        color = 'red';
+                        break;
+                    default:
+                        color = 'grey';
                 }
                 return <Tag color={color}>{status}</Tag>;
             },
@@ -169,46 +161,40 @@ const InvoiceManagement = () => {
             render: (text, record) => (
                 <Space size="middle">
                     <Button icon={<EditOutlined />} onClick={() => handleEdit(record)}>Sửa</Button>
-                    <Button icon={<DeleteOutlined />} onClick={() => handleDelete(record.key)} danger>Xóa</Button>
+                    <Button icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} danger>Xóa</Button>
                 </Space>
             ),
         },
     ];
 
+    const statusMapping = {
+        1: "Chờ xác nhận",
+        2: "Đã xác nhận",
+        3: "Chờ giao",
+        4: "Hoàn thành",
+        5: "Đơn hủy"
+    };
+
     return (
         <div className="invoice-management-container">
             <Row gutter={[16, 16]} className="status-cards" justify="center">
-                <Col xs={24} sm={12} md={8} lg={6} xl={4}>
-                    <Card title="Chờ xác nhận" bordered={false} className="status-card">
-                        {statusCounts['Chờ xác nhận']}
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={6} xl={4}>
-                    <Card title="Đã xác nhận" bordered={false} className="status-card">
-                        {statusCounts['Đã xác nhận']}
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={6} xl={4}>
-                    <Card title="Chờ giao" bordered={false} className="status-card">
-                        {statusCounts['Chờ giao']}
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={6} xl={4}>
-                    <Card title="Hoàn thành" bordered={false} className="status-card">
-                        {statusCounts['Hoàn thành']}
-                    </Card>
-                </Col>
-                <Col xs={24} sm={12} md={8} lg={6} xl={4}>
-                    <Card title="Đơn huỷ" bordered={false} className="status-card">
-                        {statusCounts['Đơn huỷ']}
-                    </Card>
-                </Col>
+                {Object.keys(statusCounts).map(status => (
+                    <Col xs={24} sm={12} md={8} lg={6} xl={4} key={status}>
+                        <Card
+                            title={`${statusMapping[status] || "Không xác định"}`}
+                            bordered={false}
+                            className="status-card"
+                        >
+                            {statusCounts[status]}
+                        </Card>
+                    </Col>
+                ))}
             </Row>
 
             <div className="filter-section">
                 <Input
                     className="search-input"
-                    placeholder="Tìm kiếm theo mã hoá đơn, tên khách hàng..."
+                    placeholder="Tìm kiếm theo mã hoá đơn, tên người nhận..."
                     value={searchText}
                     onChange={(e) => setSearchText(e.target.value)}
                 />
@@ -219,11 +205,11 @@ const InvoiceManagement = () => {
                     onChange={(value) => setSelectedStatus(value)}
                 >
                     <Option value="all">Tất cả các đơn</Option>
-                    <Option value="Chờ xác nhận">Chờ xác nhận</Option>
-                    <Option value="Đã xác nhận">Đã xác nhận</Option>
-                    <Option value="Chờ giao">Chờ giao</Option>
-                    <Option value="Hoàn thành">Hoàn thành</Option>
-                    <Option value="Đơn huỷ">Đơn huỷ</Option>
+                    <Option value={1}>Chờ xác nhận</Option>
+                    <Option value={2}>Đã xác nhận</Option>
+                    <Option value={3}>Chờ giao</Option>
+                    <Option value={4}>Hoàn thành</Option>
+                    <Option value={5}>Đơn huỷ</Option>
                 </Select>
                 <Button
                     type="primary"
@@ -249,41 +235,50 @@ const InvoiceManagement = () => {
                 footer={null}
             >
                 <Form form={form} onFinish={handleSave} layout="vertical">
-                    <Form.Item label="Mã hóa đơn" name="code" rules={[{ required: true, message: 'Vui lòng nhập mã hóa đơn!' }]}>
-                        <Input />
-                    </Form.Item>
-                    <Form.Item label="Tên khách hàng" name="customer" rules={[{ required: true, message: 'Vui lòng nhập tên khách hàng!' }]}>
-                        <Input />
-                    </Form.Item>
-                    <Form.Item label="Số điện thoại khách" name="phoneNumber" rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}>
-                        <Input />
-                    </Form.Item>
-                    <Form.Item label="Thành tiền" name="total" rules={[{ required: true, message: 'Vui lòng nhập thành tiền!' }]}>
-                        <Input type="number" />
-                    </Form.Item>
-                    <Form.Item label="Loại đơn" name="type" rules={[{ required: true, message: 'Vui lòng chọn loại đơn!' }]}>
-                        <Select>
-                            <Option value="Đơn lẻ">Đơn lẻ</Option>
-                            <Option value="Đơn trả lại">Đơn trả lại</Option>
-                        </Select>
-                    </Form.Item>
-                    <Form.Item label="Trạng thái" name="status" rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}>
-                        <Select>
-                            <Option value="Chờ xác nhận">Chờ xác nhận</Option>
-                            <Option value="Đã xác nhận">Đã xác nhận</Option>
-                            <Option value="Hoàn thành">Hoàn thành</Option>
-                            <Option value="Đơn huỷ">Đơn huỷ</Option>
-                            <Option value="Chờ giao">Chờ giao</Option>
-                        </Select>
-                    </Form.Item>
-                    <Form.Item>
-                        <Button type="primary" htmlType="submit">Lưu</Button>
-                    </Form.Item>
-                </Form>
+        <Form.Item label="Mã hóa đơn" name="maHoaDon" rules={[{ required: true, message: 'Vui lòng nhập mã hóa đơn!' }]}>
+            <Input />
+        </Form.Item>
+        <Form.Item label="Tên người nhận" name="tenNguoiNhan" rules={[{ required: true, message: 'Vui lòng nhập tên người nhận!' }]}>
+            <Input />
+        </Form.Item>
+        <Form.Item 
+            label="Số điện thoại người nhận" 
+            name="sdtnguoiNhan" 
+            rules={[
+                { required: true, message: 'Vui lòng nhập số điện thoại!' },
+                { len: 10, message: 'Số điện thoại phải có 10 chữ số!' } // Điều chỉnh theo yêu cầu của bạn
+            ]}
+        >
+            <Input />
+        </Form.Item>
+        <Form.Item label="Địa chỉ người nhận" name="diaChiNhanHang" rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}>
+            <Input />
+        </Form.Item>
+        <Form.Item label="Trạng Thái" name="trangThai" rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}>
+            <Select>
+                <Option value={1}>Chờ xác nhận</Option>
+                <Option value={2}>Đã xác nhận</Option>
+                <Option value={3}>Chờ giao</Option>
+                <Option value={4}>Hoàn thành</Option>
+                <Option value={5}>Đơn hủy</Option>
+            </Select>
+        </Form.Item>
+        <Form.Item 
+            label="Tổng tiền" 
+            name="tienKhachTra" 
+            rules={[{ required: true, message: 'Vui lòng nhập tổng tiền!' }]}
+        >
+            <InputNumber style={{ width: '100%' }} />
+        </Form.Item>
+        <Form.Item>
+            <Button type="primary" htmlType="submit">
+                {editingInvoice ? 'Cập nhật hóa đơn' : 'Tạo hóa đơn'}
+            </Button>
+        </Form.Item>
+    </Form>
             </Modal>
         </div>
     );
 };
 
 export default InvoiceManagement;
-

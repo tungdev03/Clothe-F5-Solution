@@ -141,7 +141,7 @@ const KhachHangPage = () => {
       title: 'Hình Ảnh',
       dataIndex: 'image',
       key: 'image',
-      render: (text) => <img src={text} alt="Khách hàng" width="50" />,
+      render: (text) => <img src={text} alt="Khách hàng" width="20px" />,
     },
     {
       title: 'Trạng Thái',
@@ -286,7 +286,7 @@ const KhachHangPage = () => {
             label="Ngày Sinh"
             rules={[{ required: true, message: 'Vui lòng chọn ngày sinh!' }]}
           >
-            <Input type="date" placeholder="Chọn ngày sinh" />
+            <Input type="false" placeholder="Chọn ngày sinh" />
           </Form.Item>
 
           <Form.Item

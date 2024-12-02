@@ -17,6 +17,7 @@ const Login = () => {
             const response = await AuthService.loginCustomer(values.username, values.password);
             if (response && response.token) {
                 // Giải mã token JWT (nếu sử dụng JWT)
+                console.log(response)
                 const decodedToken = jwtDecode(response.token)  
                 // Lưu thông tin người dùng và token vào localStorage
                 localStorage.setItem('user', JSON.stringify(decodedToken));

@@ -436,7 +436,7 @@ const InvoiceManagement = () => {
                         <Button className="add-product-btn" onClick={() => setIsProductSelectVisible(true)}>Chọn sản phẩm</Button>
 
                     </div>
-                    <Form.Item>z
+                    <Form.Item>
                         <Button type="primary" htmlType="submit">
                             {editingInvoice ? 'Cập nhật hóa đơn' : 'Tạo hóa đơn'}
                         </Button>

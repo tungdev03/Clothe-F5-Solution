@@ -153,25 +153,25 @@ const ProductManagement = () => {
             setEditingProductDetail(null);  // Đặt editingProductDetail về null hoặc phụ thuộc vào trường hợp sử dụng
             setLoading(true);
             setError("");
-    
+
             if (currentProductId == null) {
                 throw new Error("Product ID không hợp lệ");
             }
-    
+
             const details = await ProductService.getSanPhamChiTietByIdSanPham(currentProductId);
-            
+
             // Verify the response
             if (!details || !Array.isArray(details)) {
                 throw new Error("Dữ liệu API không hợp lệ");
             }
-    
+
             const formattedDetails = details.map(item => ({
                 Id: item.id,
                 color: item.idMs,
                 size: item.idSize,
                 quantity: item.soLuongTon,
             }));
-            
+
             setProductDetails(formattedDetails);
         } catch (e) {
             setError(e.message || "Có lỗi xảy ra khi tải thông tin sản phẩm.");
@@ -179,13 +179,13 @@ const ProductManagement = () => {
             setLoading(false);
         }
     };
-    
+
     useEffect(() => {
         if (detailsModalVisible) {
             handleOpenDetailsModal();
         }
     }, [detailsModalVisible]);
-    
+
     useEffect(() => {
         if (productDetails.length) {
             form.setFieldsValue({
@@ -199,13 +199,13 @@ const ProductManagement = () => {
             });
         }
     }, [productDetails, form]);
-    
+
     const handleSaveProductDetail = async (fieldData) => {
         if (!fieldData) {
             message.error('Dữ liệu chi tiết sản phẩm không xác định.');
             return;
         }
-    
+
         try {
             if (fieldData.Id) {  // Ensure the check is on fieldData not productDetails
                 await ProductService.createProductDetail({
@@ -277,6 +277,8 @@ const ProductManagement = () => {
         try {
             const updatedProduct = {
                 ...product,
+                idDm: product.danhMuc?.id || null,
+                idCl: product.chatLieu?.id || null,
                 trangThai: newStatus ? 1 : 0
             };
 
@@ -363,7 +365,7 @@ const ProductManagement = () => {
             title: "Giá Bán",
             dataIndex: "giaBan",
             key: "giaBan",
-            render: (value) => (value ? value.toLocaleString() : "N/A"),
+            render: (value) => value ?? "N/A",
             align: "center",
         },
         {

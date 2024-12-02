@@ -82,6 +82,7 @@ const InvoiceManagement = () => {
             id: product.id,
             idSpct: product.idSpct,
             product: product.name,
+            image: product.image,
             quantity: 1,
             unitPrice: product.price,
             totalPrice: product.price
@@ -90,72 +91,99 @@ const InvoiceManagement = () => {
         setIsProductSelectVisible(false);
     };
     const handleSave = async (values) => {
-        if (editingInvoice) {
-            // Cập nhật hóa đơn
-            const updatedInvoice = {
-                ...editingInvoice,
-                ...values
+        try {
+            const invoiceData = {
+                ...editingInvoice, // Giữ nguyên các trường đã có
+                ...values, // Ghi đè với các giá trị mới từ form
+                hoaDonChiTiets: invoiceDetails.map(detail => ({
+                    idSpct: detail.idSpct,
+                    soLuong: detail.quantity,
+                    giaBan: detail.unitPrice
+                })),
+                tienKhachTra: totalAmount // Đảm bảo tổng tiền được cập nhật
             };
-            const response = await axios.put(`https://localhost:7030/api/HoaDon/${editingInvoice.id}`, updatedInvoice);
-            setInvoices(invoices.map((invoice) =>
-                invoice.id === editingInvoice.id ? updatedInvoice : invoice
-            ));
-            notification.success({ message: 'Hóa đơn đã được cập nhật!' });
-        } else {
-            // Thêm mới hóa đơn
-            const newInvoice = {
-                ...values,
-                dateCreated: new Date().toISOString(),
-            };
-            const response = await axios.post("https://localhost:7030/api/HoaDon", newInvoice);
-            setInvoices([...invoices, response.data]);
-            notification.success({ message: 'Hóa đơn đã được thêm mới!' });
-        }
-        setIsModalVisible(false);
-    };
 
+            if (editingInvoice) {
+                // Cập nhật hóa đơn
+                const response = await axios.put(`https://localhost:7030/api/HoaDon/${editingInvoice.id}`, invoiceData);
+                setInvoices(invoices.map((invoice) =>
+                    invoice.id === editingInvoice.id ? invoiceData : invoice
+                ));
+                notification.success({ message: 'Hóa đơn đã được cập nhật!' });
+            } else {
+                // Thêm mới hóa đơn
+                const newInvoice = {
+                    ...invoiceData,
+                    dateCreated: new Date().toISOString(),
+                };
+                const response = await axios.post("https://localhost:7030/api/HoaDon", newInvoice);
+                setInvoices([...invoices, response.data]);
+                notification.success({ message: 'Hóa đơn đã được thêm mới!' });
+            }
+            setIsModalVisible(false);
+        } catch (error) {
+            console.error("Lỗi khi lưu hóa đơn:", error);
+            notification.error({
+                message: 'Không thể lưu hóa đơn',
+                description: error.response?.data || error.message
+            });
+        }
+    };
+    useEffect(() => {
+        const total = invoiceDetails.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+        setTotalAmount(total);
+
+        // Nếu form đã được khởi tạo, cập nhật giá trị tổng tiền
+        form.setFieldsValue({
+            tienKhachTra: total
+        });
+    }, [invoiceDetails, form]);
     const handleEdit = async (record) => {
         try {
             const response = await axios.get(`https://localhost:7030/api/HoaDon/${record.id}`);
-            
+
             if (!response || !response.data) {
                 notification.error({ message: 'Không tìm thấy chi tiết hóa đơn' });
                 return;
             }
-    
+
             const invoiceData = response.data;
-            
-            const invoiceDetails = Array.isArray(invoiceData.hoaDonChiTiets) 
+
+            const invoiceDetails = Array.isArray(invoiceData.hoaDonChiTiets)
                 ? invoiceData.hoaDonChiTiets.map((detail, index) => ({
                     key: index + 1,
                     id: invoiceData.id,
                     idSpct: detail.idSpct,
-                    product: `Chi tiết sản phẩm: ${detail.idSpct}`,
+                    product: detail.idSpct,  // Có thể cần điều chỉnh để hiển thị tên sản phẩm
                     quantity: detail.soLuong || 1,
-                    unitPrice: detail.giaban || 0,
-                    totalPrice: (detail.soLuong || 1) * (detail.giaban || 0)
+                    unitPrice: detail.giaBan || 0,
+                    image: detail.image,
+                    totalPrice: (detail.soLuong || 1) * (detail.giaBan || 0)
                 }))
                 : [];
-    
+
             const totalAmount = invoiceDetails.reduce((sum, item) => sum + item.totalPrice, 0);
-    
+
             setInvoiceDetails(invoiceDetails);
             setEditingInvoice(invoiceData);
-            form.setFieldsValue({
-                tenNguoiNhan: invoiceData.tenNguoiNhan,
-                sdtnguoiNhan: invoiceData.sdtnguoiNhan,
-                diaChiNhanHang: invoiceData.diaChiNhanHang,
-                trangThai: invoiceData.trangThai, // Correct way to set status
-                tienKhachTra: totalAmount // Set total amount
-            });
-            setTotalAmount(totalAmount); // Update total amount state
+
+            // Điền đầy đủ thông tin vào form
+            // form.setFieldsValue({
+            //     maHoaDon: invoiceData.maHoaDon,  // Thêm mã hóa đơn
+            //     tenNguoiNhan: invoiceData.tenNguoiNhan,
+            //     sdtnguoiNhan: invoiceData.sdtnguoiNhan,
+            //     diaChiNhanHang: invoiceData.diaChiNhanHang,
+            //     trangThai: invoiceData.trangThai,
+            //     tienKhachTra: totalAmount
+            // });
+            form.setFieldsValue(record)
+            setTotalAmount(totalAmount);
             setIsModalVisible(true);
         } catch (error) {
             console.error("Lỗi lấy chi tiết hóa đơn:", error);
             notification.error({ message: 'Không thể tải chi tiết hóa đơn', description: error.message });
         }
-    
-             
+
     };
 
     const handleDelete = async (id) => {
@@ -198,9 +226,10 @@ const InvoiceManagement = () => {
             render: (text) => <a>{text}</a>,
         },
         {
-            title: 'Tên người nhận',
-            dataIndex: 'tenNguoiNhan',
-            key: 'tenNguoiNhan',
+            title: 'Khách hàng',
+            dataIndex: 'idKhNavigation',
+            key: 'customer',
+            render: (idKhNavigation) => idKhNavigation?.hoVaTenKh || 'Không xác định'
         },
         {
             title: 'Ngày tạo',
@@ -284,18 +313,18 @@ const InvoiceManagement = () => {
                 </Space>
             )
         },
-        {
-            title: 'Đơn giá',
-            dataIndex: 'unitPrice',
-            key: 'unitPrice',
-            render: price => `${price.toLocaleString('vi-VN')} vnđ`
-        },
-        {
-            title: 'Tổng tiền',
-            dataIndex: 'totalPrice',
-            key: 'totalPrice',
-            render: total => `${total.toLocaleString('vi-VN')} vnđ`
-        },
+        // {
+        //     title: 'Đơn giá',
+        //     dataIndex: 'unitPrice',
+        //     key: 'unitPrice',
+        //     render: price => `${price.toLocaleString('vi-VN')} vnđ`
+        // },
+        // {
+        //     title: 'Tổng tiền',
+        //     dataIndex: 'totalPrice',
+        //     key: 'totalPrice',
+        //     render: total => `${total.toLocaleString('vi-VN')} vnđ`
+        // },
         {
             title: 'Thao tác', key: 'action',
             render: (text, record) => (
@@ -421,15 +450,14 @@ const InvoiceManagement = () => {
                     <Form.Item
                         label="Tổng tiền"
                         name="tienKhachTra"
-                        rules={[{ required: true, message: 'Vui lòng nhập tổng tiền!' }]}
                     >
                         <InputNumber
                             style={{ width: '100%' }}
-                            value={totalAmount} // Gán giá trị của totalAmount vào đây
-                            disabled // Không cho phép chỉnh sửa trực tiếp
-                            formatter={value => `${value.toLocaleString()} VND`} // Định dạng số tiền
+                            value={totalAmount}
+                            formatter={value => `${value.toLocaleString()} VND`}
+                            parser={value => value.replace(/\s?VND|,/g, '')}
+                            readOnly
                         />
-
                     </Form.Item>
                     <div className="product-details-section">
                         <Table columns={columnsProductDetails} dataSource={invoiceDetails} pagination={false} />

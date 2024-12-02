@@ -97,7 +97,7 @@
 }
 
 /* Màn hình nhỏ (từ 480px đến 767px) */
-@media (min-width: 480px) and (max-width: 767px) {
+@media (min-width: 450px) and (max-width: 767px) {
     .status-card {
         font-size: 14px;
         padding: 10px;

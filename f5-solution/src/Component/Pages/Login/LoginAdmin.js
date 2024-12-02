@@ -21,10 +21,9 @@ const LoginAdmin = () => {
                 // Lưu thông tin người dùng và token vào localStorage
                 localStorage.setItem('user', JSON.stringify(decodedToken));
                 localStorage.setItem('token', response.token);
-
+                console.log(decodedToken)
                 navigate("/Dashboard")
-
-                message.success('Đăng nhập thành công!');
+                message.success('Đăng nhập thành công với vai trò nhân viên');
             } else {
                 message.error('Đăng nhập thất bại. Vui lòng kiểm tra thông tin và thử lại.');
             }

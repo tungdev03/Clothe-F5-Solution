@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Row, Col, Button, Layout, Menu, Dropdown, Input, Space, Card, Carousel, message } from 'antd';
+import { Row, Col, Button, Layout, Menu, Dropdown, Input, Space, Card, Carousel, message, Alert } from 'antd';
 import {
     UpOutlined,
     DownOutlined,
@@ -39,12 +39,18 @@ const ProductDetail = () => {
     const [quantity, setQuantity] = useState(1);
     const [availableSizes, setAvailableSizes] = useState([]);
     const [selectedProductId, setSelectedProductId] = useState('');
+    const [defaultData , setDefaultData] = useState(null)
+    const [CartId, setCartId] = useState(null);
+    const [sLuong, setSPCt] = useState(null);
     const visibleImages = 3;
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
             const user = JSON.parse(storedUser);
             setUsername(user.TaiKhoan);
+            // setUserId(user.IdKhachhang);
+            // handCart(user.IdKhachhang);
+            console.log(user.IdKhachhang);
         }
 
     }, []);
@@ -71,7 +77,12 @@ const ProductDetail = () => {
             try {
                 const data = await HomeView.ViewProductDetail(id);
                 if (data) {
-                    setProduct(data);
+                    const convertData = {
+                        ...data,
+                      
+                    }
+                    setProduct(convertData);
+                    setDefaultData(convertData)
                     setMainImage(data.imageDefaul || '');
                 } else {
                     setProduct(null);
@@ -101,10 +112,9 @@ const ProductDetail = () => {
 
     };
     const handleLogoutClick = () => {
-        // Xử lý đăng xuất
         localStorage.removeItem('user');
-        setUsername(null); // Reset lại state username
-        navigate('/'); // Điều hướng tới trang chủ sau khi đăng xuất
+        setUsername(null); 
+        navigate('/'); 
     };
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -125,40 +135,52 @@ const ProductDetail = () => {
             );
 
             setAvailableSizes(filteredSizes);
-            setSelectedSize('');
-            setSelectedProductId('');
         } else {
             setAvailableSizes(product?.size || []);
         }
     }, [selectedColor, product]);
 
-    const handleSelectColor = (mauSacId) => {
+    const handleSelectColor = (mauSac) => {
+        const mauSacId = mauSac.mauSacId
+        const idSanPham = mauSac.sanPhamChiTietId
         if (mauSacId === selectedColor) {
             setSelectedColor('');
         } else {
             setSelectedColor(mauSacId);
+            setSelectedProductId(idSanPham)
         }
     };
 
     const handleSelectSize = (sizeId) => {
-        setSelectedSize(sizeId);
-        const selectedProductDetail = product.size.find(size => size.sizeId === sizeId);
-        if (selectedProductDetail) {
-            setSelectedProductId(selectedProductDetail.sanPhamChiTietId);
-        }
+        setSelectedSize(sizeId)
+        setSPCt(sizeId.soLuongTon)
     };
-
-    const handleAddToCart = () => {
+    
+    console.log('selectedProductId', selectedProductId);
+    
+    const handleAddToCart = useCallback(() => {
+        
         if (!selectedColor || !selectedSize) {
             message.warning('Vui lòng chọn màu sắc và size trước khi thêm vào giỏ hàng.');
             return;
         }
+        if(quantity>sLuong)
+            {
+                message.warning("Số lượng trong kho không đủ.");
+                return;
+            }
+        const addDto = {
+            idGh: CartId,
+            idSpCt: selectedProductId,
+            soLuong: quantity,
+        };
         if (selectedProductId) {
-            console.log('Selected Product ID:', selectedProductId);
+            console.log('chi tiet', addDto);
+            
         } else {
             console.error('Please select a color and size first.');
         }
-    };
+    }, [selectedProductId])
 
     const handleBuyNow = () => {
         if (!selectedColor || !selectedSize) {
@@ -171,13 +193,20 @@ const ProductDetail = () => {
     const handleViewMore = (id) => {
         navigate(`/Products/${id}`);
     };
-
-    // Lọc ra danh sách các màu sắc không trùng lặp
+    // // Lọc ra danh sách các màu sắc không trùng lặp
     const uniqueColorsMap = new Map();
     if (product && Array.isArray(product.mauSac)) {
         product.mauSac.forEach(mauSac => {
             if (!uniqueColorsMap.has(mauSac.mauSacId)) {
                 uniqueColorsMap.set(mauSac.mauSacId, mauSac);
+            }
+        });
+    }
+    const uniqueSizesMap = new Map();
+    if (product && Array.isArray(product.size)) {
+        product.size.forEach(size => {
+            if (uniqueSizesMap.has(size.sizeId)) {
+                uniqueSizesMap.set(size.sizeId, size);
             }
         });
     }
@@ -196,7 +225,7 @@ const ProductDetail = () => {
     const increaseQuantity = () => setQuantity((prev) => prev + 1);
     const decreaseQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
     const uniqueColors = Array.from(uniqueColorsMap.values());
-
+    const uniqueSizes = Array.from(uniqueSizesMap.values());
     const userMenu = (
         <Menu>
             <Menu.Item key="1" onClick={handleProfileClick}>
@@ -301,12 +330,12 @@ const ProductDetail = () => {
                                         <>
                                             <p>Màu sắc:</p>
                                             <div className="color-options">
-                                                {uniqueColors.map((mauSac) => (
+                                                {uniqueColors.map((mauSac, index) => (
                                                     <Button
                                                         key={mauSac.mauSacId}
                                                         className={`color-button ${selectedColor === mauSac.mauSacId ? 'selected' : ''}`}
                                                         style={{ backgroundColor: mauSac.mauSacTen }}
-                                                        onClick={() => handleSelectColor(mauSac.mauSacId)}
+                                                        onClick={() => handleSelectColor(mauSac)}
                                                     >
                                                         {selectedColor === mauSac.mauSacId && <CheckOutlined />}
                                                     </Button>
@@ -314,7 +343,9 @@ const ProductDetail = () => {
                                             </div>
                                             <div className="size-options" style={{ marginTop: '20px' }}>
                                                 <p>Size:</p>
-                                                {availableSizes.map(size => (
+                                                {availableSizes.reduce((acc, item) =>{
+                                                    return acc.includes(item.sizeId) ? acc : [...acc, item]
+                                                }, []).map(size => (
                                                     <Button
                                                         key={size.sizeId}
                                                         style={{

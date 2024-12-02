@@ -234,6 +234,7 @@ const CounterSale = () => {
             key: invoiceDetails.length + 1,
             id: product.id,
             idSpct: product.idSpct,
+            image:product.image,
             product: product.name,
             quantity: 1,
             unitPrice: product.price,
@@ -371,15 +372,15 @@ const CounterSale = () => {
         {
             title: 'Trạng Thái', dataIndex: 'status', key: 'status',
             render: status => <Tag color={status === 'Đã thanh toán' ? 'green' : 'blue'}>{status}</Tag>
-        },
-        {
-            title: 'Thao tác', key: 'action',
-            render: (text, record) => (
-                <Space size="middle">
-                    <Button icon={<DeleteOutlined />} onClick={() => handleDeleteInvoice(record.key)} danger>Xóa</Button>
-                </Space>
-            )
-        }
+        }//,
+        // {
+        //     title: 'Thao tác', key: 'action',
+        //     render: (text, record) => (
+        //         <Space size="middle">
+        //             <Button icon={<DeleteOutlined />} onClick={() => handleDeleteInvoice(record.key)} danger>Xóa</Button>
+        //         </Space>
+        //     )
+        // }
     ];
 
 
@@ -408,15 +409,15 @@ const CounterSale = () => {
             dataIndex: 'totalPrice',
             key: 'totalPrice',
             render: total => `${total.toLocaleString('vi-VN')} vnđ`
-        },
-        {
-            title: 'Thao tác', key: 'action',
-            render: (text, record) => (
-                <Space size="middle">
-                    <Button icon={<DeleteOutlined />} onClick={() => handleDeleteProduct(record.key)} danger>Xóa</Button>
-                </Space>
-            )
-        }
+         }//,
+        // {
+        //     title: 'Thao tác', key: 'action',
+        //     render: (text, record) => (
+        //         <Space size="middle">
+        //             <Button icon={<DeleteOutlined />} onClick={() => handleDeleteProduct(record.key)} danger>Xóa</Button>
+        //         </Space>
+        //     )
+        // }
     ];
     // Đóng modal
     const closeProductModal = () => {

@@ -148,6 +148,8 @@ const ProductDetail = () => {
         } else {
             setSelectedColor(mauSacId);
             setSelectedProductId(idSanPham)
+            setSelectedSize('')
+            console.log(idSanPham)
         }
     };
 
@@ -158,7 +160,7 @@ const ProductDetail = () => {
     
     console.log('selectedProductId', selectedProductId);
     
-    const handleAddToCart = useCallback(() => {
+    const handleAddToCart = () => {
         
         if (!selectedColor || !selectedSize) {
             message.warning('Vui lòng chọn màu sắc và size trước khi thêm vào giỏ hàng.');
@@ -176,11 +178,10 @@ const ProductDetail = () => {
         };
         if (selectedProductId) {
             console.log('chi tiet', addDto);
-            
         } else {
             console.error('Please select a color and size first.');
         }
-    }, [selectedProductId])
+    }
 
     const handleBuyNow = () => {
         if (!selectedColor || !selectedSize) {

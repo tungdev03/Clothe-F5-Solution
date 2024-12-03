@@ -1,82 +1,73 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { UserOutlined, ShoppingCartOutlined, LogoutOutlined, DeleteTwoTone } from '@ant-design/icons';
-import { Layout, Menu, Button, Dropdown, Space, Input, Table, Row, Col, message, Image, Spin, Modal, Form, Input as AntdInput } from 'antd';
+import { ShoppingCartOutlined, LogoutOutlined, DeleteTwoTone } from '@ant-design/icons';
+import { Layout, Menu, Button, Dropdown, Space, Input, Table, Row, Col, message, Spin,InputNumber } from 'antd';
 import logo_v1 from '../../../assets/images/Logo.png';
-import Checkout from './CheckoutPage';
+import CustomHeader from "../../Layouts/Header/Header";  // Import CustomHeader
+import GioHangService from '../../../Service/GiohangService';
 import './Home.css';
-const { Header, Content } = Layout;
 
-const items1 = [
-    { key: '/', label: 'Cửa hàng' },
-    { key: '/Products', label: 'Sản phẩm' },
-    { key: '/contact', label: 'Liên hệ' },
-    { key: '/album', label: 'Bộ sưu tập' }
-];
+const { Content } = Layout;
 
 const Cart = () => {
     const navigate = useNavigate();
-    const [TaiKhoan, setUsername] = useState(null);
-    const [loading, setLoading] = useState(false); // State for loading spinner
-    const [checkoutVisible, setCheckoutVisible] = useState(false); // State to control modal visibility
-    const [form] = Form.useForm(); // Form control
+    const [username, setUsername] = useState(null);
+    const [userId, setUserId] = useState(null);
+    const [loading, setLoading] = useState(false);
+    const [cartItems, setCartItems] = useState([]);
+    const [isFetching, setIsFetching] = useState(true);
 
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
         if (storedUser) {
-            const user = JSON.parse(storedUser);
-            setUsername(user.TaiKhoan);
+            try {
+                const user = JSON.parse(storedUser);
+                setUsername(user.TaiKhoan);
+                setUserId(user.IdKhachhang);
+                fetchCartData(user.IdKhachhang);
+            } catch (error) {
+                console.error("Error parsing stored user data:", error);
+                setIsFetching(false);
+            }
         }
     }, []);
 
-    const handleContinueShopping = () => {
-        message.success('Continue shopping');
-        setLoading(true); // Start loading
-        setTimeout(() => {
-            navigate('/'); // Redirect after a short delay
-        }, 2000); // Adjust delay as needed
+    const fetchCartData = async (userId) => {
+        if (!userId) return;
+        setLoading(true);
+        try {
+            const data = await GioHangService.getAllGioHang(userId);
+            
+            setCartItems(data);
+        } catch (error) {
+            console.error("Failed to fetch cart items:", error);
+            message.error("Không thể tải giỏ hàng");
+        } finally {
+            setLoading(false);
+            setIsFetching(false);
+        }
     };
 
-    const handleLoginClick = () => {
-        navigate('/login');
-    };
-
-    const handleLogoutClick = () => {
+    const handleLogout = () => {
         localStorage.removeItem('user');
         setUsername(null);
         navigate('/');
     };
 
-    const handleProfileClick = () => {
-        navigate('/');
+    const handleContinueShopping = () => {
+        setLoading(true);
+        setTimeout(() => navigate('/'), 2000);
     };
 
-    const handleMenuClick = ({ key }) => {
-        navigate(key);
-    };
-
-    const userMenu = (
-        <Menu>
-            <Menu.Item key="1" onClick={handleProfileClick}>
-                Thông tin cá nhân
-            </Menu.Item>
-            <Menu.Item key="2" danger onClick={handleLogoutClick} icon={<LogoutOutlined />}>
-                Đăng xuất
-            </Menu.Item>
-        </Menu>
-    );
-
-    const [cartItems, setCartItems] = useState([
-        { key: 1, image: 'https://product.hstatic.net/200000182297/product/3_546959316b5642f2a2ef2c3bbe0423f0_master.jpg', name: 'Product 1', price: 50, quantity: 2 },
-        { key: 2, image: 'https://product.hstatic.net/200000182297/product/2_01427c39fc824af3940e9ca334275070_master.jpg', name: 'Product 2', price: 30, quantity: 1 },
-        { key: 3, image: 'https://product.hstatic.net/200000182297/product/6_d5e0224e09b348a08caa34d04a6fd1ec_master.jpg', name: 'Product 3', price: 20, quantity: 4 }
-    ]);
-
-    const getTotalPrice = () => cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
-
-    const handleDelete = (key) => {
-        setCartItems(cartItems.filter(item => item.key !== key));
-        message.success('Sản phẩm đã được xóa khỏi giỏ hàng');
+    const handleDelete = async (id) => {
+        try {
+            await GioHangService.deleteGioHang(id);
+            setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
+            message.success("Sản phẩm đã được xóa khỏi giỏ hàng");
+        } catch (error) {
+            console.error("Error deleting cart item:", error);
+            message.error("Xóa sản phẩm thất bại");
+        }
     };
 
     const handleClearCart = () => {
@@ -84,235 +75,119 @@ const Cart = () => {
         message.success('Đã xóa giỏ hàng');
     };
 
-    const columns = [
-        { title: 'No.', dataIndex: 'key', key: 'key' },
-        {
-            title: 'Image',
-            dataIndex: 'image',
-            key: 'image',
-            render: (image) => <Image width={50} src={image} alt="product" />
-        },
-        { title: 'Name', dataIndex: 'name', key: 'name' },
-        { title: 'Price', dataIndex: 'price', key: 'price', render: (price) => `${price} VNĐ` },
-        { title: 'Quantity', dataIndex: 'quantity', key: 'quantity' },
-        {
-            title: 'Total Price',
-            key: 'total',
-            render: (_, record) => `${record.price * record.quantity} VNĐ`
-        },
-        {
-            title: 'Action',
-            key: 'action',
-            render: (_, record) => (
-                <Button type="danger" onClick={() => handleDelete(record.key)}><DeleteTwoTone /></Button>
-            )
+    const handleQuantityChange = async (value, record) => {
+        if (value <= 0) {
+            message.error("Số lượng phải lớn hơn 0");
+            return;
         }
+        try {
+            // Tạo đối tượng cập nhật
+            const updatedItem = { ...record, soLuong: value };
+            await GioHangService.updateGioHang(record.id, value);
+    
+            // Cập nhật lại danh sách giỏ hàng
+            setCartItems((prevItems) =>
+                prevItems.map((item) =>
+                    item.id === record.id
+                        ? { ...item, soLuong: value, tongTien: value * item.donGia } // Cập nhật số lượng và tổng tiền
+                        : item
+                )
+            );
+            message.success("Cập nhật số lượng thành công");
+        } catch (error) {
+            console.error("Error updating cart item:", error);
+            message.error(error.response?.data?.Message || "Cập nhật số lượng thất bại");
+        }
+    };
+    
+    const columns = [
+        {
+            title: 'Hình Ảnh',
+            dataIndex: 'hinhAnh',
+            render: (text) => <img src={text} alt="product" style={{ width: 50, height: 50 }} />,
+            align: 'center',
+        },
+        { title: 'Tên Sản Phẩm', dataIndex: 'tenSp', align: 'center' },
+        { title: 'Màu Sắc', dataIndex: 'tenMauSac', align: 'center' },
+        { title: 'Kích Cỡ', dataIndex: 'tenSize', align: 'center' },
+        {
+            title: "Số Lượng",
+            dataIndex: "soLuong",
+            align: 'center',
+            render: (text, record) => (
+                <InputNumber
+                    min={1}
+                    value={text}
+                    onChange={(value) => handleQuantityChange(value, record)}
+                    style={{ width: '120px', textAlign: 'center' }}
+                    size="small"
+                />
+            ),
+        },
+        { title: 'Giá', dataIndex: 'donGia', render: (text) => `${text.toLocaleString()} VNĐ`, align: 'center' },
+        { title: 'Tổng Tiền', dataIndex: 'tongTien', render: (text) => `${text.toLocaleString()} VNĐ`, align: 'center' },
+        {
+            title: '',
+            render: (_, record) => (
+                <Button type="danger" onClick={() => handleDelete(record.id)}>
+                    <DeleteTwoTone />
+                </Button>
+            ),
+            align: 'center',
+        },
     ];
-
+    
     const handleCheckoutClick = () => {
-        navigate('/checkout');
-    };
-
-    const handleCheckoutCancel = () => {
-        setCheckoutVisible(false); // Hide the checkout form
-    };
-
-    const handleCheckoutSubmit = () => {
-        form.validateFields().then(values => {
-            message.success('Thanh toán thành công!');
-            form.resetFields(); // Clear form fields
-            setCheckoutVisible(false); // Hide the checkout form
-            setCartItems([]); // Clear the cart after checkout
-        }).catch(info => {
-            console.log('Validate Failed:', info);
-        });
+        if (cartItems.length === 0) {
+            message.warning("Giỏ hàng của bạn hiện tại không có sản phẩm để thanh toán. Bạn vui lòng chọn Sản Phẩm vào giỏ hàng !");
+        } else {
+            navigate('/checkout');
+        }
     };
 
     return (
         <Layout style={{ minHeight: '100vh' }}>
-            <Header
-                style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    backgroundColor: '#fff',
-                    justifyContent: 'space-between',
-                    padding: '20px 40px',
-                    height: '120px',
-                }}
-            >
-                <div className="logo-brand" style={{ display: 'flex', alignItems: 'center' }}>
-                    <img src={logo_v1} alt="logo" style={{ height: '150px', marginRight: '3px' }} />
-                    <span className="brand" style={{ fontSize: '18px', fontWeight: 'bold' }}>
-                        <h2><span style={{ color: 'orange' }}>F5</span> Fashion</h2>
-                    </span>
-                </div>
-                <Menu
-                    theme="light"
-                    mode="horizontal"
-                    defaultSelectedKeys={['/']}
-                    onClick={handleMenuClick}
-                    items={items1}
-                    style={{
-                        flex: 1,
-                        display: 'flex',
-                        justifyContent: 'center',
-                        lineHeight: '64px',
-                    }}
-                />
-                <div>
-                    <Input placeholder="Search" />
-                </div>
-
-                <div className="actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <Button type="link" icon={<ShoppingCartOutlined />} style={{ fontSize: '16px' }}>Giỏ hàng</Button>
-                    {TaiKhoan ? (
-                        <Dropdown overlay={userMenu} placement="bottomRight">
-                            <Button type="link">
-                                <Space>
-                                    <span style={{ fontSize: '16px' }}>Xin chào, {TaiKhoan}</span>
-                                </Space>
-                            </Button>
-                        </Dropdown>
-                    ) : (
-                        <Button type="link" icon={<UserOutlined />} style={{ fontSize: '16px' }} onClick={handleLoginClick}>
-                            Đăng nhập
-                        </Button>
-                    )}
-                </div>
-            </Header>
-            <Layout>
-                <Content
-                    style={{
-                        margin: '0 10%',
-                        minHeight: "100%",
-                        background: '#fff',
-                        borderRadius: '4px',
-                    }}
-                >
+            <CustomHeader username={username} handleLogout={handleLogout} />
+            <Content style={{ margin: '0 10%', background: '#fff', borderRadius: '4px' }}>
+                {/* Show this message if cart is empty */}
+                {cartItems.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '50px' }}>
+                        <h2>Giỏ hàng hiện tại trống.</h2>
+                    </div>
+                ) : (
                     <Table
                         dataSource={cartItems}
                         columns={columns}
                         pagination={false}
+                        rowKey="id"
                         summary={() => (
-                            <Table.Summary.Row >
-                                <Table.Summary.Cell colSpan={5} style={{ textAlign: 'right' }}>
-                                    <strong>Total:</strong>
-                                </Table.Summary.Cell>
-                                <Table.Summary.Cell colSpan={3}>
-                                    <strong>{getTotalPrice()} VNĐ</strong>
-                                </Table.Summary.Cell>
+                            <Table.Summary.Row>
+                                <Table.Summary.Cell colSpan={5} style={{ textAlign: 'right' }}><strong>Tổng Tiền:</strong></Table.Summary.Cell>
+                                <Table.Summary.Cell colSpan={2}><strong>{cartItems.reduce((sum, item) => sum + item.tongTien, 0).toLocaleString()} VNĐ</strong></Table.Summary.Cell>
                             </Table.Summary.Row>
                         )}
                     />
-                    {/* Clear Cart Button */}
-                    <Row justify="end" style={{ marginBottom: '20px' }}>
-                        <Col>
-                            <Button type="danger" onClick={handleClearCart} style={{ width: '150px', height: '20px' }}>
-                                Clear Cart
-                            </Button>
-                        </Col>
-                    </Row>
+                )}
 
-                    {/* Continue Shopping and Checkout Buttons */}
-                    <Row justify="end" style={{ marginBottom: '20px' }}>
-                        <Col>
-                            <Button
-                                type="primary"
-                                onClick={handleContinueShopping}
-                                style={{ backgroundColor: 'black', borderColor: 'black', height: '50px', width: '200px', marginRight: '10px' }}
-                                disabled={loading} // Disable button while loading
-                            >
-                                {loading ? <Spin size="small" /> : 'Tiếp tục mua sắm'}
-                            </Button>
-                        </Col>
-                        <Col>
-                            <Button
-                                type="primary"
-                                onClick={handleCheckoutClick} // Hiển thị form thanh toán khi nhấn nút
-                                style={{ backgroundColor: 'black', borderColor: 'black', height: '50px', width: '200px' }}
-                            >
-                                Checkout
-                            </Button>
-                        </Col>
-                    </Row>
+                <Row justify="end" style={{ marginBottom: '20px' }}>
+                    <Col>
+                        <Button type="danger" onClick={handleClearCart} style={{ width: '150px' }}>Xóa giỏ hàng</Button>
+                    </Col>
+                </Row>
 
-                    {/* Modal Checkout Form */}
-                    <Modal
-                        title="Checkout"
-                        visible={checkoutVisible}
-                        onCancel={handleCheckoutCancel}
-                        footer={[
-                            <Space>
-                                <Button key="cancel" onClick={handleCheckoutCancel}>
-                                    Cancel
-                                </Button>,
-                                <Button key="submit" type="primary" onClick={handleCheckoutSubmit}>
-                                    Thanh toán
-                                </Button>
-                            </Space>
-                        ]}
-                    >
-                        {/* Hiển thị danh sách sản phẩm */}
-                        <Table
-                            dataSource={cartItems}
-                            columns={[
-                                { title: 'No.', dataIndex: 'key', key: 'key' },
-                                {
-                                    title: 'Image',
-                                    dataIndex: 'image',
-                                    key: 'image',
-                                    render: (image) => <Image width={50} src={image} alt="product" />
-                                },
-                                { title: 'Name', dataIndex: 'name', key: 'name' },
-                                { title: 'Price', dataIndex: 'price', key: 'price', render: (price) => `${price} VNĐ` },
-                                { title: 'Quantity', dataIndex: 'quantity', key: 'quantity' },
-                                {
-                                    title: 'Total Price',
-                                    key: 'total',
-                                    render: (_, record) => `${record.price * record.quantity} VNĐ`
-                                }
-                            ]}
-                            pagination={false}
-                            summary={() => (
-                                <Table.Summary.Row >
-                                    <Table.Summary.Cell colSpan={4} style={{ textAlign: 'right' }}>
-                                        <strong>Total:</strong>
-                                    </Table.Summary.Cell>
-                                    <Table.Summary.Cell colSpan={2}>
-                                        <strong>{getTotalPrice()} VNĐ</strong>
-                                    </Table.Summary.Cell>
-                                </Table.Summary.Row>
-                            )}
-                        />
-
-                        {/* Form điền thông tin khách hàng */}
-                        <Form form={form} layout="vertical" style={{ marginTop: '20px' }}>
-                            <Form.Item
-                                name="name"
-                                label="Họ và tên"
-                                rules={[{ required: true, message: 'Vui lòng nhập họ và tên!' }]}
-                            >
-                                <AntdInput placeholder="Nhập họ và tên" />
-                            </Form.Item>
-                            <Form.Item
-                                name="address"
-                                label="Địa chỉ giao hàng"
-                                rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}
-                            >
-                                <AntdInput placeholder="Nhập địa chỉ giao hàng" />
-                            </Form.Item>
-                            <Form.Item
-                                name="phone"
-                                label="Số điện thoại"
-                                rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
-                            >
-                                <AntdInput placeholder="Nhập số điện thoại" />
-                            </Form.Item>
-                        </Form>
-                    </Modal>
-
-                </Content>
-            </Layout>
+                <Row justify="end" style={{ marginBottom: '20px' }}>
+                    <Col>
+                        <Button type="primary" onClick={handleContinueShopping} style={{ backgroundColor: 'black', borderColor: 'black', height: '50px', width: '200px' }} disabled={loading}>
+                            {loading ? <Spin size="small" /> : 'Tiếp tục mua sắm'}
+                        </Button>
+                    </Col>
+                    <Col>
+                        <Button type="primary" onClick={handleCheckoutClick} style={{ height: '50px', width: '200px' }} disabled={loading}>
+                            {loading ? <Spin size="small" /> : 'Thanh toán'}
+                        </Button>
+                    </Col>
+                </Row>
+            </Content>
         </Layout>
     );
 };

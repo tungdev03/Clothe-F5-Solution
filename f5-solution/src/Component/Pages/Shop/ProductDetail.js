@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Row, Col, Button, Layout, Menu, Dropdown, Input, Space, Card, Carousel, message, Alert } from 'antd';
+import { Row, Col, Button, Layout, Menu, Dropdown, Input, Space, Card, Carousel, message } from 'antd';
 import {
     UpOutlined,
     DownOutlined,
@@ -15,6 +15,7 @@ import './Home.css';
 import logo_v1 from '../../../assets/images/Logo.png';
 import { Content } from 'antd/es/layout/layout';
 import HomeView from '../../../Service/HomeService';
+import GioHangService from '../../../Service/GiohangService';
 const { Header } = Layout;
 const { Meta } = Card;
 
@@ -41,6 +42,7 @@ const ProductDetail = () => {
     const [selectedProductId, setSelectedProductId] = useState('');
     const [defaultData , setDefaultData] = useState(null)
     const [CartId, setCartId] = useState(null);
+    const [userId, setUserId] = useState(null);
     const [sLuong, setSPCt] = useState(null);
     const visibleImages = 3;
     useEffect(() => {
@@ -48,12 +50,13 @@ const ProductDetail = () => {
         if (storedUser) {
             const user = JSON.parse(storedUser);
             setUsername(user.TaiKhoan);
-            // setUserId(user.IdKhachhang);
-            // handCart(user.IdKhachhang);
+            setUserId(user.IdKhachhang);
+            handCart(user.IdKhachhang);
             console.log(user.IdKhachhang);
         }
-
+        
     }, []);
+    
     useEffect(() => {
         const fetchNewProducts = async () => {
             try {
@@ -113,8 +116,8 @@ const ProductDetail = () => {
     };
     const handleLogoutClick = () => {
         localStorage.removeItem('user');
-        setUsername(null); 
-        navigate('/'); 
+        setUsername(null);
+        navigate('/');
     };
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -149,21 +152,26 @@ const ProductDetail = () => {
             setSelectedColor(mauSacId);
             setSelectedProductId(idSanPham)
             setSelectedSize('')
-            console.log(idSanPham)
         }
     };
-
+    console.log('selectedProductId', selectedProductId);
     const handleSelectSize = (sizeId) => {
         setSelectedSize(sizeId)
         setSPCt(sizeId.soLuongTon)
     };
-    
-    console.log('selectedProductId', selectedProductId);
-    
-    const handleAddToCart = () => {
-        
+    const handCart = async (userId) => {
+        try {
+            const data = await GioHangService.getByGioHang(userId);
+            setCartId(data.id);
+        } catch (error) {
+            console.error("Failed to fetch cart items:", error);
+            message.error("Không thể tải giỏ hàng");
+        }
+       
+    };
+    const handleAddToCart = async () => {
         if (!selectedColor || !selectedSize) {
-            message.warning('Vui lòng chọn màu sắc và size trước khi thêm vào giỏ hàng.');
+            message.warning("Vui lòng chọn màu sắc và size trước khi mua.");
             return;
         }
         if(quantity>sLuong)
@@ -176,25 +184,75 @@ const ProductDetail = () => {
             idSpCt: selectedProductId,
             soLuong: quantity,
         };
-        if (selectedProductId) {
-            console.log('chi tiet', addDto);
-        } else {
-            console.error('Please select a color and size first.');
+    
+        try {
+            console.log("Payload gửi lên API:", addDto);
+            const result = await GioHangService.addGioHang(addDto); // Thêm `await` để xử lý bất đồng bộ
+            alert("Sản phẩm đã được thêm vào giỏ hàng!");
+            console.log("Kết quả trả về từ API:", result);
+        } catch (error) {
+            console.error("Không thể thêm sản phẩm vào giỏ hàng:", error);
+    
+            if (error.response) {
+                console.error("Chi tiết lỗi từ API:", error.response.data);
+                console.error("Status code:", error.response.status);
+            } else if (error.request) {
+                console.error("Không nhận được phản hồi từ server:", error.request);
+            } else {
+                console.error("Lỗi khi gửi yêu cầu:", error.message);
+            }
+    
+            alert("Đã xảy ra lỗi khi thêm vào giỏ hàng.");
         }
-    }
-
-    const handleBuyNow = () => {
+    };
+    
+    const handleBuyNow = async () => {
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+    
         if (!selectedColor || !selectedSize) {
             message.warning("Vui lòng chọn màu sắc và size trước khi mua.");
             return;
         }
-        // Add your buy now logic here
+        if(quantity>sLuong)
+        {
+            message.warning("Số lượng trong kho không đủ.");
+            return;
+        }
+    
+        const addDto = {
+            idGh: CartId,
+            idSpCt: selectedProductId,
+            soLuong: quantity,
+        };
+    
+        try {
+            console.log("Payload gửi lên API:", addDto);
+            const result = await GioHangService.addGioHang(addDto); // Thêm vào giỏ hàng
+            console.log("Kết quả trả về từ API:", result);
+            alert("Sản phẩm đã được thêm vào giỏ hàng!");
+            navigate(`/cart/${storedUser.TaiKhoan}`);
+        } catch (error) {
+            console.error("Không thể thêm sản phẩm vào giỏ hàng:", error);
+    
+            if (error.response) {
+                console.error("Chi tiết lỗi từ API:", error.response.data);
+                console.error("Status code:", error.response.status);
+            } else if (error.request) {
+                console.error("Không nhận được phản hồi từ server:", error.request);
+            } else {
+                console.error("Lỗi khi gửi yêu cầu:", error.message);
+            }
+    
+            alert("Đã xảy ra lỗi khi mua sản phẩm.");
+        }
     };
+    
 
     const handleViewMore = (id) => {
         navigate(`/Products/${id}`);
     };
-    // // Lọc ra danh sách các màu sắc không trùng lặp
+
+    // Lọc ra danh sách các màu sắc không trùng lặp
     const uniqueColorsMap = new Map();
     if (product && Array.isArray(product.mauSac)) {
         product.mauSac.forEach(mauSac => {
@@ -212,14 +270,11 @@ const ProductDetail = () => {
         });
     }
     const handleOncartClick = () => {
-        // Kiểm tra nếu người dùng không đăng nhập
-        const storedUser = JSON.parse(localStorage.getItem('user')); // Parse dữ liệu từ localStorage
-        // Kiểm tra nếu người dùng không đăng nhập
+        const storedUser = JSON.parse(localStorage.getItem('user'));
         if (!storedUser || !storedUser.TaiKhoan) {
             message.info("Vui lòng đăng nhập để xem giỏ hàng");
             navigate('/Login');
         } else {
-            // Điều hướng đến giỏ hàng của người dùng đã đăng nhập
             navigate(`/cart/${storedUser.TaiKhoan}`);
         }
     }

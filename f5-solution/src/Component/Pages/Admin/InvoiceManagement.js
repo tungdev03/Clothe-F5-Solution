@@ -93,34 +93,43 @@ const InvoiceManagement = () => {
     const handleSave = async (values) => {
         try {
             const invoiceData = {
-                ...editingInvoice, // Giữ nguyên các trường đã có
-                ...values, // Ghi đè với các giá trị mới từ form
+                ...editingInvoice, // Keep existing fields
+                ...values, // Override with new form values
                 hoaDonChiTiets: invoiceDetails.map(detail => ({
                     idSpct: detail.idSpct,
                     soLuong: detail.quantity,
                     giaBan: detail.unitPrice
                 })),
-                tienKhachTra: totalAmount // Đảm bảo tổng tiền được cập nhật
+                tienKhachTra: totalAmount
             };
 
             if (editingInvoice) {
-                // Cập nhật hóa đơn
+                // Use PUT method for updating existing invoice
                 const response = await axios.put(`https://localhost:7030/api/HoaDon/${editingInvoice.id}`, invoiceData);
+
+                // Update local state
                 setInvoices(invoices.map((invoice) =>
-                    invoice.id === editingInvoice.id ? invoiceData : invoice
+                    invoice.id === editingInvoice.id ? response.data : invoice
                 ));
+
                 notification.success({ message: 'Hóa đơn đã được cập nhật!' });
             } else {
-                // Thêm mới hóa đơn
+                // Add new invoice using POST method
                 const newInvoice = {
                     ...invoiceData,
-                    dateCreated: new Date().toISOString(),
+                    ngayTao: new Date().toISOString(), // Use ngayTao instead of dateCreated
                 };
+
                 const response = await axios.post("https://localhost:7030/api/HoaDon", newInvoice);
                 setInvoices([...invoices, response.data]);
+
                 notification.success({ message: 'Hóa đơn đã được thêm mới!' });
             }
+
             setIsModalVisible(false);
+            // Reset editing state
+            setEditingInvoice(null);
+            setInvoiceDetails([]);
         } catch (error) {
             console.error("Lỗi khi lưu hóa đơn:", error);
             notification.error({
@@ -130,12 +139,15 @@ const InvoiceManagement = () => {
         }
     };
     useEffect(() => {
-        const total = invoiceDetails.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
+        console.log("Invoice Details:", invoiceDetails);
+        const total = invoiceDetails.reduce((sum, item) => {
+            console.log(`Item: quantity=${item.quantity}, unitPrice=${item.unitPrice}`);
+            return sum + (item.quantity * item.unitPrice);
+        }, 0);
         setTotalAmount(total);
-
-        // Nếu form đã được khởi tạo, cập nhật giá trị tổng tiền
         form.setFieldsValue({
-            tienKhachTra: total
+            tienKhachTra: total,
+            tongTien: total // Thêm trường tổng tiền nếu cần
         });
     }, [invoiceDetails, form]);
     const handleEdit = async (record) => {
@@ -156,12 +168,12 @@ const InvoiceManagement = () => {
                     idSpct: detail.idSpct,
                     product: detail.idSpct,  // Có thể cần điều chỉnh để hiển thị tên sản phẩm
                     quantity: detail.soLuong || 1,
-                    unitPrice: detail.giaBan || 0,
-                    image: detail.image,
+                    unitPrice: detail.DonGia || 0,
+                    image: detail.idSpctNavigation?.imageDefaul,
                     totalPrice: (detail.soLuong || 1) * (detail.giaBan || 0)
                 }))
                 : [];
-
+console.log('data là' +JSON.stringify(invoiceDetails, null, 2))
             const totalAmount = invoiceDetails.reduce((sum, item) => sum + item.totalPrice, 0);
 
             setInvoiceDetails(invoiceDetails);
@@ -276,7 +288,8 @@ const InvoiceManagement = () => {
                     default:
                         color = 'grey';
                 }
-                return <Tag color={color}>{status}</Tag>;
+                const statusText = statusMapping[status] || "Không xác định";
+                return <Tag color={color}>{statusText}</Tag>;
             },
         },
         {
@@ -319,12 +332,12 @@ const InvoiceManagement = () => {
         //     key: 'unitPrice',
         //     render: price => `${price.toLocaleString('vi-VN')} vnđ`
         // },
-        // {
-        //     title: 'Tổng tiền',
-        //     dataIndex: 'totalPrice',
-        //     key: 'totalPrice',
-        //     render: total => `${total.toLocaleString('vi-VN')} vnđ`
-        // },
+        {
+            title: 'Tổng tiền',
+            dataIndex: 'totalPrice',
+            key: 'totalPrice',
+            render: (total) => `${total.toLocaleString('vi-VN')} vnđ`
+        },
         {
             title: 'Thao tác', key: 'action',
             render: (text, record) => (
@@ -345,21 +358,26 @@ const InvoiceManagement = () => {
     const increaseQuantity = (key) => {
         setInvoiceDetails(invoiceDetails.map(product =>
             product.key === key
-                ? { ...product, quantity: product.quantity + 1, totalPrice: product.unitPrice * (product.quantity + 1) }
+                ? {
+                    ...product,
+                    quantity: product.quantity + 1,
+                    totalPrice: product.unitPrice * (product.quantity + 1)
+                }
                 : product
         ));
     };
     const decreaseQuantity = (key) => {
         setInvoiceDetails(invoiceDetails.map(product =>
             product.key === key && product.quantity > 1
-                ? { ...product, quantity: product.quantity - 1, totalPrice: product.unitPrice * (product.quantity - 1) }
+                ? {
+                    ...product,
+                    quantity: product.quantity - 1,
+                    totalPrice: product.unitPrice * (product.quantity - 1)
+                }
                 : product
         ));
     };
-    useEffect(() => {
-        const total = invoiceDetails.reduce((sum, item) => sum + item.totalPrice, 0);
-        setTotalAmount(total);
-    }, [invoiceDetails]);
+
     return (
         <div className="invoice-management-container">
             <Row gutter={[16, 16]} className="status-cards" justify="center">
@@ -454,7 +472,7 @@ const InvoiceManagement = () => {
                         <InputNumber
                             style={{ width: '100%' }}
                             value={totalAmount}
-                            formatter={value => `${value.toLocaleString()} VND`}
+                            formatter={value => `${value.toLocaleString('vi-VN')} VND`}
                             parser={value => value.replace(/\s?VND|,/g, '')}
                             readOnly
                         />

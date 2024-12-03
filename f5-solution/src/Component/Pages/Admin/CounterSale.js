@@ -244,17 +244,17 @@ const CounterSale = () => {
         ));
     };
 
-    const handleDeleteInvoice = async (key) => {
-        try {
-            await axios.delete(`https://localhost:7030/api/HoaDon/${key}`);
-            setInvoices(invoices.filter(invoice => invoice.key !== key));
-            notification.success({ message: 'Hóa đơn đã bị xóa!' });
+    // const handleDeleteInvoice = async (key) => {
+    //     try {
+    //         await axios.delete(`https://localhost:7030/api/HoaDon/${key}`);
+    //         setInvoices(invoices.filter(invoice => invoice.key !== key));
+    //         notification.success({ message: 'Hóa đơn đã bị xóa!' });
 
-        } catch (error) {
-            notification.error({ message: 'Xóa hóa đơn không thành công!' });
-        }
+    //     } catch (error) {
+    //         notification.error({ message: 'Xóa hóa đơn không thành công!' });
+    //     }
 
-    };
+    // };
     const handleDeleteProduct = (key) => {
         setInvoiceDetails(invoiceDetails.filter(product => product.key !== key));
         notification.success({ message: 'Sản phẩm đã bị xóa!' });
@@ -456,15 +456,15 @@ const CounterSale = () => {
             },
             align: "center",
         },
-        {
-            title: 'Thao tác', key: 'action',
-            render: (text, record) => (
-                <Space size="middle">
-                    <Button icon={<DeleteOutlined />} onClick={() => handleDeleteInvoice(record.key)} danger>Xóa</Button>
-                </Space>
-            ),
-            align: "center",
-        }
+        // {
+        //     title: 'Thao tác', key: 'action',
+        //     render: (text, record) => (
+        //         <Space size="middle">
+        //             <Button icon={<DeleteOutlined />} onClick={() => handleDeleteInvoice(record.key)} danger>Xóa</Button>
+        //         </Space>
+        //     ),
+        //     align: "center",
+        // }
     ];
     const statusMapping = {
         1: "Chờ xác nhận",

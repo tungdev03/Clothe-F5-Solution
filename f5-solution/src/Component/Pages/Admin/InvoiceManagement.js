@@ -241,7 +241,7 @@ console.log('data là' +JSON.stringify(invoiceDetails, null, 2))
             title: 'Khách hàng',
             dataIndex: 'idKhNavigation',
             key: 'customer',
-            render: (idKhNavigation) => idKhNavigation?.hoVaTenKh || 'Không xác định'
+            render: (idKhNavigation,record) => idKhNavigation?.hoVaTenKh || record.tenNguoiNhan || 'Hệ thống'
         },
         {
             title: 'Ngày tạo',

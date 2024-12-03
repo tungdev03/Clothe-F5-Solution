@@ -92,9 +92,14 @@ const InvoiceManagement = () => {
     };
     const handleSave = async (values) => {
         try {
+            const predefinedValues = {
+                LoaiHoaDon:1,
+                GhiChu: 'đơn dc tạo bởi hệ thống'
+            };
             const invoiceData = {
                 ...editingInvoice, // Keep existing fields
                 ...values, // Override with new form values
+                ... predefinedValues,
                 hoaDonChiTiets: invoiceDetails.map(detail => ({
                     idSpct: detail.idSpct,
                     soLuong: detail.quantity,

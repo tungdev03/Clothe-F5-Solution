@@ -21,15 +21,13 @@ const CounterSale = () => {
 
             const data = response.data;
 
-            // Log để kiểm tra dữ liệu
-            console.log("Customer data:", data[0]?.idKhNavigation);
-            console.log("Staff data:", data[0]?.idNvNavigation);
             const filteredData = data.map(item => ({
                 key: item.id,
                 code: item.maHoaDon,
-                customer: item.idKhNavigation?.hoVaTenKh||item.TenNguoiNhan || 'hệ thống',
+                customer: item.idKhNavigation?.hoVaTenKh || 'hệ thống',
                 dateCreated: item.ngayTao ? new Date(item.ngayTao).toLocaleString() : 'Chưa xác định',
                 staff: item.idNvNavigation?.HoVaTenNv || 'Không có',
+                TenNguoiNhan:item.TenNguoiNhan,
                 type: item.loaiHoaDon,
                 status: item.trangThai,
             }));
@@ -69,7 +67,6 @@ const CounterSale = () => {
     const handleSelectCustomer = (customer) => {
         setSelectedCustomer(customer);  // Lưu toàn bộ thông tin khách hàng vào state
         setIsCustomerSelectVisible(false);  // Đóng modal chọn khách hàng
-        console.log(customer)
     };
 
     const handleModalClose = () => {
@@ -79,7 +76,6 @@ const CounterSale = () => {
     const handleFormSubmit = async () => {
         try {
             const values = await form.validateFields();
-            console.log('Submitting values for create:', values);
             const newCustomer = {
                 maKh: values.maKh,
                 hoVaTenKh: values.hoVaTenKh,
@@ -92,7 +88,6 @@ const CounterSale = () => {
                 trangThai: 0, // Trạng thái mặc định là 0
               };
               const response = AuthService.registerCustomer(newCustomer);
-            console.log('Create response:', response);
             message.success("Thêm mới khách hàng thành công");
             handleModalClose();
         } catch (error) {
@@ -319,7 +314,6 @@ const CounterSale = () => {
                     console.error("Không tìm thấy dữ liệu trong localStorage!");
                     return;
                 }
-                console.log("Kiểu dữ liệu của IdNhanVien:", IdNhanVien);
 
                 // Dữ liệu cần gửi tới API
                 const invoiceData = {
@@ -403,7 +397,9 @@ const CounterSale = () => {
         { title: 'Mã Hóa Đơn', dataIndex: 'code', key: 'code', align: "center", },
        // { title: 'Nhân Viên', dataIndex: 'staff', key: 'staff', align: "center", },
         { title: 'Ngày Tạo', dataIndex: 'dateCreated', key: 'dateCreated', align: "center", },
-        { title: 'Khách Hàng', dataIndex: 'customer', key: 'customer', align: "center", },
+        { title: 'Khách Hàng', dataIndex: 'customer', key: 'customer', align: "center",render: (customer, record) => {
+            return customer ? customer : record.TenNguoiNhan;
+        }, },
         {
             title: 'Loại Đơn', dataIndex: 'type', key: 'type',
             render: (type) => {

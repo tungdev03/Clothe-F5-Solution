@@ -27,7 +27,7 @@ const CounterSale = () => {
             const filteredData = data.map(item => ({
                 key: item.id,
                 code: item.maHoaDon,
-                customer: item.idKhNavigation?.hoVaTenKh || 'Không có',
+                customer: item.idKhNavigation?.hoVaTenKh||item.TenNguoiNhan || 'hệ thống',
                 dateCreated: item.ngayTao ? new Date(item.ngayTao).toLocaleString() : 'Chưa xác định',
                 staff: item.idNvNavigation?.HoVaTenNv || 'Không có',
                 type: item.loaiHoaDon,
@@ -530,7 +530,6 @@ const CounterSale = () => {
         <div className="counter-sale-container">
             <div className="invoice-section">
                 <Input placeholder="Tìm kiếm hóa đơn..." value={searchText} onChange={e => setSearchText(e.target.value)} style={{ marginBottom: 20, width: 300 }} />
-                <Button icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>Tạo hóa đơn mới</Button>
                 <Table columns={columnsInvoices} dataSource={filteredInvoices} pagination={false} // Tắt phân trang
                     scroll={{
                         y: 300,

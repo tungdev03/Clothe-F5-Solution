@@ -93,7 +93,6 @@ const InvoiceManagement = () => {
     const handleSave = async (values) => {
         try {
             const predefinedValues = {
-                LoaiHoaDon:1,
                 GhiChu: 'đơn dc tạo bởi hệ thống'
             };
             const invoiceData = {
@@ -459,6 +458,12 @@ console.log('data là' +JSON.stringify(invoiceDetails, null, 2))
                     </Form.Item>
                     <Form.Item label="Địa chỉ người nhận" name="diaChiNhanHang" rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}>
                         <Input />
+                    </Form.Item>
+                    <Form.Item label="Loại hóa đơn" name="LoaiHoaDon" rules={[{ required: true, message: 'Vui lòng chọn loại hóa đơn!' }]}>
+                        <Select>
+                            <Option value={1}>tại quầy</Option>
+                            <Option value={2}>Online</Option>                           
+                        </Select>
                     </Form.Item>
                     <Form.Item label="Trạng Thái" name="trangThai" rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}>
                         <Select>

@@ -1,0 +1,53 @@
+.form-group {
+    margin-bottom: 16px;
+  }
+  
+  .form-group label {
+    font-weight: bold;
+    margin-bottom: 8px;
+  }
+  
+  .form-group select,
+  .form-group input,
+  .form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: #f9f9f9;
+    outline: none;
+    transition: border-color 0.3s;
+  }
+  
+  .form-group select:focus,
+  .form-group input:focus,
+  .form-group textarea:focus {
+    border-color: #1890ff;
+  }
+  
+  .ant-modal-footer .ant-btn-primary {
+    background-color: #1890ff;
+    border-color: #1890ff;
+    transition: background-color 0.3s, border-color 0.3s;
+  }
+  
+  .ant-modal-footer .ant-btn-primary:hover {
+    background-color: #40a9ff;
+    border-color: #40a9ff;
+  }
+  /* Đảm bảo rằng các select sẽ có chiều rộng tối thiểu */
+.select-custom-width {
+    width: 100%; /* Đặt chiều rộng của select là 100% để nó phản hồi tốt với kích thước bố cục */
+    min-width: 300px; /* Đặt chiều rộng tối thiểu để không bị hẹp */
+    text-overflow: ellipsis; /* Nếu văn bản dài hơn, nó sẽ được cắt với dấu ... */
+    white-space: nowrap; /* Không cho phép văn bản xuống dòng */
+    overflow: hidden; /* Ẩn phần văn bản bị tràn ra ngoài */
+  }
+  
+  /* Đảm bảo modal đủ rộng để chứa nội dung */
+  .ant-modal {
+    width: 80%; /* Điều chỉnh chiều rộng của modal */
+  }
+  
+  

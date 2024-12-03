@@ -9,7 +9,7 @@ const { Option } = Select;
 
 const CounterSale = () => {
     // Định nghĩa hàm fetchInvoices ngoài useEffect
-    
+
     const fetchInvoices = async () => {
         try {
             const response = await axios.get('https://localhost:7030/api/HoaDon');
@@ -20,18 +20,18 @@ const CounterSale = () => {
             const data = response.data;
             // Log để kiểm tra dữ liệu
             console.log("Customer data:", data[0]?.idKhNavigation);
-            console.log("Staff data:", data[0]?.idNvNavigation);
+            console.log("Staff data:", data);
             const filteredData = data.map(item => ({
                 key: item.id,
                 code: item.maHoaDon,
                 customer: item.idKhNavigation?.hoVaTenKh || 'Không có',
                 dateCreated: item.ngayTao ? new Date(item.ngayTao).toLocaleString() : 'Chưa xác định',
-                staff: item.idNvNavigation?.HoVaTenNv || 'Không có',
+                staff: item.idNvNavigation?.hoVaTenNv || 'Không có',
                 type: item.loaiHoaDon,
                 status: item.trangThai,
             }));
             setInvoices(filteredData);
-            console.log(filteredData)
+            console.log(filteredData.staff)
         } catch (error) {
             console.error("Error fetching invoice data:", error);
             message.error("Không thể tải dữ liệu hóa đơn.");
@@ -49,6 +49,8 @@ const CounterSale = () => {
     const [isProductModalVisible, setIsProductModalVisible] = useState(false);
     const [form] = Form.useForm();
     const [productForm] = Form.useForm();
+    const [pageSize] = useState(3);
+    const [currentPage, setCurrentPage] = useState(1);
     const [totalAmount, setTotalAmount] = useState(0);
     const [isProductSelectVisible, setIsProductSelectVisible] = useState(false);
     const [isCustomerSelectVisible, setIsCustomerSelectVisible] = useState(false);
@@ -69,7 +71,9 @@ const CounterSale = () => {
         setIsCustomerSelectVisible(false);  // Đóng modal chọn khách hàng
         console.log(customer)
     };
-
+    const handleTableChange = (pagination) => {
+        setCurrentPage(pagination.current);
+    };
     // Hàm lấy dữ liệu sản phẩm từ API
     useEffect(() => {
         let isMounted = true;
@@ -356,6 +360,13 @@ const CounterSale = () => {
     });
 
     const columnsInvoices = [
+        {
+            title: 'STT',
+            dataIndex: 'index',
+            key: 'index',
+            render: (_, __, index) => (currentPage - 1) * pageSize + index + 1,
+            width: 70,
+        },
         { title: 'Mã Hóa Đơn', dataIndex: 'code', key: 'code' },
         { title: 'Nhân Viên', dataIndex: 'staff', key: 'staff' },
         { title: 'Ngày Tạo', dataIndex: 'dateCreated', key: 'dateCreated' },
@@ -421,7 +432,12 @@ const CounterSale = () => {
             <div className="invoice-section">
                 <Input placeholder="Tìm kiếm hóa đơn..." value={searchText} onChange={e => setSearchText(e.target.value)} style={{ marginBottom: 20, width: 300 }} />
                 <Button icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>Tạo hóa đơn mới</Button>
-                <Table columns={columnsInvoices} dataSource={filteredInvoices} pagination={false} />
+                <Table columns={columnsInvoices} dataSource={filteredInvoices} pagination={{
+                    current: currentPage,
+                    pageSize,
+                    total: invoices.length,
+                    onChange: handleTableChange,
+                }} />
             </div>
 
             <div className="product-details-section">

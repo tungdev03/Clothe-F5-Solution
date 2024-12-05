@@ -109,6 +109,7 @@ const InvoiceManagement = () => {
 
             if (editingInvoice) {
                 // Use PUT method for updating existing invoice
+            try{
                 const response = await axios.put(`https://localhost:7030/api/HoaDon/${editingInvoice.id}`, invoiceData);
 
                 // Update local state
@@ -117,6 +118,11 @@ const InvoiceManagement = () => {
                 ));
 
                 notification.success({ message: 'Hóa đơn đã được cập nhật!' });
+            }catch{
+                const updateUrl = `https://localhost:7030/api/HoaDon/${editingInvoice.id}`;
+                console.log('Full Update URL:', updateUrl);
+                console.log('Full Invoice Data:', JSON.stringify(invoiceData, null, 2));
+            }
             } else {
                 // Add new invoice using POST method
                 const newInvoice = {

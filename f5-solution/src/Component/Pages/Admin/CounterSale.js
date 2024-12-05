@@ -38,9 +38,6 @@ const CounterSale = () => {
         }
     };
 
-    useEffect(() => {
-        fetchInvoices();
-    }, []);
 
     const [invoices, setInvoices] = useState([]);
     const [invoiceDetails, setInvoiceDetails] = useState([]);
@@ -87,9 +84,11 @@ const CounterSale = () => {
                 email: values.email,
                 trangThai: 0, // Trạng thái mặc định là 0
               };
-              const response = AuthService.registerCustomer(newCustomer);
+              await AuthService.registerCustomer(newCustomer); // Ensure this is awaited
             message.success("Thêm mới khách hàng thành công");
             handleModalClose();
+            await fetchCustomers();
+
         } catch (error) {
             if (error.response && error.response.data) {
                 console.error("Error response data:", error.response.data);
@@ -137,23 +136,25 @@ const CounterSale = () => {
     }, []);
 
     const [customerList, setCustomerList] = useState([]);
+    const fetchCustomers = async () => {
+        try {
+            const response = await axios.get('https://localhost:7030/api/KhachHang');
+            const data = response.data;
+            const filteredData = data.map(item => ({
+                key: item.id,
+                name: item.hoVaTenKh,
+                phone: item.soDienThoai,
+            }));
+            setCustomerList(filteredData);
+        } catch (error) {
+            console.error("Error fetching customer data:", error);
+            message.error("Không thể tải dữ liệu khách hàng.");
+        }
+    };
+    fetchCustomers();
     useEffect(() => {
-        const fetchCustomers = async () => {
-            try {
-                const response = await axios.get('https://localhost:7030/api/KhachHang');
-                const data = response.data;
-                const filteredData = data.map(item => ({
-                    key: item.id,
-                    name: item.hoVaTenKh,
-                    phone: item.soDienThoai,
-                }));
-                setCustomerList(filteredData);
-            } catch (error) {
-                console.error("Error fetching customer data:", error);
-                message.error("Không thể tải dữ liệu khách hàng.");
-            }
-        };
         fetchCustomers();
+        fetchInvoices();
     }, []);
 
 
@@ -342,7 +343,7 @@ const CounterSale = () => {
                 // Gọi API thêm hóa đơn
                 const response = await axios.post('https://localhost:7030/api/HoaDon', invoiceData);
                 // Kiểm tra nếu trả về status 201 thì là thành công
-                if (response.status === 201) {
+                if (response.status === 200) {
                     notification.success({ 
                         message: 'Thanh toán thành công!',
                         description: 'Hóa đơn đã được tạo thành công.',

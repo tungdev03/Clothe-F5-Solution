@@ -428,7 +428,7 @@ const CounterSale = () => {
                 let color = 'green';
                 switch (status) {
                     case 1:
-                        color = 'volcano';
+                        color = 'red';
                         break;
                     case 2:
                         color = 'blue';
@@ -440,7 +440,7 @@ const CounterSale = () => {
                         color = 'cyan';
                         break;
                     case 5:
-                        color = 'red';
+                        color = 'green';
                         break;
                     case 6:
                         color = 'yellow';

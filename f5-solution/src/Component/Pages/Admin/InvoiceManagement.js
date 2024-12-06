@@ -19,6 +19,7 @@ const InvoiceManagement = () => {
     const [totalAmount, setTotalAmount] = useState(0);
     const [isDetailModalVisible, setIsDetailModalVisible] = useState(false);
     const [selectedInvoiceDetails, setSelectedInvoiceDetails] = useState(null);
+    const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
     const [form] = Form.useForm();
 
     // Lấy dữ liệu hóa đơn từ API
@@ -135,7 +136,7 @@ const InvoiceManagement = () => {
 
                 const response = await axios.post("https://localhost:7030/api/HoaDon", newInvoice);
                 setInvoices([...invoices, response.data]);
-
+                await fetchInvoices();
                 notification.success({ message: 'Hóa đơn đã được thêm mới!' });
             }
 
@@ -163,52 +164,33 @@ const InvoiceManagement = () => {
             tongTien: total // Thêm trường tổng tiền nếu cần
         });
     }, [invoiceDetails, form]);
-    const handleEdit = async (record) => {
+    const handleEditStatus = async (record) => {
+        setEditingInvoice(record);
+        form.setFieldsValue({ trangThai: record.trangThai });
+        setIsStatusModalVisible(true);
+    };
+
+    const handleSaveStatus = async (values) => {
         try {
-            const response = await axios.get(`https://localhost:7030/api/HoaDon/${record.id}`);
+            const updatedInvoice = {
+                ...editingInvoice,
+                trangThai: values.trangThai,
+            };
 
-            if (!response || !response.data) {
-                notification.error({ message: 'Không tìm thấy chi tiết hóa đơn' });
-                return;
-            }
-
-            const invoiceData = response.data;
-
-            const invoiceDetails = Array.isArray(invoiceData.hoaDonChiTiets)
-                ? invoiceData.hoaDonChiTiets.map((detail, index) => ({
-                    key: index + 1,
-                    id: invoiceData.id,
-                    idSpct: detail.idSpct,
-                    product: detail.idSpct,  // Có thể cần điều chỉnh để hiển thị tên sản phẩm
-                    quantity: detail.soLuong || 1,
-                    unitPrice: detail.DonGia || 0,
-                    image: detail.idSpctNavigation?.imageDefaul,
-                    totalPrice: (detail.soLuong || 1) * (detail.giaBan || 0)
-                }))
-                : [];
-            console.log('data là' + JSON.stringify(invoiceDetails, null, 2))
-            const totalAmount = invoiceDetails.reduce((sum, item) => sum + item.totalPrice, 0);
-
-            setInvoiceDetails(invoiceDetails);
-            setEditingInvoice(invoiceData);
-
-            // Điền đầy đủ thông tin vào form
-            // form.setFieldsValue({
-            //     maHoaDon: invoiceData.maHoaDon,  // Thêm mã hóa đơn
-            //     tenNguoiNhan: invoiceData.tenNguoiNhan,
-            //     sdtnguoiNhan: invoiceData.sdtnguoiNhan,
-            //     diaChiNhanHang: invoiceData.diaChiNhanHang,
-            //     trangThai: invoiceData.trangThai,
-            //     tienKhachTra: totalAmount
-            // });
-            form.setFieldsValue(record)
-            setTotalAmount(totalAmount);
-            setIsModalVisible(true);
+            const response = await axios.put(`https://localhost:7030/api/HoaDon/updateStatus`, updatedInvoice);
+            setInvoices(invoices.map(invoice =>
+                invoice.id === editingInvoice.id ? response.data : invoice
+            ));
+            notification.success({ message: 'Trạng thái hóa đơn đã được cập nhật!' });
+            await fetchInvoices();
+            setIsStatusModalVisible(false); // Close modal
         } catch (error) {
-            console.error("Lỗi lấy chi tiết hóa đơn:", error);
-            notification.error({ message: 'Không thể tải chi tiết hóa đơn', description: error.message });
+            console.error("Lỗi khi cập nhật trạng thái hóa đơn:", error);
+            notification.error({
+                message: 'Không thể cập nhật trạng thái hóa đơn',
+                description: error.response?.data || error.message
+            });
         }
-
     };
     const handleViewDetails = async (record) => {
         try {
@@ -308,7 +290,7 @@ const InvoiceManagement = () => {
                     case 3:
                         color = 'orange';
                         break;
-                    case 4:  
+                    case 4:
                         color = 'yellow';
                         break;
                     case 5:
@@ -329,7 +311,7 @@ const InvoiceManagement = () => {
             key: 'action',
             render: (text, record) => (
                 <Space size="middle">
-                    <Button icon={<EditOutlined />} onClick={() => handleEdit(record)}>Sửa</Button>
+                    <Button icon={<EditOutlined />} onClick={() => handleEditStatus(record)}>Sửa Trạng Thái</Button>
                     <Button icon={<EyeOutlined />} onClick={() => handleViewDetails(record)}>Xem chi tiết</Button>
                     <Button icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} danger>Xóa</Button>
                 </Space>
@@ -414,42 +396,42 @@ const InvoiceManagement = () => {
     //in hóa đơn
     const handlePrintInvoice = () => {
         if (!selectedInvoiceDetails) return;
-    
+
         const doc = new jsPDF({
             orientation: 'portrait',
             unit: 'mm',
             format: [80, 297] // Thermal printer width (80mm) and max length
         });
-    
+
         // Set up thermal receipt styling
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
-    
+
         // Store details
         const storeName = "F5 Fashion";
         const storeAddress = "123 Đường ABC, Phường XYZ, Quận 1, TP.HN";
         const storeTel = "Hotline: 0123 456 789";
-    
+
         // Thermal receipt header
         doc.text(storeName, 40, 10, { align: 'center' });
         doc.setFontSize(8);
         doc.text(storeAddress, 40, 15, { align: 'center' });
         doc.text(storeTel, 40, 20, { align: 'center' });
         doc.line(5, 25, 75, 25); // Horizontal line
-    
+
         // Invoice details
         doc.setFontSize(9);
         doc.text(`Mã HĐ: ${selectedInvoiceDetails.maHoaDon}`, 10, 35);
         doc.text(`Ngày: ${new Date(selectedInvoiceDetails.ngayTao).toLocaleString()}`, 10, 40);
         doc.text(`Thu ngân: Hệ thống`, 10, 45);
         doc.line(5, 50, 75, 50); // Horizontal line
-    
+
         // Customer details
         doc.text(`KH: ${selectedInvoiceDetails.khachHang?.hoVaTenKh || 'Khách lẻ'}`, 10, 60);
         doc.text(`SĐT: ${selectedInvoiceDetails.khachHang?.soDienThoai || 'Không có'}`, 10, 65);
-    
+
         doc.line(5, 70, 75, 70); // Horizontal line
-    
+
         // Product details
         let y = 80;
         doc.setFontSize(8);
@@ -458,37 +440,37 @@ const InvoiceManagement = () => {
             const quantity = item.soLuong;
             const unitPrice = item.donGia;
             const totalPrice = item.thanhTien;
-    
+
             doc.text(productName, 10, y);
             doc.text(`${quantity} x ${unitPrice.toLocaleString('vi-VN')}`, 10, y + 5);
             doc.text(totalPrice.toLocaleString('vi-VN'), 65, y + 5, { align: 'right' });
             y += 15;
         });
-    
+
         doc.line(5, y, 75, y); // Horizontal line
-    
+
         // Total
         y += 10;
         doc.setFontSize(9);
         doc.text('Tổng cộng:', 10, y);
         doc.text(`${selectedInvoiceDetails.tongTien.toLocaleString('vi-VN')} VNĐ`, 65, y, { align: 'right' });
-    
+
         y += 10;
         doc.text('Tiền mặt:', 10, y);
         doc.text(`${selectedInvoiceDetails.tongTien.toLocaleString('vi-VN')} VNĐ`, 65, y, { align: 'right' });
-    
+
         y += 10;
         doc.text('Tiền thừa:', 10, y);
         doc.text('0 VNĐ', 65, y, { align: 'right' });
-    
+
         doc.line(5, y + 5, 75, y + 5); // Horizontal line
-    
+
         // Footer
         y += 15;
         doc.setFontSize(8);
         doc.text('Cảm ơn quý khách!', 40, y, { align: 'center' });
         doc.text('Hẹn gặp lại', 40, y + 5, { align: 'center' });
-    
+
         doc.save(`HoaDon_${selectedInvoiceDetails.maHoaDon}.pdf`);
     };
 
@@ -630,6 +612,35 @@ const InvoiceManagement = () => {
                 </Form>
             </Modal>
             <Modal
+                title="Sửa Trạng Thái Hóa Đơn"
+                visible={isStatusModalVisible}
+                onCancel={() => setIsStatusModalVisible(false)}
+                footer={null}
+            >
+                <Form form={form} onFinish={handleSaveStatus} layout="vertical">
+                    <Form.Item
+                        label="Trạng Thái"
+                        name="trangThai"
+                        rules={[{ required: true, message: 'Vui lòng chọn trạng thái!' }]}
+                    >
+                        <Select>
+                            <Option value={1}>Chờ xác nhận</Option>
+                            <Option value={2}>Đã xác nhận</Option>
+                            <Option value={3}>Chờ giao</Option>
+                            <Option value={4}>Đang giao</Option>
+                            <Option value={5}>Hoàn thành</Option>
+                            <Option value={6}>Đơn hủy</Option>
+                        </Select>
+                    </Form.Item>
+                    <Form.Item>
+                        <Button type="primary" htmlType="submit">
+                            Cập nhật trạng thái
+                        </Button>
+                    </Form.Item>
+                </Form>
+            </Modal>
+
+            <Modal
                 title="Chi tiết hóa đơn"
                 visible={isDetailModalVisible}
                 onCancel={() => setIsDetailModalVisible(false)}
@@ -646,21 +657,21 @@ const InvoiceManagement = () => {
                             <Col span={12}>
                                 <h3>Thông tin hóa đơn</h3>
                                 <p><strong>Mã hóa đơn:</strong> {selectedInvoiceDetails.maHoaDon}</p>
-                                 <p><strong>Tên khách hàng:</strong> {selectedInvoiceDetails.khachHang?.hoVaTenKh || 'Không có thông tin'}</p>
-                    <p><strong>Số điện thoại:</strong> {selectedInvoiceDetails.khachHang?.soDienThoai || 'Không có thông tin'}</p>
-                    <p><strong>Địa chỉ:</strong> 
-                        {selectedInvoiceDetails.khachHang?.diaChis && selectedInvoiceDetails.khachHang.diaChis.length > 0 ? (
-                            selectedInvoiceDetails.khachHang.diaChis.map((diaChi, index) => (
-                                <div key={index}>
-                                    {diaChi.diaChiChiTiet}, {diaChi.phuongXa}, {diaChi.quanHuyen}, {diaChi.tinhThanh}, {diaChi.quocGia}
-                                    {/* <br />
+                                <p><strong>Tên khách hàng:</strong> {selectedInvoiceDetails.khachHang?.hoVaTenKh || 'Không có thông tin'}</p>
+                                <p><strong>Số điện thoại:</strong> {selectedInvoiceDetails.khachHang?.soDienThoai || 'Không có thông tin'}</p>
+                                <p><strong>Địa chỉ:</strong>
+                                    {selectedInvoiceDetails.khachHang?.diaChis && selectedInvoiceDetails.khachHang.diaChis.length > 0 ? (
+                                        selectedInvoiceDetails.khachHang.diaChis.map((diaChi, index) => (
+                                            <div key={index}>
+                                                {diaChi.diaChiChiTiet}, {diaChi.phuongXa}, {diaChi.quanHuyen}, {diaChi.tinhThanh}, {diaChi.quocGia}
+                                                {/* <br />
                                     <em>{diaChi.ghiChu}</em> */}
-                                </div>
-                            ))
-                        ) : (
-                            'Không có'
-                        )}
-                    </p>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        'Không có'
+                                    )}
+                                </p>
                                 <p><strong>Ngày tạo:</strong> {new Date(selectedInvoiceDetails.ngayTao).toLocaleString()}</p>
                             </Col>
                             <Col span={12}>

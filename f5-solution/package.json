@@ -13,6 +13,7 @@
     "axios": "^1.7.7",
     "bootstrap": "^5.3.3",
     "dayjs": "^1.11.13",
+    "jspdf": "^2.5.2",
     "jwt-decode": "^4.0.0",
     "momen": "^0.0.1-security",
     "moment": "^2.30.1",

@@ -37,7 +37,7 @@ const AdminService = {
     },
     SearchCustomer: async (Keyword, IsPublic) => {
         try {
-            const response = await http.get(`KhachHang/list?Keyword=${Keyword || ''}&Ispublic=${IsPublic ?? 0}`);
+            const response = await http.get(`KhachHang/list?Keyword=${Keyword || ''}`);
             console.log(response.data)
             return response.data;
         } catch (error) {

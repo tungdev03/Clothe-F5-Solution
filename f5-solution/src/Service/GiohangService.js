@@ -3,32 +3,30 @@ import http from "../common/http-common";
 
 
 const GiohangService = {
-  // Lấy danh sách giỏ hàng của một khách hàng
-  getAllGioHang : async (idKh) => {
+  getAllGioHang: async (idKh) => {
     try {
       const response = await http.get(`GioHang/GetAllGioHang/${idKh}`);
       if (!response.data || response.data.length === 0) {
         console.log("Giỏ hàng hiện tại trống.");
-        return [];  // Trả về mảng rỗng nếu giỏ hàng trống
+        return [];
       }
       return response.data;
     } catch (error) {
       console.error("Error fetching cart items:", error.response?.data || error.message);
-      throw error;  // Quản lý lỗi khác (ví dụ lỗi mạng, server)
+      throw error; 
     }
   },
-  getByGioHang : async (idKh) => {
+  getByGioHang: async (idKh) => {
     try {
       const response = await http.get(`GioHang/GetByGioHang/${idKh}`);
-      
+
       return response.data;
     } catch (error) {
       console.error("Error fetching cart items:", error.response?.data || error.message);
-      throw error;  // Quản lý lỗi khác (ví dụ lỗi mạng, server)
+      throw error;
     }
   },
 
-  // Lấy chi tiết một giỏ hàng theo ID
   getGioHangById: async (id) => {
     try {
       const response = await http.get(`GioHang/GetGioHangById/${id}`);
@@ -39,35 +37,27 @@ const GiohangService = {
     }
   },
 
-  // Thêm sản phẩm vào giỏ hàng
   addGioHang: async (addDto) => {
     try {
       const response = await http.post(`GioHang`, addDto);
-      return response.data; // API trả về thông báo thành công
+      return response.data;
     } catch (error) {
       console.error("Lỗi khi thêm sản phẩm vào giỏ hàng:", error.response?.data || error.message);
       throw error;
     }
   },
 
-  // Cập nhật giỏ hàng
   updateGioHang: async (id, soLuong) => {
-    // Kiểm tra dữ liệu đầu vào
     if (!id || soLuong <= 0) {
       throw new Error("ID không hợp lệ hoặc số lượng phải lớn hơn 0.");
     }
-  
     try {
-      // Gọi API
       const response = await http.put(`GioHang/UpdateGioHang`, {
         id,
         SoLuong: soLuong,
       });
-  
-      // Trả về dữ liệu phản hồi
       return response.data;
     } catch (error) {
-      // Xử lý lỗi API
       if (error.response) {
         throw new Error(error.response.data.Message || "Có lỗi xảy ra!");
       } else {
@@ -77,10 +67,6 @@ const GiohangService = {
       }
     }
   },
-  
-
-
-  // Xóa sản phẩm khỏi giỏ hàng
   deleteGioHang: async (id) => {
     try {
       const response = await http.delete(`GioHang/DeleteGioHang/${id}`);
@@ -101,7 +87,7 @@ const GiohangService = {
         console.error("Đã xảy ra lỗi khi kiểm tra voucher."); // Thông báo lỗi khác nếu có
       }
       throw error; // Ném lỗi ra ngoài để xử lý tiếp nếu cần
-  }
+    }
   },
   placeOrder: async (idKh, orderInfo) => {
     try {
@@ -114,8 +100,17 @@ const GiohangService = {
       console.error("Error placing order:", error.response?.data || error.message); // In ra lỗi nếu có
       throw error; // Ném lỗi ra ngoài
     }
-  }
-  
+  }, 
+  VNPayPayment: async (customerId, orderInfo) => {
+    try {
+      const response = await http.post(`Checkout/vnpay-payment?${customerId}`,orderInfo);
+      return response.data;
+    } catch (error) {
+      console.error("VNPay Payment Error:", error);
+      throw error.response?.data || "Lỗi khi gọi API thanh toán VNPay";
+    }
+  },
+
 
 };
 

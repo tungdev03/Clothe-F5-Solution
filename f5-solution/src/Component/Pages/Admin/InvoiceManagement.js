@@ -400,16 +400,14 @@ const InvoiceManagement = () => {
         const doc = new jsPDF({
             orientation: 'portrait',
             unit: 'mm',
-            format: [80, 297] // Thermal printer width (80mm) and max length
-        });
-    
-        // Set up thermal receipt styling
+            format: [80, 297] 
+        });  
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
     
         // Store details
-        const storeName = "SHOP THỜI TRANG";
-        const storeAddress = "123 Đường ABC, Phường XYZ, Quận 1, TP.HCM";
+        const storeName = "F5 Fashion";
+        const storeAddress = "123 Đường ABC, Phường XYZ, cầu giấy, TP.HN";
         const storeTel = "Hotline: 0123 456 789";
     
         // Thermal receipt header

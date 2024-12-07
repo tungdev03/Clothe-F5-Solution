@@ -396,42 +396,42 @@ const InvoiceManagement = () => {
     //in hóa đơn
     const handlePrintInvoice = () => {
         if (!selectedInvoiceDetails) return;
-
+    
         const doc = new jsPDF({
             orientation: 'portrait',
             unit: 'mm',
             format: [80, 297] // Thermal printer width (80mm) and max length
         });
-
+    
         // Set up thermal receipt styling
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
-
+    
         // Store details
-        const storeName = "F5 Fashion";
-        const storeAddress = "123 Đường ABC, Phường XYZ, Quận 1, TP.HN";
+        const storeName = "SHOP THỜI TRANG";
+        const storeAddress = "123 Đường ABC, Phường XYZ, Quận 1, TP.HCM";
         const storeTel = "Hotline: 0123 456 789";
-
+    
         // Thermal receipt header
         doc.text(storeName, 40, 10, { align: 'center' });
         doc.setFontSize(8);
         doc.text(storeAddress, 40, 15, { align: 'center' });
         doc.text(storeTel, 40, 20, { align: 'center' });
         doc.line(5, 25, 75, 25); // Horizontal line
-
+    
         // Invoice details
         doc.setFontSize(9);
         doc.text(`Mã HĐ: ${selectedInvoiceDetails.maHoaDon}`, 10, 35);
         doc.text(`Ngày: ${new Date(selectedInvoiceDetails.ngayTao).toLocaleString()}`, 10, 40);
         doc.text(`Thu ngân: Hệ thống`, 10, 45);
         doc.line(5, 50, 75, 50); // Horizontal line
-
+    
         // Customer details
         doc.text(`KH: ${selectedInvoiceDetails.khachHang?.hoVaTenKh || 'Khách lẻ'}`, 10, 60);
         doc.text(`SĐT: ${selectedInvoiceDetails.khachHang?.soDienThoai || 'Không có'}`, 10, 65);
-
+    
         doc.line(5, 70, 75, 70); // Horizontal line
-
+    
         // Product details
         let y = 80;
         doc.setFontSize(8);
@@ -440,37 +440,37 @@ const InvoiceManagement = () => {
             const quantity = item.soLuong;
             const unitPrice = item.donGia;
             const totalPrice = item.thanhTien;
-
+    
             doc.text(productName, 10, y);
             doc.text(`${quantity} x ${unitPrice.toLocaleString('vi-VN')}`, 10, y + 5);
             doc.text(totalPrice.toLocaleString('vi-VN'), 65, y + 5, { align: 'right' });
             y += 15;
         });
-
+    
         doc.line(5, y, 75, y); // Horizontal line
-
+    
         // Total
         y += 10;
         doc.setFontSize(9);
         doc.text('Tổng cộng:', 10, y);
         doc.text(`${selectedInvoiceDetails.tongTien.toLocaleString('vi-VN')} VNĐ`, 65, y, { align: 'right' });
-
+    
         y += 10;
         doc.text('Tiền mặt:', 10, y);
         doc.text(`${selectedInvoiceDetails.tongTien.toLocaleString('vi-VN')} VNĐ`, 65, y, { align: 'right' });
-
+    
         y += 10;
         doc.text('Tiền thừa:', 10, y);
         doc.text('0 VNĐ', 65, y, { align: 'right' });
-
+    
         doc.line(5, y + 5, 75, y + 5); // Horizontal line
-
+    
         // Footer
         y += 15;
         doc.setFontSize(8);
         doc.text('Cảm ơn quý khách!', 40, y, { align: 'center' });
         doc.text('Hẹn gặp lại', 40, y + 5, { align: 'center' });
-
+    
         doc.save(`HoaDon_${selectedInvoiceDetails.maHoaDon}.pdf`);
     };
 

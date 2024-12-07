@@ -141,7 +141,6 @@ const NhanVienPage = () => {
             render: (text, record) => (
                 <Space size="middle">
                     <Button icon={<EditOutlined/>} onClick={() => handleEdit(record)}>Sửa</Button>
-                    <Button icon={<DeleteOutlined/>} onClick={() => handleDelete(record)}>Xóa</Button>
                 </Space>
             ),
         },

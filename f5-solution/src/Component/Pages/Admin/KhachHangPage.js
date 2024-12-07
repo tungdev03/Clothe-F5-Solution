@@ -40,11 +40,7 @@ const KhachHangPage = () => {
       const data = await AdminService.getKhachHangById(record.id);
       console.log(data)
       setEditingUser(data);
-      form.setFieldsValue({
-        ...data,
-        gioiTinh: data.gioiTinh ? 'Nam' : 'Nữ', // Chuyển đổi từ boolean thành chuỗi
-        ngaySinh: moment(data.ngaySinh).format('YYYY-MM-DD'),
-      });
+      form.setFieldsValue(data);
       setIsDrawerVisible(true);
     } catch (error) {
       message.error('Lỗi khi lấy chi tiết khách hàng.');
@@ -59,7 +55,10 @@ const KhachHangPage = () => {
 
   const handleFormSubmit = async (values) => {
     try {
+      const values = await form.validateFields();
       const userValues = {
+        ...editingUser,
+        ...values,
         id: values.id,
         maKh: values.maKh,
         hoVaTenKh: values.hoVaTenKh,
@@ -71,7 +70,7 @@ const KhachHangPage = () => {
         email: values.email,
         trangThai: 0,
       };
-
+      console.log(userValues)
       if (editingUser) {
         await AuthService.registerCustomer(userValues);
         message.success('Cập nhật khách hàng thành công!');
@@ -169,10 +168,11 @@ const KhachHangPage = () => {
     setCurrentPage(pagination.current);
   };
 
-  const onSearch = async (value) => {
+  const onSearch = async () => {
     setLoading(true)
     try {
-      const data = await AdminService.SearchCustomer(value.Keyword, value.IsPublic)
+      const data = await AdminService.SearchCustomer(Keyword)
+      
       if (Array.isArray(data)) {
         setKhachHangs(data);
         message.success('Tìm kiếm khách hàng thành công!');

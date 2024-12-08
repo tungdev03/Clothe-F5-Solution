@@ -46,13 +46,13 @@ const ContactPage = () => {
                     <Col xs={24} md={10}>
                         <h2>Thông tin liên hệ</h2>
                         <Divider />
-                        <p><EnvironmentOutlined style={{ marginRight: 8 }} /> Địa chỉ: 123 Đường ABC, Phường XYZ, TP. HCM</p>
-                        <p><MailOutlined style={{ marginRight: 8 }} /> Email: contact@company.com</p>
-                        <p><PhoneOutlined style={{ marginRight: 8 }} /> Điện thoại: (+84) 123 456 789</p>
+                        <p><EnvironmentOutlined style={{ marginRight: 8 }} /> Địa chỉ: ô 1+2, Ô quy hoạch E.2/NO7 đường Lâm Hạ, phường Bồ Đề, quận Long Biên, Hà Nội</p>
+                        <p><MailOutlined style={{ marginRight: 8 }} /> Email: nemcskh@stripe-vn.com</p>
+                        <p><PhoneOutlined style={{ marginRight: 8 }} /> Điện thoại: 096 684 1340</p>
                         <div className="contact-map">
                             <iframe
                                 title="Google Map"
-                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3724.8560510909437!2d105.79864711476347!3d20.998307386014857!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ac7338d1ecb1%3A0x626f3a30bbf93a0!2zVHLhuqduIFThuqFjIFbEg24gQ-G7rSB24buBIFRoYW5o!5e0!3m2!1sen!2s!4v1687445368523!5m2!1sen!2s"
+                                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d930.962006328982!2d105.8811543751388!3d21.038766047369574!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135a97b541e1301%3A0xfe2096787bd9051!2zUC4gTMOibSBI4bqhLCBC4buTIMSQ4buBLCBMb25nIEJpw6puLCBIw6AgTuG7mWksIFZp4buHdCBOYW0!5e0!3m2!1svi!2s!4v1733562181021!5m2!1svi!2s"
                                 width="100%"
                                 height="250"
                                 style={{ border: 0 }}

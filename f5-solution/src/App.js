@@ -11,14 +11,14 @@ import Cart from './Component/Pages/Shop/Card';
 import Profile from './Component/Pages/Shop/Profile';
 import LoginAdmin from './Component/Pages/Login/LoginAdmin';
 
-import ContactPage from './Component/Pages/Shop/ContactPage'; 
+import ContactPage from './Component/Pages/Shop/ContactPage';
 import AlbumPage from './Component/Pages/Shop/AlbumPage';
 import AlbumDetail from './Component/Pages/Shop/AlbumPageDetail';
 // import ProductList from './Component/Pages/Shop/ProductList';
 import AlbumList from './Component/Pages/Shop/AlbumList';
 import AlbumListDetail from './Component/Pages/Shop/AlbumListDetail';
 import Checkout from './Component/Pages/Shop/CheckoutPage';
-
+import Viewoderinformation from './Component/Pages/Shop/Vieworderinformation';
 import './App.css';
 
 function App() {
@@ -43,6 +43,7 @@ function App() {
           <Route path="/album-detail/:id" element={<AlbumListDetail />} />
 
           <Route path="/checkout" element={<Checkout />} />
+          <Route path="/order/:id" element={<Viewoderinformation />} />
         </Routes>
       </div>
     </Router>

@@ -34,9 +34,18 @@ const Cart = () => {
         setLoading(true); // Start loading
         setTimeout(() => {
             navigate('/'); // Redirect after a short delay
-        }, 2000); // Adjust delay as needed
+        }); // Adjust delay as needed
     };
-
+    const handleClickViewOder = () => {
+        setLoading(true);
+        setTimeout(() => {
+            setLoading(false);
+            message.success('Đang chuyển đến trang thông tin đơn hàng');
+            const orderId = 123;  // Giả sử đây là ID đơn hàng bạn muốn hiển thị
+            navigate(`/order/${orderId}`);  // Điều hướng đến route /order/{orderId}
+        }, 2000);
+    };
+    
     const handleLoginClick = () => {
         navigate('/login');
     };
@@ -204,6 +213,18 @@ const Cart = () => {
                             </Table.Summary.Row>
                         )}
                     />
+                    <Row justify="start" style={{ marginBottom: '20px', paddingLeft: '20px'}}>
+                    <Col>
+                            <Button
+                                type="primary"
+                                onClick={handleClickViewOder}
+                                style={{ backgroundColor: 'black', borderColor: 'black', height: '50px', width: '200px', marginRight: '10px' }}
+                                disabled={loading} // Disable button while loading
+                            >
+                                {loading ? <Spin size="small" /> : 'Xem thông tin đơn hàng'}
+                            </Button>
+                        </Col>
+                    </Row>
                     {/* Clear Cart Button */}
                     <Row justify="end" style={{ marginBottom: '20px' }}>
                         <Col>

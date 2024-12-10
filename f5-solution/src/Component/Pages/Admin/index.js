@@ -16,6 +16,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import NhanVienPage from './NhanVienPage';
 import KhachHangPage from './KhachHangPage';
 import ColorManager from './ColorManager';
+import ImageManagement from './ImageManagement';
 import SizeManagement from './SizeManagement';
 import MaterialManagement from './MaterialManagement';
 import InvoiceManagement from './InvoiceManagement';
@@ -82,6 +83,9 @@ const Dashboard = () => {
                 break;
             case '2-3-6':
                 setCurrentContent(<Brandmanagement />);
+                break;
+            case '2-3-7':
+                setCurrentContent(<ImageManagement />);
                 break;
             case '3-1':
                 setCurrentContent(<InvoiceManagement />);
@@ -173,6 +177,9 @@ const Dashboard = () => {
                             </Menu.Item>
                             <Menu.Item key="2-3-6" onClick={() => handleMenuClick('2-3-6')}>
                                 Quản lý thương hiệu
+                            </Menu.Item>
+                            <Menu.Item key="2-3-7" onClick={() => handleMenuClick('2-3-7')}>
+                                Quản lý hình ảnh
                             </Menu.Item>
                         </SubMenu>
                     </Menu.ItemGroup>

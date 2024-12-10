@@ -689,12 +689,12 @@ const InvoiceManagement = () => {
                                             }
                                         ]}
                                         dataSource={selectedInvoiceDetails.hoaDonChiTiets.map(item => ({
-                                            key: item.id, // Thêm key để React nhận diện từng hàng
+                                            key: item.id, 
                                             idSpct: item.idSpct,
                                             soLuong: item.soLuong,
                                             DonGia: item.donGia,
                                             thanhTien: item.thanhTien,
-                                            sanPham: item.sanPham // Đảm bảo rằng sanPham có thông tin cần thiết
+                                            sanPham: item.sanPham
                                         }))}
                                         pagination={false}
                                     />

@@ -18,7 +18,7 @@ import AlbumDetail from './Component/Pages/Shop/AlbumPageDetail';
 import AlbumList from './Component/Pages/Shop/AlbumList';
 import AlbumListDetail from './Component/Pages/Shop/AlbumListDetail';
 import Checkout from './Component/Pages/Shop/CheckoutPage';
-
+import ViewOrderInformation from './Component/Pages/Shop/ViewOrderInformation';
 import './App.css';
 
 function App() {
@@ -41,7 +41,7 @@ function App() {
           <Route path="/album/:id" element={<AlbumDetail />} />
           <Route path="/album-list/:collectionId" element={<AlbumList />} />
           <Route path="/album-detail/:id" element={<AlbumListDetail />} />
-
+          <Route path="/order/:id" element={<ViewOrderInformation />} />
           <Route path="/checkout" element={<Checkout />} />
         </Routes>
       </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShoppingCartOutlined, LogoutOutlined, DeleteTwoTone } from '@ant-design/icons';
-import { Layout, Menu, Button, Dropdown, Space, Input, Table, Row, Col, message, Spin,InputNumber } from 'antd';
+import { Layout, Menu, Button, Dropdown, Space, Input, Table, Row, Col, message, Spin, InputNumber } from 'antd';
 import logo_v1 from '../../../assets/images/Logo.png';
 import CustomHeader from "../../Layouts/Header/Header";  // Import CustomHeader
 import GioHangService from '../../../Service/GiohangService';
@@ -37,7 +37,7 @@ const Cart = () => {
         setLoading(true);
         try {
             const data = await GioHangService.getAllGioHang(userId);
-            
+
             setCartItems(data);
         } catch (error) {
             console.error("Failed to fetch cart items:", error);
@@ -74,7 +74,15 @@ const Cart = () => {
         setCartItems([]);
         message.success('Đã xóa giỏ hàng');
     };
-
+    const handleClickViewOder = () => {
+        setLoading(true);
+        setTimeout(() => {
+            setLoading(false);
+            message.success('Đang chuyển đến trang thông tin đơn hàng');
+            const orderId = 123;  // Giả sử đây là ID đơn hàng bạn muốn hiển thị
+            navigate(`/order/${orderId}`);  // Điều hướng đến route /order/{orderId}
+        }, 2000);
+    };
     const handleQuantityChange = async (value, record) => {
         if (value <= 0) {
             message.error("Số lượng phải lớn hơn 0");
@@ -84,7 +92,7 @@ const Cart = () => {
             // Tạo đối tượng cập nhật
             const updatedItem = { ...record, soLuong: value };
             await GioHangService.updateGioHang(record.id, value);
-    
+
             // Cập nhật lại danh sách giỏ hàng
             setCartItems((prevItems) =>
                 prevItems.map((item) =>
@@ -99,7 +107,7 @@ const Cart = () => {
             message.error(error.response?.data?.Message || "Cập nhật số lượng thất bại");
         }
     };
-    
+
     const columns = [
         {
             title: 'Hình Ảnh',
@@ -136,7 +144,7 @@ const Cart = () => {
             align: 'center',
         },
     ];
-    
+
     const handleCheckoutClick = () => {
         if (cartItems.length === 0) {
             message.warning("Giỏ hàng của bạn hiện tại không có sản phẩm để thanh toán. Bạn vui lòng chọn Sản Phẩm vào giỏ hàng !");
@@ -170,6 +178,16 @@ const Cart = () => {
                 )}
 
                 <Row justify="end" style={{ marginBottom: '20px' }}>
+                    <Col>
+                        <Button
+                            type="primary"
+                            onClick={handleClickViewOder}
+                            style={{ backgroundColor: 'black', borderColor: 'black', height: '50px', width: '200px', marginRight: '10px' }}
+                            disabled={loading}
+                        >
+                            {loading ? <Spin size="small" /> : 'Xem thông tin đơn hàng'}
+                        </Button>
+                    </Col>
                     <Col>
                         <Button type="danger" onClick={handleClearCart} style={{ width: '150px' }}>Xóa giỏ hàng</Button>
                     </Col>

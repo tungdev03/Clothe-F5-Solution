@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { UserOutlined, ShoppingCartOutlined, LogoutOutlined } from '@ant-design/icons';
-import { Layout, Menu, Button, Dropdown, Space, Input, Breadcrumb, Carousel, Card, message } from 'antd';
+import { Layout, Menu, Button, Dropdown, Space, Input, Breadcrumb, Carousel, Card, message,Slider } from 'antd';
 import logo_v1 from '../../../assets/images/Logo.png';
 import './Home.css';
 import './Product.css';
@@ -28,6 +28,11 @@ const ProductPage = () => {
     const [searchTerm, setSearchTerm] = useState("");
     const productsPerPage = 8;
     const [filteredProducts, setFilteredProducts] = useState(products);
+    const [selectedSize, setSelectedSize] = useState("all");
+    const [selectedColor, setSelectedColor] = useState("all");
+    const [selectedPrice, setSelectedPrice] = useState([0, 1000000]);
+
+
     useEffect(() => {
         const fetchNewProducts = async () => {
             setLoading(true);
@@ -45,12 +50,28 @@ const ProductPage = () => {
         fetchNewProducts();
     }, []);
     useEffect(() => {
-        // Lọc danh sách sản phẩm dựa trên từ khóa tìm kiếm
-        const result = products.filter(product =>
-            product.tenSp.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        setFilteredProducts(result);
-    }, [searchTerm]);
+    const filtered = products.filter((product) => {
+        const matchesSearch = product.tenSp.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchesColor =
+            selectedColor === 'all' ||
+            product.sanPhamChiTiets.some((detail) => detail.mauSac.tenMauSac === selectedColor);
+        const matchesSize =
+            selectedSize === 'all' ||
+            product.sanPhamChiTiets.some((detail) => detail.size.tenSize === selectedSize);
+            
+        
+        // Add the price range filter
+        const matchesPrice = product.giaBan >= selectedPrice[0] && product.giaBan <= selectedPrice[1]; // Kiểm tra giá sản phẩm
+
+      
+
+        return matchesSearch && matchesColor && matchesSize && matchesPrice;
+    });
+
+    setFilteredProducts(filtered);
+}, [searchTerm, selectedColor, selectedSize, selectedPrice, products]);
+
+
 
     useEffect(() => {
         // Check user info from localStorage
@@ -60,6 +81,26 @@ const ProductPage = () => {
             setUsername(user.TaiKhoan);
         }
     }, []);
+    const extractFilters = (products) => {
+        const colors = new Set();
+        const sizes = new Set();
+    
+        products.forEach((product) => {
+            product.sanPhamChiTiets.forEach((detail) => {
+                colors.add(detail.mauSac.tenMauSac);
+                sizes.add(detail.size.tenSize);
+            });
+        });
+    
+        return {
+            colors: Array.from(colors), // Chuyển Set thành Array
+            sizes: Array.from(sizes),
+        };
+    };
+    
+    // Gọi hàm này trong useEffect để khởi tạo giá trị cho bộ lọc
+    const { colors, sizes } = extractFilters(products);
+    
     const startIndex = (currentPage - 1) * productsPerPage;
     const endIndex = startIndex + productsPerPage;
     const currentProducts = products.slice(startIndex, endIndex);
@@ -95,6 +136,9 @@ const ProductPage = () => {
     };
     const handleMenuClick = ({ key }) => {
         navigate(key); // Navigate to the corresponding route
+    };
+    const handlePriceChange = (value) => {
+        setSelectedPrice(value);
     };
 
     const userMenu = (
@@ -280,37 +324,54 @@ const ProductPage = () => {
                     <div className="product-header">
                         <h2>TẤT CẢ SẢN PHẨM</h2>
                         <div className="filters">
-                            <div className="filter-item">
-                                <label htmlFor="size">Size:</label>
-                                <select id="size" name="size">
-                                    <option value="all">All Sizes</option>
-                                    <option value="s">S</option>
-                                    <option value="m">M</option>
-                                    <option value="l">L</option>
-                                    <option value="xl">XL</option>
-                                </select>
-                            </div>
-                            <div className="filter-item">
-                                <label htmlFor="color">Color:</label>
-                                <select id="color" name="color">
-                                    <option value="all">All Colors</option>
-                                    <option value="red">Red</option>
-                                    <option value="blue">Blue</option>
-                                    <option value="green">Green</option>
-                                    <option value="black">Black</option>
-                                </select>
-                            </div>
-                            <div className="filter-item">
-                                <label htmlFor="price">Price:</label>
-                                <select id="price" name="price">
-                                    <option value="all">All Prices</option>
-                                    <option value="0-50">0-50</option>
-                                    <option value="50-100">50-100</option>
-                                    <option value="100-200">100-200</option>
-                                    <option value="200+">200+</option>
-                                </select>
-                            </div>
+                        <div className="filter-item">
+                            <label htmlFor="color">Color:</label>
+                            <select
+                                id="color"
+                                name="color"
+                                value={selectedColor}
+                                onChange={(e) => setSelectedColor(e.target.value)}
+                            >
+                                <option value="all">All Colors</option>
+                                {colors.map((color) => (
+                                    <option key={color} value={color}>
+                                        {color}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
+                        <div className="filter-item">
+                            <label htmlFor="size">Size:</label>
+                            <select
+                                id="size"
+                                name="size"
+                                value={selectedSize}
+                                onChange={(e) => setSelectedSize(e.target.value)}
+                            >
+                                <option value="all">All Sizes</option>
+                                {sizes.map((size) => (
+                                    <option key={size} value={size}>
+                                        {size}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        {/* New Price Range Filters */}
+                        <div className="filter-item">
+                        <label htmlFor="price">Price:</label>
+                        <Slider
+                            range
+                            min={0}
+                            max={1000000}
+                            step={10000}
+                            defaultValue={selectedPrice}
+                            onChange={handlePriceChange}
+                            value={selectedPrice}
+                            tipFormatter={value => `${value.toLocaleString()} VNĐ`}
+                            style={{ width: '200px' }}
+                        />
+                    </div>
+                    </div>
                     </div>
                     <div
                         style={{
@@ -320,45 +381,44 @@ const ProductPage = () => {
                             gap: '16px',
                         }}
                     >
-                        {currentProducts.map((product) => (
-                            <div
-                                key={product.id}
-                                style={{
-                                    flex: '0 0 calc(25% - 16px)', // Mỗi sản phẩm chiếm 25% chiều rộng
-                                    boxSizing: 'border-box',
-                                }}
-                                className="product-card"
-                            >
-                                <Card
-                                    hoverable
-                                    cover={
-                                        <img
-                                            alt={product.tenSp}
-                                            src={product.imageDefaul}
-                                            style={{
-                                                width: '100%',
-                                                height: "100%",
-                                                objectFit: 'cover', // Đảm bảo ảnh không bị méo
-                                            }}
-                                        />
-                                    }
-                                >
-                                    <Meta
-                                        title={product.tenSp}
-                                        description={`${product.giaBan.toLocaleString()} VNĐ`}
+                    {filteredProducts.slice(startIndex, endIndex).map((product) => (
+                        <div
+                            key={product.id}
+                            style={{
+                                flex: '0 0 calc(25% - 16px)',
+                                boxSizing: 'border-box',
+                            }}
+                            className="product-card"
+                        >
+                            <Card
+                                hoverable
+                                cover={
+                                    <img
+                                        alt={product.tenSp}
+                                        src={product.imageDefaul}
+                                        style={{
+                                            width: '100%',
+                                            height: "100%",
+                                            objectFit: 'cover',
+                                        }}
                                     />
-                                </Card>
-                                {/* Lớp phủ khi hover */}
-                                <div className="overlay">
-                                    <button
-                                        className="view-more-button"
-                                        onClick={() => handleViewMore(product.id)}
-                                    >
-                                        Xem thêm
-                                    </button>
-                                </div>
+                                }
+                            >
+                                <Meta
+                                    title={product.tenSp}
+                                    description={`${product.giaBan.toLocaleString()} VNĐ`}
+                                />
+                            </Card>
+                            <div className="overlay">
+                                <button
+                                    className="view-more-button"
+                                    onClick={() => handleViewMore(product.id)}
+                                >
+                                    Xem thêm
+                                </button>
                             </div>
-                        ))}
+                        </div>
+                    ))}
                     </div>
                     <div style={{ textAlign: 'center', marginTop: '20px' }}>
                         <Button

@@ -249,7 +249,6 @@ function Checkout() {
     setLoading(true);
     setError(null)
     try {
-        // Gọi API VNPay để lấy URL thanh toán
         const response = await GioHangService.VNPayPayment({
             customerId: userId, 
             orderInfo: {

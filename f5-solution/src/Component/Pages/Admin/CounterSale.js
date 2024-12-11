@@ -626,6 +626,7 @@ const CounterSale = () => {
                     open={isProductSelectVisible}
                     onCancel={closeProductModal}
                     footer={null}
+                    width={1000}
                 >
                     <List
                         dataSource={productList} // Dữ liệu sản phẩm từ API

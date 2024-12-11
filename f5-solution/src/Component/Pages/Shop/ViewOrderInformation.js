@@ -22,12 +22,12 @@ const ViewOrderInformation = () => {
   const [loading, setLoading] = useState(false);
   const [cartItems, setCartItems] = useState([]);
   const [statusOptions] = useState([
-    { value: 1, label: 'Đang xử lý' },
-    { value: 2, label: 'Đã giao' },
-    { value: 3, label: 'Chờ xác nhận' },
-    { value: 4, label: 'Đã hủy' },
+    { value: 1, label: 'Chờ xác nhận' },
+    { value: 2, label: 'Đã xác nhận' },
+    { value: 3, label: 'Chờ giao' },
+    { value: 4, label: 'Đang giao hàng' },
     { value: 5, label: 'Đã hoàn tất' },
-    { value: 6, label: 'Đang thanh toán' }
+    { value: 6, label: 'Đã hủy đơn' }
   ]);
 
   const [orderDetailsVisible, setOrderDetailsVisible] = useState(false);

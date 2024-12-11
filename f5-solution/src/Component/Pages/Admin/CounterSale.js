@@ -4,12 +4,14 @@ import { Table, Button, Input, Form, Select, Row, Col, Card, Tag, Modal, notific
 import { PlusOutlined, DeleteOutlined, EditOutlined, MinusOutlined } from '@ant-design/icons';
 import './CounterSale.css';
 import Anh1 from './Anh1.png';
+import AdminService from '../../../Service/AdminService';
+import AuthService from '../../../Service/AuthService';
 
 const { Option } = Select;
 
+
 const CounterSale = () => {
     // Định nghĩa hàm fetchInvoices ngoài useEffect
-    
     const fetchInvoices = async () => {
         try {
             const response = await axios.get('https://localhost:7030/api/HoaDon');
@@ -18,29 +20,24 @@ const CounterSale = () => {
             }
 
             const data = response.data;
-            // Log để kiểm tra dữ liệu
-            console.log("Customer data:", data[0]?.idKhNavigation);
-            console.log("Staff data:", data[0]?.idNvNavigation);
+
             const filteredData = data.map(item => ({
                 key: item.id,
                 code: item.maHoaDon,
-                customer: item.idKhNavigation?.hoVaTenKh || 'Không có',
+                customer: item.idKhNavigation?.hoVaTenKh || 'hệ thống',
                 dateCreated: item.ngayTao ? new Date(item.ngayTao).toLocaleString() : 'Chưa xác định',
                 staff: item.idNvNavigation?.HoVaTenNv || 'Không có',
+                TenNguoiNhan:item.TenNguoiNhan,
                 type: item.loaiHoaDon,
                 status: item.trangThai,
             }));
             setInvoices(filteredData);
-            console.log(filteredData)
         } catch (error) {
             console.error("Error fetching invoice data:", error);
             message.error("Không thể tải dữ liệu hóa đơn.");
         }
     };
 
-    useEffect(() => {
-        fetchInvoices();
-    }, []);
 
     const [invoices, setInvoices] = useState([]);
     const [invoiceDetails, setInvoiceDetails] = useState([]);
@@ -67,9 +64,41 @@ const CounterSale = () => {
     const handleSelectCustomer = (customer) => {
         setSelectedCustomer(customer);  // Lưu toàn bộ thông tin khách hàng vào state
         setIsCustomerSelectVisible(false);  // Đóng modal chọn khách hàng
-        console.log(customer)
     };
 
+    const handleModalClose = () => {
+        setIsModalVisible(false); // Đặt trạng thái Modal về `false` để đóng Modal
+      };
+
+    const handleFormSubmit = async () => {
+        try {
+            const values = await form.validateFields();
+            const newCustomer = {
+                maKh: values.maKh,
+                hoVaTenKh: values.hoVaTenKh,
+                gioiTinh: values.gioiTinh === 'Nam', // Chuyển đổi giới tính thành boolean
+                ngaySinh: values.ngaySinh,
+                taiKhoan: values.taiKhoan || 'string', // Giá trị mặc định
+                matKhau: values.matKhau || 'string', // Giá trị mặc định
+                soDienThoai: values.soDienThoai,
+                email: values.email,
+                trangThai: 0, // Trạng thái mặc định là 0
+              };
+              await AuthService.registerCustomer(newCustomer); // Ensure this is awaited
+            message.success("Thêm mới khách hàng thành công");
+            handleModalClose();
+            await fetchCustomers();
+
+        } catch (error) {
+            if (error.response && error.response.data) {
+                console.error("Error response data:", error.response.data);
+                message.error(`Lỗi: ${error.response.data}`);
+            } else {
+                message.error("Lỗi không xác định khi xử lý dữ liệu");
+            }
+        }
+    };
+            
     // Hàm lấy dữ liệu sản phẩm từ API
     useEffect(() => {
         let isMounted = true;
@@ -107,23 +136,25 @@ const CounterSale = () => {
     }, []);
 
     const [customerList, setCustomerList] = useState([]);
+    const fetchCustomers = async () => {
+        try {
+            const response = await axios.get('https://localhost:7030/api/KhachHang');
+            const data = response.data;
+            const filteredData = data.map(item => ({
+                key: item.id,
+                name: item.hoVaTenKh,
+                phone: item.soDienThoai,
+            }));
+            setCustomerList(filteredData);
+        } catch (error) {
+            console.error("Error fetching customer data:", error);
+            message.error("Không thể tải dữ liệu khách hàng.");
+        }
+    };
+    fetchCustomers();
     useEffect(() => {
-        const fetchCustomers = async () => {
-            try {
-                const response = await axios.get('https://localhost:7030/api/KhachHang');
-                const data = response.data;
-                const filteredData = data.map(item => ({
-                    key: item.id,
-                    name: item.hoVaTenKh,
-                    phone: item.soDienThoai,
-                }));
-                setCustomerList(filteredData);
-            } catch (error) {
-                console.error("Error fetching customer data:", error);
-                message.error("Không thể tải dữ liệu khách hàng.");
-            }
-        };
         fetchCustomers();
+        fetchInvoices();
     }, []);
 
 
@@ -209,17 +240,17 @@ const CounterSale = () => {
         ));
     };
 
-    const handleDeleteInvoice = async (key) => {
-        try {
-            await axios.delete(`https://localhost:7030/api/HoaDon/${key}`);
-            setInvoices(invoices.filter(invoice => invoice.key !== key));
-            notification.success({ message: 'Hóa đơn đã bị xóa!' });
+    // const handleDeleteInvoice = async (key) => {
+    //     try {
+    //         await axios.delete(`https://localhost:7030/api/HoaDon/${key}`);
+    //         setInvoices(invoices.filter(invoice => invoice.key !== key));
+    //         notification.success({ message: 'Hóa đơn đã bị xóa!' });
 
-        } catch (error) {
-            notification.error({ message: 'Xóa hóa đơn không thành công!' });
-        }
+    //     } catch (error) {
+    //         notification.error({ message: 'Xóa hóa đơn không thành công!' });
+    //     }
 
-    };
+    // };
     const handleDeleteProduct = (key) => {
         setInvoiceDetails(invoiceDetails.filter(product => product.key !== key));
         notification.success({ message: 'Sản phẩm đã bị xóa!' });
@@ -231,6 +262,7 @@ const CounterSale = () => {
             id: product.id,
             idSpct: product.idSpct,
             product: product.name,
+            image:product.image,
             quantity: 1,
             unitPrice: product.price,
             totalPrice: product.price
@@ -283,14 +315,16 @@ const CounterSale = () => {
                     console.error("Không tìm thấy dữ liệu trong localStorage!");
                     return;
                 }
-                console.log("Kiểu dữ liệu của IDNhanvien:", IdNhanVien);
 
                 // Dữ liệu cần gửi tới API
                 const invoiceData = {
                     idKh: selectedCustomer.key,
-                    idNv: IdNhanVien || null, // Thay thế bằng ID nhân viên thực tế
-                    loaiHoaDon: 1, // Hóa đơn tại quầy
-                    trangThai: 1,
+                    idNv: IdNhanVien || null, 
+                    TenNguoiNhan: selectedCustomer ? selectedCustomer.name : '', 
+                    SdtnguoiNhan:selectedCustomer.phone,
+                    TienKhachTra:amountPaid,
+                    loaiHoaDon: 1, 
+                    trangThai: 5,
                     hoaDonChiTiets: invoiceDetails.map(detail => ({
                         idSpct: detail.idSpct, // Sử dụng idSpct thay vì productId
                         soLuong: detail.quantity,
@@ -309,8 +343,13 @@ const CounterSale = () => {
                 // Gọi API thêm hóa đơn
                 const response = await axios.post('https://localhost:7030/api/HoaDon', invoiceData);
                 // Kiểm tra nếu trả về status 201 thì là thành công
-                if (response.status === 201) {
-                    notification.success({ message: 'Thanh toán thành công!' });
+                if (response.status === 200) {
+                    notification.success({ 
+                        message: 'Thanh toán thành công!',
+                        description: 'Hóa đơn đã được tạo thành công.',
+                        duration: 3 // Hiển thị thông báo trong 3 giây
+                    });
+            
                     setInvoices([...invoices, response.data]);
                     setPaymentStatus('Đã thanh toán');
                     // Reset form sau khi thanh toán thành công
@@ -356,30 +395,91 @@ const CounterSale = () => {
     });
 
     const columnsInvoices = [
-        { title: 'Mã Hóa Đơn', dataIndex: 'code', key: 'code' },
-        { title: 'Nhân Viên', dataIndex: 'staff', key: 'staff' },
-        { title: 'Ngày Tạo', dataIndex: 'dateCreated', key: 'dateCreated' },
-        { title: 'Khách Hàng', dataIndex: 'customer', key: 'customer' },
-        { title: 'Loại Đơn', dataIndex: 'type', key: 'type' },
+        { title: 'Mã Hóa Đơn', dataIndex: 'code', key: 'code', align: "center", },
+       // { title: 'Nhân Viên', dataIndex: 'staff', key: 'staff', align: "center", },
+        { title: 'Ngày Tạo', dataIndex: 'dateCreated', key: 'dateCreated', align: "center", },
+        { title: 'Khách Hàng', dataIndex: 'customer', key: 'customer', align: "center",render: (customer, record) => {
+            return customer ? customer : record.TenNguoiNhan;
+        }, },
         {
-            title: 'Trạng Thái', dataIndex: 'status', key: 'status',
-            render: status => <Tag color={status === 'Đã thanh toán' ? 'green' : 'blue'}>{status}</Tag>
+            title: 'Loại Đơn', dataIndex: 'type', key: 'type',
+            render: (type) => {
+                let color = 'green';
+                switch (type) {
+                    case 1:
+                        color = 'blue';
+                        break;
+                    case 2:
+                        color = 'red';
+                        break;
+                    default:
+                        color = 'grey';
+                }
+                const typeText = loaiDon[type] || "Không xác định";
+                return <Tag color={color}>{typeText}</Tag>;
+            },
+            align: "center",
         },
         {
-            title: 'Thao tác', key: 'action',
-            render: (text, record) => (
-                <Space size="middle">
-                    <Button icon={<DeleteOutlined />} onClick={() => handleDeleteInvoice(record.key)} danger>Xóa</Button>
-                </Space>
-            )
-        }
+            title: 'Trạng thái',
+            dataIndex: 'status',
+            key: 'status',
+            render: (status) => {
+                let color = 'green';
+                switch (status) {
+                    case 1:
+                        color = 'red';
+                        break;
+                    case 2:
+                        color = 'blue';
+                        break;
+                    case 3:
+                        color = 'orange';
+                        break;
+                    case 4:
+                        color = 'cyan';
+                        break;
+                    case 5:
+                        color = 'green';
+                        break;
+                    case 6:
+                        color = 'yellow';
+                        break;
+                    default:
+                        color = 'grey';
+                }
+                const statusText = statusMapping[status] || "Không xác định";
+                return <Tag color={color}>{statusText}</Tag>;
+            },
+            align: "center",
+        },
+        // {
+        //     title: 'Thao tác', key: 'action',
+        //     render: (text, record) => (
+        //         <Space size="middle">
+        //             <Button icon={<DeleteOutlined />} onClick={() => handleDeleteInvoice(record.key)} danger>Xóa</Button>
+        //         </Space>
+        //     ),
+        //     align: "center",
+        // }
     ];
-
+    const statusMapping = {
+        1: "Chờ xác nhận",
+        2: "Đã xác nhận",
+        3: "Chờ giao",
+        4: "Đang giao",
+        5: "Hoàn thành",
+        6: "Đơn hủy"
+    };
+    const loaiDon = {
+        1: "Tại quầy",
+        2: "Online"
+    };
 
     const columnsProductDetails = [
-        { title: 'STT', dataIndex: 'key', key: 'stt' },
-        { title: 'Ảnh', dataIndex: 'image', key: 'image', render: image => <img src={image} alt="Product" style={{ width: 50 }} /> },
-        { title: 'Sản phẩm', dataIndex: 'product', key: 'product' },
+        { title: 'STT', dataIndex: 'key', key: 'stt', align: "center", },
+        { title: 'Ảnh', dataIndex: 'image', key: 'image', render: image => <img src={image} alt="Product" style={{ width: 50 }} />, align: "center", },
+        { title: 'Sản phẩm', dataIndex: 'product', key: 'product', align: "center", },
         {
             title: 'Số lượng', dataIndex: 'quantity', key: 'quantity',
             render: (quantity, record) => (
@@ -388,19 +488,21 @@ const CounterSale = () => {
                     {quantity}
                     <Button icon={<PlusOutlined />} onClick={() => increaseQuantity(record.key)} />
                 </Space>
-            )
+            ), align: "center",
         },
         {
             title: 'Đơn giá',
             dataIndex: 'unitPrice',
             key: 'unitPrice',
-            render: price => `${price.toLocaleString('vi-VN')} vnđ`
+            render: price => `${price.toLocaleString('vi-VN')} vnđ`,
+            align: "center",
         },
         {
             title: 'Tổng tiền',
             dataIndex: 'totalPrice',
             key: 'totalPrice',
-            render: total => `${total.toLocaleString('vi-VN')} vnđ`
+            render: total => `${total.toLocaleString('vi-VN')} vnđ`,
+            align: "center",
         },
         {
             title: 'Thao tác', key: 'action',
@@ -408,20 +510,29 @@ const CounterSale = () => {
                 <Space size="middle">
                     <Button icon={<DeleteOutlined />} onClick={() => handleDeleteProduct(record.key)} danger>Xóa</Button>
                 </Space>
-            )
+            ),
+            align: "center",
         }
     ];
     // Đóng modal
     const closeProductModal = () => {
         setIsProductSelectVisible(false);
     };
+
+    const handleModalOpen = () => {
+        setIsModalVisible(true); // Đặt trạng thái Modal về `true` để mở Modal
+      };
     return (
 
         <div className="counter-sale-container">
             <div className="invoice-section">
                 <Input placeholder="Tìm kiếm hóa đơn..." value={searchText} onChange={e => setSearchText(e.target.value)} style={{ marginBottom: 20, width: 300 }} />
-                <Button icon={<PlusOutlined />} onClick={() => setIsModalVisible(true)}>Tạo hóa đơn mới</Button>
-                <Table columns={columnsInvoices} dataSource={filteredInvoices} pagination={false} />
+                <Table columns={columnsInvoices} dataSource={filteredInvoices} pagination={false} // Tắt phân trang
+                    scroll={{
+                        y: 300,
+                    }}
+                    style={{ overflowX: "hidden" }} // Ẩn cuộn ngang
+                />
             </div>
 
             <div className="product-details-section">
@@ -436,7 +547,10 @@ const CounterSale = () => {
                             <Form.Item label="Tên khách hàng">
                                 <Input value={selectedCustomer ? selectedCustomer.name : ''} readOnly />
                             </Form.Item>
-                            <Form.Item><Button onClick={() => setIsCustomerSelectVisible(true)}>Chọn khách hàng</Button></Form.Item>
+                            <div style={{ display: "flex" }}>
+                                <Form.Item><Button onClick={() => setIsCustomerSelectVisible(true)}>Chọn khách hàng</Button></Form.Item>
+                                <Form.Item><Button  onClick={handleModalOpen}>Thêm khách hàng mới</Button></Form.Item>
+                            </div>
                         </Form>
                     </Card>
                 </Col>
@@ -512,6 +626,7 @@ const CounterSale = () => {
                     open={isProductSelectVisible}
                     onCancel={closeProductModal}
                     footer={null}
+                    width={1000}
                 >
                     <List
                         dataSource={productList} // Dữ liệu sản phẩm từ API
@@ -549,6 +664,76 @@ const CounterSale = () => {
                         </List.Item>
                     )}
                 />
+            </Modal>
+
+            <Modal
+                title="Thêm khách hàng"
+                visible={isModalVisible}
+                onCancel={handleModalClose}
+                footer={null}
+                width={720}
+            >
+                <Form form={form} layout="vertical" onFinish={handleFormSubmit}>
+                    <Form.Item
+                        name="maKh"
+                        label="Mã KH"
+                        rules={[{ required: true, message: 'Vui lòng nhập mã khách hàng!' }]}
+                    >
+                        <Input placeholder="Nhập mã khách hàng" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="hoVaTenKh"
+                        label="Họ và Tên"
+                        rules={[{ required: true, message: 'Vui lòng nhập họ và tên!' }]}
+                    >
+                        <Input placeholder="Nhập họ và tên" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="gioiTinh"
+                        label="Giới Tính"
+                        rules={[{ required: true, message: 'Vui lòng chọn giới tính!' }]}
+                    >
+                        <Select placeholder="Chọn giới tính">
+                            <Option value="Nam">Nam</Option>
+                            <Option value="Nữ">Nữ</Option>
+                        </Select>
+                    </Form.Item>
+
+                    <Form.Item
+                        name="ngaySinh"
+                        label="Ngày Sinh"
+                        rules={[{ required: true, message: 'Vui lòng chọn ngày sinh!' }]}
+                    >
+                        <Input type="date" placeholder="Chọn ngày sinh" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="soDienThoai"
+                        label="Số Điện Thoại"
+                        rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
+                    >
+                        <Input placeholder="Nhập số điện thoại" />
+                    </Form.Item>
+
+                    <Form.Item
+                        name="email"
+                        label="Email"
+                        rules={[{ required: true, message: 'Vui lòng nhập email!' }]}
+                    >
+                        <Input type="email" placeholder="Nhập email" />
+                    </Form.Item>
+
+                    <div style={{ textAlign: 'right' }}>
+                        <Button onClick={handleModalClose} style={{ marginRight: 8 }}>
+                            Hủy
+                        </Button>
+                        <Button type="primary" htmlType="submit">
+                            Thêm mới
+                        </Button>
+                    </div>
+                </Form>
             </Modal>
         </div>
 

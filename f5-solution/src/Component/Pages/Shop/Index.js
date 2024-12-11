@@ -185,7 +185,7 @@ const Home = () => {
             {/* Carousel cho khuyến mãi */}
             <Carousel autoplay>
               <div>
-                <img src='https://theme.hstatic.net/200000182297/1000887316/14/ms_banner_img2_master.jpg?v=1496' alt="Banner 1" style={{ width: '100%' }} />
+                <img src='https://theme.hstatic.net/200000182297/1000887316/14/ms_banner_img2_master.jpg?v=1633' alt="Banner 1" style={{ width: '100%' }} />
               </div>
               <div>
                 <img src='https://theme.hstatic.net/200000182297/1000887316/14/ms_banner_img1_master.jpg?v=1523' alt="Banner 2" style={{ width: '100%' }} />

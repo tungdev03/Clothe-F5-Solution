@@ -34,7 +34,7 @@ const Profile = () => {
         try {
             const data = await AdminService.getKhachHangBymaKH(maKh);  // Gọi API với MaKh đã được gán
             setUserProfile({
-                hoVaTenKh: data.hoVaTenKh,
+                hoVaTenKh: data.hoVaTenKh, 
                 TaiKhoan: data.TaiKhoan,
                 fullName: data.fullName,
                 email: data.email,

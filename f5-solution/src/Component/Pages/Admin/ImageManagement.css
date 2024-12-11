@@ -1,0 +1,12 @@
+.image-management {
+    padding: 20px;
+    background-color: #f0f2f5;
+}
+
+.image-management h2 {
+    margin-bottom: 20px;
+}
+
+.ant-table img {
+    border-radius: 8px;
+}

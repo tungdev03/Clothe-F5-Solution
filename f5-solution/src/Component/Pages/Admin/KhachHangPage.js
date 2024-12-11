@@ -40,11 +40,7 @@ const KhachHangPage = () => {
       const data = await AdminService.getKhachHangById(record.id);
       console.log(data)
       setEditingUser(data);
-      form.setFieldsValue({
-        ...data,
-        gioiTinh: data.gioiTinh ? 'Nam' : 'Nữ', // Chuyển đổi từ boolean thành chuỗi
-        ngaySinh: moment(data.ngaySinh).format('YYYY-MM-DD'),
-      });
+      form.setFieldsValue(data);
       setIsDrawerVisible(true);
     } catch (error) {
       message.error('Lỗi khi lấy chi tiết khách hàng.');
@@ -59,11 +55,14 @@ const KhachHangPage = () => {
 
   const handleFormSubmit = async (values) => {
     try {
+      const values = await form.validateFields();
       const userValues = {
-        id: values.id,
-        maKh: values.maKh,
+        ...editingUser,
+        ...values,
+        // id: values.id,
+        // maKh: values.maKh,
         hoVaTenKh: values.hoVaTenKh,
-        gioiTinh: values.gioiTinh === 'Nam', // Chuyển đổi từ chuỗi thành boolean
+        gioiTinh: values.gioiTinh === 'Nam', 
         ngaySinh: values.ngaySinh,
         taiKhoan: values.taiKhoan || 'string',
         matKhau: values.matKhau || 'string',
@@ -71,10 +70,14 @@ const KhachHangPage = () => {
         email: values.email,
         trangThai: 0,
       };
-
+      console.log(userValues)
       if (editingUser) {
         await AuthService.registerCustomer(userValues);
         message.success('Cập nhật khách hàng thành công!');
+      }
+      else{
+        await AuthService.registerCustomer(userValues);
+        message.success('Thêm khách hàng mới thành công');
       }
       handleDrawerClose();
       fetchKhachHangs();
@@ -105,11 +108,11 @@ const KhachHangPage = () => {
       render: (_, __, index) => (currentPage - 1) * pageSize + index + 1,
       width: 70,
     },
-    {
-      title: 'Mã KH',
-      dataIndex: 'maKh',
-      key: 'maKh',
-    },
+    // {
+    //   title: 'Mã KH',
+    //   dataIndex: 'maKh',
+    //   key: 'maKh',
+    // },
     {
       title: 'Họ và Tên',
       dataIndex: 'hoVaTenKh',
@@ -169,10 +172,11 @@ const KhachHangPage = () => {
     setCurrentPage(pagination.current);
   };
 
-  const onSearch = async (value) => {
+  const onSearch = async () => {
     setLoading(true)
     try {
-      const data = await AdminService.SearchCustomer(value.Keyword, value.IsPublic)
+      const data = await AdminService.SearchCustomer(Keyword)
+      
       if (Array.isArray(data)) {
         setKhachHangs(data);
         message.success('Tìm kiếm khách hàng thành công!');
@@ -254,13 +258,13 @@ const KhachHangPage = () => {
         width={720}
       >
         <Form form={form} layout="vertical" onFinish={handleFormSubmit}>
-          <Form.Item
+          {/* <Form.Item
             name="maKh"
             label="Mã KH"
             rules={[{ required: true, message: 'Vui lòng nhập mã khách hàng!' }]}
           >
             <Input placeholder="Nhập mã khách hàng" />
-          </Form.Item>
+          </Form.Item> */}
 
           <Form.Item
             name="hoVaTenKh"
@@ -284,15 +288,15 @@ const KhachHangPage = () => {
           <Form.Item
             name="ngaySinh"
             label="Ngày Sinh"
-            rules={[{ required: true, message: 'Vui lòng chọn ngày sinh!' }]}
+            rules={[{ required: false, message: 'Vui lòng chọn ngày sinh!' }]}
           >
-            <Input type="false" placeholder="Chọn ngày sinh" />
+            <Input type="date" placeholder="Chọn ngày sinh" />
           </Form.Item>
 
           <Form.Item
             name="soDienThoai"
             label="Số Điện Thoại"
-            rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
+            rules={[{ required: false, message: 'Vui lòng nhập số điện thoại!' }]}
           >
             <Input placeholder="Nhập số điện thoại" />
           </Form.Item>
@@ -300,7 +304,7 @@ const KhachHangPage = () => {
           <Form.Item
             name="email"
             label="Email"
-            rules={[{ required: true, message: 'Vui lòng nhập email!' }]}
+            rules={[{ required: false, message: 'Vui lòng nhập email!' }]}
           >
             <Input type="email" placeholder="Nhập email" />
           </Form.Item>

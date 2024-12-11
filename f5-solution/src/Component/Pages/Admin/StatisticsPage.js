@@ -3,6 +3,7 @@ import { Card, Statistic, Row, Col, DatePicker } from "antd";
 import { ArrowUpOutlined, ArrowDownOutlined } from "@ant-design/icons";
 import { Column, Pie } from "@ant-design/plots";
 import StatisticsService from "../../../Service/StatisticsService";
+import moment from "moment"; // Import moment để xử lý ngày tháng
 
 const { RangePicker } = DatePicker;
 
@@ -21,6 +22,7 @@ const StatisticsPage = () => {
 
   useEffect(() => {
     const fetchStatistics = async () => {
+      console.log("Fetching statistics with date range:", startDate, endDate);
       try {
         // Lấy tổng doanh thu
         const revenue = await StatisticsService.getTotalRevenue(startDate, endDate);
@@ -42,7 +44,8 @@ const StatisticsPage = () => {
         const monthlyRevenueData = await StatisticsService.getMonthlyRevenue(year);
         setMonthlyRevenue(monthlyRevenueData);
       } catch (err) {
-        setError(err);
+        console.error("Error fetching statistics:", err);
+        setError(err.response?.data || "Lỗi không xác định");
       }
     };
 
@@ -56,10 +59,20 @@ const StatisticsPage = () => {
     smooth: true,
   };
 
+  // Chuyển trạng thái đơn hàng sang tiếng Việt
+  const orderStatusInVietnamese = {
+    "Pending": "Chờ xử lý",
+    "Shipped": "Đã giao",
+    "Delivered": "Đã nhận",
+    "Cancelled": "Đã hủy",
+    "Confirmed": "Đã xác nhận"
+    // Thêm các trạng thái khác nếu có
+  };
+
   const pieConfig = {
     appendPadding: 10,
     data: Object.entries(orderStatusCounts).map(([status, count]) => ({
-      type: status,
+      type: orderStatusInVietnamese[status] || status, // Dịch trạng thái nếu có trong object `orderStatusInVietnamese`
       value: count,
     })),
     angleField: "value",
@@ -68,6 +81,7 @@ const StatisticsPage = () => {
   };
 
   const handleDateChange = (dates) => {
+    console.log("Selected Dates:", dates);
     setDateRange(dates);
   };
 

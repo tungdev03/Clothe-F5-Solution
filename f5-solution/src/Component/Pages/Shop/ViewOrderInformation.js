@@ -45,6 +45,8 @@ const ViewOrderInformation = () => {
         try {
           const response = await fetch(`https://localhost:7030/api/HoaDon/by-makh/${user.IdKhachhang}`);
           const data = await response.json();
+          console.log(data);
+          
           if (response.ok) {
             setCartItems(data); // Set the fetched order data
           } else {
@@ -237,35 +239,47 @@ const ViewOrderInformation = () => {
             expandedRowRender={record => (
               <div>
                 <Row gutter={24}>
-                  <Col span={6}>
+                  <Col span={4}>
                     <Text strong>Hình ảnh</Text>
                   </Col>
-                  <Col span={6}>
+                  <Col span={4}>
                     <Text strong>Sản phẩm</Text>
                   </Col>
-                  <Col span={6}>
+                  <Col span={4}>
+                    <Text strong>Size</Text>
+                  </Col>
+                  <Col span={4}>
+                    <Text strong>Màu sắc</Text>
+                  </Col>
+                  <Col span={4}>
                     <Text strong>Số lượng</Text>
                   </Col>
-                  <Col span={6}>
+                  <Col span={4}>
                     <Text strong>Đơn giá</Text>
                   </Col>
                 </Row>
                 {record.hoaDonChiTiets.map((detail) => (
                   <Row key={detail.id} gutter={24}>
-                    <Col span={6}>
+                    <Col span={4}>
                       <Image
                         src={detail.sanPham.anh}
                         width={50}
                         height={50}
                       />
                     </Col>
-                    <Col span={6}>
+                    <Col span={4}>
                       <Text>{detail.sanPham.tenSanPham}</Text>
                     </Col>
-                    <Col span={6}>
+                    <Col span={4}>
+                      <Text>{detail.sanPham.size}</Text>
+                    </Col>
+                    <Col span={4}>
+                      <Text>{detail.sanPham.mauSac}</Text>
+                    </Col>
+                    <Col span={4}>
                       <Text>{detail.soLuong}</Text>
                     </Col>
-                    <Col span={6}>
+                    <Col span={4}>
                       <Text>{detail.donGia} VNĐ</Text>
                     </Col>
                   </Row>

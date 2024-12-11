@@ -28,6 +28,7 @@ const Cart = () => {
             } catch (error) {
                 console.error("Error parsing stored user data:", error);
                 setIsFetching(false);
+                console.log(userId)
             }
         }
     }, []);
@@ -79,9 +80,9 @@ const Cart = () => {
         setTimeout(() => {
             setLoading(false);
             message.success('Đang chuyển đến trang thông tin đơn hàng');
-            const orderId = 123;  // Giả sử đây là ID đơn hàng bạn muốn hiển thị
-            navigate(`/order/${orderId}`);  // Điều hướng đến route /order/{orderId}
-        }, 2000);
+            const orderId = userId
+            navigate(`/order/${orderId}`);
+        }, 1000);
     };
     const handleQuantityChange = async (value, record) => {
         if (value <= 0) {

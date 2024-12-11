@@ -22,10 +22,9 @@ const InvoiceManagement = () => {
     const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
     const [form] = Form.useForm();
 
-    // Lấy dữ liệu hóa đơn từ API
     const fetchInvoices = async () => {
         try {
-            const response = await axios.get("https://localhost:7030/api/HoaDon"); // Thay đổi URL theo API của bạn
+            const response = await axios.get("https://localhost:7030/api/HoaDon");
             const data = response.data;
             setInvoices(data || []);
         } catch (error) {
@@ -115,8 +114,6 @@ const InvoiceManagement = () => {
                 // Use PUT method for updating existing invoice
                 try {
                     const response = await axios.put(`https://localhost:7030/api/HoaDon/${editingInvoice.id}`, invoiceData);
-
-                    // Update local state
                     setInvoices(invoices.map((invoice) =>
                         invoice.id === editingInvoice.id ? response.data : invoice
                     ));

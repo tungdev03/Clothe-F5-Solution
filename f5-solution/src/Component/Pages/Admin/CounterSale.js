@@ -14,7 +14,7 @@ const CounterSale = () => {
     // Định nghĩa hàm fetchInvoices ngoài useEffect
     const fetchInvoices = async () => {
         try {
-            const response = await axios.get('https://localhost:7030/api/HoaDon');
+            const response = await axios.get('https://localhost:7030/api/HoaDon').then(response => console.log(response.data).catch(error => console.log(error)));
             if (!response.data) {
                 throw new Error('Không có dữ liệu');
             }
@@ -31,7 +31,14 @@ const CounterSale = () => {
                 type: item.loaiHoaDon,
                 status: item.trangThai,
             }));
-            setInvoices(filteredData);
+            const sortedData = filteredData.sort((a, b) => {
+                if (a.status !== b.status) {
+                    return a.status - b.status; // Sắp xếp theo trạng thái
+                }
+                // Sắp xếp theo ngày tạo (mới nhất lên trên)
+                return b.dateCreated - a.dateCreated; 
+            });
+            setInvoices(sortedData);
         } catch (error) {
             console.error("Error fetching invoice data:", error);
             message.error("Không thể tải dữ liệu hóa đơn.");
@@ -106,16 +113,17 @@ const CounterSale = () => {
         const fetchProducts = async () => {
             try {
                 const response = await axios.get('https://localhost:7030/api/SanPham/GetAll');
+                console.log(response.data);
                 if (isMounted && response.data) {
                     const filteredData = response.data.flatMap(item =>
                         item.sanPhamChiTiets.map(chiTiet => ({
                             key: chiTiet.id,
                             id: item.id,
                             idSpct: chiTiet.id,
-                            name: `${item.tenSp} - ${chiTiet.kichThuoc?.tenSize || 'N/A'} - ${chiTiet.mauSac?.tenMauSac || 'N/A'}`,
+                            name: `${item.tenSp} - ${'size ' +chiTiet.size?.tenSize || 'Chưa có kích thước'} - ${chiTiet.mauSac?.tenMauSac || 'Chưa có màu'}`,
                             price: item.giaBan,
                             image: item.imageDefaul,
-                            soLuongTon: chiTiet.soLuongTon
+                            soLuongTon: chiTiet.soLuongTon,
                         }))
                     ).filter(product => product.soLuongTon > 0);
                     setProductList(filteredData);
@@ -151,7 +159,6 @@ const CounterSale = () => {
             message.error("Không thể tải dữ liệu khách hàng.");
         }
     };
-    fetchCustomers();
     useEffect(() => {
         fetchCustomers();
         fetchInvoices();
@@ -257,18 +264,39 @@ const CounterSale = () => {
     };
 
     const handleSelectProduct = (product) => {
+        // Kiểm tra xem sản phẩm đã tồn tại trong invoiceDetails chưa
+    const existingProductIndex = invoiceDetails.findIndex(detail => 
+        detail.idSpct === product.idSpct // So sánh theo idSpct (kích thước)
+    );
+
+    if (existingProductIndex !== -1) {
+        // Nếu sản phẩm đã tồn tại, tăng số lượng
+        const updatedProduct = {
+            ...invoiceDetails[existingProductIndex],
+            quantity: invoiceDetails[existingProductIndex].quantity + 1,
+            totalPrice: (invoiceDetails[existingProductIndex].unitPrice * (invoiceDetails[existingProductIndex].quantity + 1)),
+        };
+
+        const updatedInvoiceDetails = [...invoiceDetails];
+        updatedInvoiceDetails[existingProductIndex] = updatedProduct; // Cập nhật sản phẩm trong danh sách
+
+        setInvoiceDetails(updatedInvoiceDetails); // Cập nhật state
+    } else {
+        // Nếu sản phẩm chưa tồn tại, thêm mới
         const newProduct = {
             key: invoiceDetails.length + 1,
             id: product.id,
             idSpct: product.idSpct,
             product: product.name,
-            image:product.image,
+            image: product.image,
             quantity: 1,
             unitPrice: product.price,
-            totalPrice: product.price
+            totalPrice: product.price,
         };
-        setInvoiceDetails([...invoiceDetails, newProduct]);
-        setIsProductSelectVisible(false);
+        setInvoiceDetails([...invoiceDetails, newProduct]); // Thêm sản phẩm mới
+    }
+
+    setIsProductSelectVisible(false);
     };
 
     const [customerFormData, setCustomerFormData] = useState(null); // Dữ liệu khách hàng
@@ -316,7 +344,6 @@ const CounterSale = () => {
                     return;
                 }
 
-                // Dữ liệu cần gửi tới API
                 const invoiceData = {
                     idKh: selectedCustomer.key,
                     idNv: IdNhanVien || null, 

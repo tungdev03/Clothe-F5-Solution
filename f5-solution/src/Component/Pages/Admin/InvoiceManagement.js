@@ -25,8 +25,10 @@ const InvoiceManagement = () => {
     // Lấy dữ liệu hóa đơn từ API
     const fetchInvoices = async () => {
         try {
-            const response = await axios.get("https://localhost:7030/api/HoaDon"); // Thay đổi URL theo API của bạn
+            const response = await axios.get("https://localhost:7030/api/HoaDon"); 
             const data = response.data;
+            console.log(response);
+            
             setInvoices(data || []);
         } catch (error) {
             console.error("Lỗi khi lấy dữ liệu hóa đơn:", error);
@@ -56,7 +58,7 @@ const InvoiceManagement = () => {
                             key: chiTiet.id,
                             id: item.id,
                             idSpct: chiTiet.id,
-                            name: `${item.tenSp} - ${chiTiet.IdSizeNavigation?.TenSize || 'N/A'} - ${chiTiet.mauSac?.tenMauSac || 'N/A'}`,
+                            name: `${item.tenSp} - ${'size ' + chiTiet.size?.tenSize || 'Chưa có kích thước'} - ${chiTiet.mauSac?.tenMauSac || 'Chưa có màu'}`,
                             price: item.giaBan,
                             image: item.imageDefaul,
                             soLuongTon: chiTiet.soLuongTon
@@ -81,22 +83,52 @@ const InvoiceManagement = () => {
 
 
     const handleSelectProduct = (product) => {
-        const newProduct = {
-            key: invoiceDetails.length + 1,
-            id: product.id,
-            idSpct: product.idSpct,
-            product: product.name,
-            image: product.image,
-            quantity: 1,
-            unitPrice: product.price,
-            totalPrice: product.price
-        };
-        setInvoiceDetails([...invoiceDetails, newProduct]);
+        const existingProductIndex = invoiceDetails.findIndex(detail =>
+            detail.idSpct === product.idSpct // So sánh theo idSpct (kích thước)
+        );
+
+        if (existingProductIndex !== -1) {
+            // Nếu sản phẩm đã tồn tại, tăng số lượng
+            const updatedProduct = {
+                ...invoiceDetails[existingProductIndex],
+                quantity: invoiceDetails[existingProductIndex].quantity + 1,
+                totalPrice: (invoiceDetails[existingProductIndex].unitPrice * (invoiceDetails[existingProductIndex].quantity + 1)),
+            };
+
+            const updatedInvoiceDetails = [...invoiceDetails];
+            updatedInvoiceDetails[existingProductIndex] = updatedProduct; // Cập nhật sản phẩm trong danh sách
+
+            setInvoiceDetails(updatedInvoiceDetails); // Cập nhật state
+        } else {
+            // Nếu sản phẩm chưa tồn tại, thêm mới
+            const newProduct = {
+                key: invoiceDetails.length + 1,
+                id: product.id,
+                idSpct: product.idSpct,
+                product: product.name,
+                image: product.image,
+                quantity: 1,
+                unitPrice: product.price,
+                totalPrice: product.price,
+            };
+            setInvoiceDetails([...invoiceDetails, newProduct]); // Thêm sản phẩm mới
+        }
+
         setIsProductSelectVisible(false);
     };
     const handleSave = async (values) => {
         try {
+            const tienKhachTra = values.tienKhachTra;
+            const tongTien = values.tongTien;
+            if (tienKhachTra < totalAmount) {
+                notification.error({
+                    message: 'Lỗi',
+                    description: 'Tiền khách trả không thể nhỏ hơn tổng tiền.',
+                });
+                return;
+            }
             const predefinedValues = {
+                TienThua: tienKhachTra - tongTien,
                 GhiChu: 'đơn dc tạo bởi hệ thống'
             };
             const invoiceData = {
@@ -108,7 +140,7 @@ const InvoiceManagement = () => {
                     soLuong: detail.quantity,
                     giaBan: detail.unitPrice
                 })),
-                tienKhachTra: totalAmount
+                tongTien: totalAmount
             };
 
             if (editingInvoice) {
@@ -160,7 +192,7 @@ const InvoiceManagement = () => {
         }, 0);
         setTotalAmount(total);
         form.setFieldsValue({
-            tienKhachTra: total,
+            // tienKhachTra: total,
             tongTien: total // Thêm trường tổng tiền nếu cần
         });
     }, [invoiceDetails, form]);
@@ -196,7 +228,7 @@ const InvoiceManagement = () => {
         try {
             const response = await axios.get(`https://localhost:7030/api/HoaDon/${record.id}`);
             console.log('hd ' + record.id)
-            console.log('hdct' + response)
+            console.log('Chi tiết hóa đơn:', response.data);
             if (!response || !response.data) {
                 notification.error({ message: 'Không tìm thấy chi tiết hóa đơn' });
                 return;
@@ -217,8 +249,13 @@ const InvoiceManagement = () => {
         setInvoices(invoices.filter((invoice) => invoice.id !== id));
         notification.success({ message: 'Hóa đơn đã bị xóa!' });
     };
-
-    const filteredInvoices = invoices.filter((invoice) => {
+    const sortedInvoices = invoices.sort((a, b) => {
+        if (a.trangThai !== b.trangThai) {
+            return a.trangThai - b.trangThai;
+        }
+        return new Date(a.ngayTao) - new Date(b.ngayTao);
+    });
+    const filteredInvoices = sortedInvoices.filter((invoice) => {
         const matchesSearchText =
             (invoice.maHoaDon && invoice.maHoaDon.toLowerCase().includes(searchText.toLowerCase())) ||
             (invoice.tenNguoiNhan && invoice.tenNguoiNhan.toLowerCase().includes(searchText.toLowerCase()));
@@ -396,40 +433,40 @@ const InvoiceManagement = () => {
     //in hóa đơn
     const handlePrintInvoice = () => {
         if (!selectedInvoiceDetails) return;
-    
+
         const doc = new jsPDF({
             orientation: 'portrait',
             unit: 'mm',
-            format: [80, 297] 
-        });  
+            format: [80, 297]
+        });
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(10);
-    
+
         // Store details
         const storeName = "F5 Fashion";
         const storeAddress = "123 Đường ABC, Phường XYZ, cầu giấy, TP.HN";
         const storeTel = "Hotline: 0123 456 789";
-    
+
         // Thermal receipt header
         doc.text(storeName, 40, 10, { align: 'center' });
         doc.setFontSize(8);
         doc.text(storeAddress, 40, 15, { align: 'center' });
         doc.text(storeTel, 40, 20, { align: 'center' });
         doc.line(5, 25, 75, 25); // Horizontal line
-    
+
         // Invoice details
         doc.setFontSize(9);
         doc.text(`Mã HĐ: ${selectedInvoiceDetails.maHoaDon}`, 10, 35);
         doc.text(`Ngày: ${new Date(selectedInvoiceDetails.ngayTao).toLocaleString()}`, 10, 40);
         doc.text(`Thu ngân: Hệ thống`, 10, 45);
         doc.line(5, 50, 75, 50); // Horizontal line
-    
+
         // Customer details
         doc.text(`KH: ${selectedInvoiceDetails.khachHang?.hoVaTenKh || 'Khách lẻ'}`, 10, 60);
         doc.text(`SĐT: ${selectedInvoiceDetails.khachHang?.soDienThoai || 'Không có'}`, 10, 65);
-    
+
         doc.line(5, 70, 75, 70); // Horizontal line
-    
+
         // Product details
         let y = 80;
         doc.setFontSize(8);
@@ -438,37 +475,37 @@ const InvoiceManagement = () => {
             const quantity = item.soLuong;
             const unitPrice = item.donGia;
             const totalPrice = item.thanhTien;
-    
+
             doc.text(productName, 10, y);
             doc.text(`${quantity} x ${unitPrice.toLocaleString('vi-VN')}`, 10, y + 5);
             doc.text(totalPrice.toLocaleString('vi-VN'), 65, y + 5, { align: 'right' });
             y += 15;
         });
-    
+
         doc.line(5, y, 75, y); // Horizontal line
-    
+
         // Total
         y += 10;
         doc.setFontSize(9);
         doc.text('Tổng cộng:', 10, y);
         doc.text(`${selectedInvoiceDetails.tongTien.toLocaleString('vi-VN')} VNĐ`, 65, y, { align: 'right' });
-    
+
         y += 10;
         doc.text('Tiền mặt:', 10, y);
         doc.text(`${selectedInvoiceDetails.tongTien.toLocaleString('vi-VN')} VNĐ`, 65, y, { align: 'right' });
-    
+
         y += 10;
         doc.text('Tiền thừa:', 10, y);
         doc.text('0 VNĐ', 65, y, { align: 'right' });
-    
+
         doc.line(5, y + 5, 75, y + 5); // Horizontal line
-    
+
         // Footer
         y += 15;
         doc.setFontSize(8);
         doc.text('Cảm ơn quý khách!', 40, y, { align: 'center' });
         doc.text('Hẹn gặp lại', 40, y + 5, { align: 'center' });
-    
+
         doc.save(`HoaDon_${selectedInvoiceDetails.maHoaDon}.pdf`);
     };
 
@@ -567,7 +604,7 @@ const InvoiceManagement = () => {
                     </Form.Item>
                     <Form.Item
                         label="Tổng tiền"
-                        name="tienKhachTra"
+                        name="tongTien"
                     >
                         <InputNumber
                             style={{ width: '100%' }}
@@ -576,6 +613,10 @@ const InvoiceManagement = () => {
                             parser={value => value.replace(/\s?VND|,/g, '')}
                             readOnly
                         />
+
+                    </Form.Item>
+                    <Form.Item label="tiền khách trả" name="tienKhachTra" rules={[{ required: true, message: 'Vui lòng số tiền khách trả!' }]}>
+                        <Input />
                     </Form.Item>
                     <div className="product-details-section">
                         <Table columns={columnsProductDetails} dataSource={invoiceDetails} pagination={false} />
@@ -655,20 +696,23 @@ const InvoiceManagement = () => {
                             <Col span={12}>
                                 <h3>Thông tin hóa đơn</h3>
                                 <p><strong>Mã hóa đơn:</strong> {selectedInvoiceDetails.maHoaDon}</p>
-                                <p><strong>Tên khách hàng:</strong> {selectedInvoiceDetails.khachHang?.hoVaTenKh || 'Không có thông tin'}</p>
-                                <p><strong>Số điện thoại:</strong> {selectedInvoiceDetails.khachHang?.soDienThoai || 'Không có thông tin'}</p>
-                                <p><strong>Địa chỉ:</strong>
-                                    {selectedInvoiceDetails.khachHang?.diaChis && selectedInvoiceDetails.khachHang.diaChis.length > 0 ? (
-                                        selectedInvoiceDetails.khachHang.diaChis.map((diaChi, index) => (
-                                            <div key={index}>
-                                                {diaChi.diaChiChiTiet}, {diaChi.phuongXa}, {diaChi.quanHuyen}, {diaChi.tinhThanh}, {diaChi.quocGia}
-                                                {/* <br />
-                                    <em>{diaChi.ghiChu}</em> */}
-                                            </div>
+                                <p><strong>Tên khách hàng:</strong> {selectedInvoiceDetails.tenNguoiNhan || selectedInvoiceDetails.khachHang?.hoVaTenKh || 'Không có thông tin'}</p>
+                                <p><strong>Số điện thoại:</strong> {selectedInvoiceDetails.sdtnguoiNhan || selectedInvoiceDetails.khachHang?.soDienThoai || 'Không có thông tin'}</p>
+                                <p>
+                                    <strong>Địa chỉ:</strong>
+                                    {selectedInvoiceDetails.diaChiNhanHang ||
+                                        (selectedInvoiceDetails.khachHang?.diaChis && selectedInvoiceDetails.khachHang.diaChis.length > 0 ? (
+                                            selectedInvoiceDetails.khachHang.diaChis.map((diaChi, index) => (
+                                                <div key={index}>
+                                                    {diaChi.diaChiChiTiet}, {diaChi.phuongXa}, {diaChi.quanHuyen}, {diaChi.tinhThanh}, {diaChi.quocGia}
+                                                    {/* <br />
+                    <em>{diaChi.ghiChu}</em> */}
+                                                </div>
+                                            ))
+                                        ) : (
+                                            'Không có'
                                         ))
-                                    ) : (
-                                        'Không có'
-                                    )}
+                                    }
                                 </p>
                                 <p><strong>Ngày tạo:</strong> {new Date(selectedInvoiceDetails.ngayTao).toLocaleString()}</p>
                             </Col>
@@ -689,7 +733,7 @@ const InvoiceManagement = () => {
                                             }
                                         ]}
                                         dataSource={selectedInvoiceDetails.hoaDonChiTiets.map(item => ({
-                                            key: item.id, 
+                                            key: item.id,
                                             idSpct: item.idSpct,
                                             soLuong: item.soLuong,
                                             DonGia: item.donGia,

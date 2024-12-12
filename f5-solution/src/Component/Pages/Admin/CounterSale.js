@@ -14,7 +14,7 @@ const CounterSale = () => {
     // Định nghĩa hàm fetchInvoices ngoài useEffect
     const fetchInvoices = async () => {
         try {
-            const response = await axios.get('https://localhost:7030/api/HoaDon');
+            const response = await axios.get('https://localhost:7030/api/HoaDon').then(response => console.log(response.data).catch(error => console.log(error)));
             if (!response.data) {
                 throw new Error('Không có dữ liệu');
             }
@@ -344,7 +344,6 @@ const CounterSale = () => {
                     return;
                 }
 
-                // Dữ liệu cần gửi tới API
                 const invoiceData = {
                     idKh: selectedCustomer.key,
                     idNv: IdNhanVien || null, 

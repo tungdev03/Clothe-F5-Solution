@@ -65,26 +65,31 @@ function AddressFormModal({ visible, onClose, onSave }) {
       message.error("Không tìm thấy thông tin người dùng.");
       return;
     }
-
-    // Prepare the address object with the necessary fields
+  
+    const provinceName = provinces.find((p) => p.code === selectedProvince)?.name || "";
+    console.log("Selected Province:", provinceName);
+  
     const address = {
-      IdKh: userId,  // User ID taken from localStorage
-      DiaChiChiTiet: selectedAddress,  // Detailed address from the input field
-      PhuongXa: wards.find((w) => w.code === selectedWard)?.name || "",  // Ward name
-      QuanHuyen: districts.find((d) => d.code === selectedDistrict)?.name || "",  // District name
-      TinhThanh: provinces.find((p) => p.code === selectedProvince)?.name || "",  // Province name
+      IdKh: userId,
+      DiaChiChiTiet: selectedAddress,
+      PhuongXa: wards.find((w) => w.code === selectedWard)?.name || "",
+      QuanHuyen: districts.find((d) => d.code === selectedDistrict)?.name || "",
+      TinhThanh: provinceName, // Ensure this is correctly mapped
     };
-
+  
+    console.log("Address to Save:", address);
+  
     try {
-      // Call the addAddress API method to save the address
       const newAddress = await DiaChiService.addAddress(address);
       message.success("Địa chỉ đã được thêm thành công.");
-      onSave(newAddress); // Pass the newly added address to the parent component
-      onClose(); // Close the modal after saving
+      onSave(newAddress);
+      onClose();
     } catch (error) {
+      console.error("Error adding address:", error);
       message.error(error || "Lỗi khi thêm địa chỉ mới.");
     }
   };
+  
 
   return (
     <Modal title="Chọn Địa Chỉ" visible={visible} onCancel={onClose} onOk={handleSave}>

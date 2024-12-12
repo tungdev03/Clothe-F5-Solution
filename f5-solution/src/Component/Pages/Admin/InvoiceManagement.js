@@ -25,8 +25,10 @@ const InvoiceManagement = () => {
     // Lấy dữ liệu hóa đơn từ API
     const fetchInvoices = async () => {
         try {
-            const response = await axios.get("https://localhost:7030/api/HoaDon"); // Thay đổi URL theo API của bạn
+            const response = await axios.get("https://localhost:7030/api/HoaDon"); 
             const data = response.data;
+            console.log(response);
+            
             setInvoices(data || []);
         } catch (error) {
             console.error("Lỗi khi lấy dữ liệu hóa đơn:", error);

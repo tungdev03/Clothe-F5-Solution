@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./Checkout.css";
+import { useNavigate } from 'react-router-dom';
 import { Button, message } from "antd";
 import Anh from "../Admin/Anh1.png";
 import CustomHeader from "../../Layouts/Header/Header";
@@ -7,10 +8,11 @@ import AddressFormModal from "../Shop/AddressForm";
 import DiaChiService from "../../../Service/DiaChiService";
 import GioHangService from '../../../Service/GiohangService';
 import GHN from '../../../Service/ghnAPI';
+import vnPayService from '../../../Service/VNpayServices';
 function Checkout() {
   const [deliveryMethod, setDeliveryMethod] = useState("Giao hàng");
 
-
+  const navigate = useNavigate();
   const [discount, setDiscount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -25,8 +27,8 @@ function Checkout() {
   const [GhiChu, setGhiChu] = useState("");
   const [voucherData, setVoucherData] = useState(null);
   const [voucherCode, setVoucherCode] = useState("");
-  const [shippingFee, setShippingFee] = useState(null); // Phí vận chuyển
-  const [codFee, setCodFee] = useState(null); // Phí COD
+
+  const [codFee, setCodFee] = useState(0); // Phí COD
   const [error, setError] = useState({
     TenNguoiNhan: "",
     SdtNguoiNhan: "",
@@ -204,19 +206,23 @@ useEffect(() => {
     setLoading(true);
 
     const orderData = {
-      IdDiaChi: selectedAddress,
+      IdDiaChi: selectedAddress.id,
       TenNguoiNhan: TenNguoiNhan,
       SdtNguoiNhan: SdtNguoiNhan,
       VoucherId: voucherData?.id || null,
       GhiChu: GhiChu,
+      TienShip: codFee||0,
       NgayNhanHang: NgayNhan,
     };
 
+    console.log(orderData);
     try {
       const response = await GioHangService.placeOrder(userId, orderData);
       message.success("Đặt hàng thành công!");
       console.log(response);
       await fetchCartData(userId); // Cập nhật giỏ hàng sau khi đặt hàng thành công
+      const orderId = userId
+      navigate(`/order/${orderId}`);
     } catch (error) {
       setLoading(false);
       message.error("Đặt hàng không thành công. Vui lòng thử lại!");
@@ -232,7 +238,7 @@ useEffect(() => {
     if (method === "Nhận tại cửa hàng") {
       // Thiết lập các giá trị mặc định cho nhận tại cửa hàng
       const IdCuaHang = "00000000-0000-0000-0000-000000000000"; // Đặt GUID mặc định của cửa hàng
-      setAddresses([{ id: IdCuaHang, diaChiChiTiet: "Cửa hàng BBQ - 123 Đường ABC, Quận 1, TP. Hồ Chí Minh" }]);
+      setSelectedAddress([{ id: IdCuaHang, diaChiChiTiet: "Cửa hàng BBQ - 123 Đường ABC, Quận 1, TP. Hồ Chí Minh" }]);
       setGhiChu("Nhận tại cửa hàng");
       setNgayNhan(new Date().toISOString().split("T")[0]); // Gán ngày hiện tại
     } else if (method === "Giao hàng") {
@@ -257,33 +263,80 @@ useEffect(() => {
   };
 
 
-  const handlePayment = async () => {
-    setLoading(true);
-    setError(null)
-    try {
-        // Gọi API VNPay để lấy URL thanh toán
-        const response = await GioHangService.VNPayPayment({
-            customerId: userId, 
-            orderInfo: {
-                TenNguoiNhan: TenNguoiNhan,
-                SdtNguoiNhan: SdtNguoiNhan,
-                NgayNhanHang: NgayNhan,
-                IdDiaChi: selectedAddress,
-                VoucherId: null,
-                GhiChu: ''
-            }
-        });
 
-        if (response.data.paymentUrl) {
-            window.location.href = response.data.paymentUrl;
-        }
-    } catch (error) {
-        setError('Đã có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại!');
-        console.error(error);
-    } finally {
-        setLoading(false);
+  const handlePayment = async () => {
+    let formIsValid = true;
+    let errorObj = {
+      TenNguoiNhan: "",
+      SdtNguoiNhan: "",
+      NgayNhan: "",
+      GhiChu: "",
+    };
+  
+    // Kiểm tra các trường nhập liệu bắt buộc
+    if (!TenNguoiNhan) {
+      formIsValid = false;
+      errorObj.TenNguoiNhan = "Vui lòng nhập tên!";
     }
-  }
+  
+    if (!SdtNguoiNhan) {
+      formIsValid = false;
+      errorObj.SdtNguoiNhan = "Vui lòng nhập số điện thoại!";
+    } else {
+      // Kiểm tra định dạng số điện thoại
+      const phonePattern = /^(\+84|84|0)(\d{9})$/;
+      if (!phonePattern.test(SdtNguoiNhan)) {
+        formIsValid = false;
+        errorObj.SdtNguoiNhan = "Số điện thoại không hợp lệ!";
+      }
+    }
+  
+    if (!NgayNhan) {
+      formIsValid = false;
+      errorObj.NgayNhan = "Vui lòng chọn ngày nhận hàng!";
+    }
+  
+    if (!GhiChu) {
+      formIsValid = false;
+      errorObj.GhiChu = "Vui lòng nhập ghi chú!";
+    }
+  
+    if (!formIsValid) {
+      setError(errorObj);
+      return; // Dừng lại nếu có lỗi
+    }
+  
+    setLoading(true);
+  
+    try {
+      // Gọi API VNPay để lấy URL thanh toán
+      const orderData = {
+        IdDiaChi: selectedAddress.id,
+        TenNguoiNhan: TenNguoiNhan,
+        SdtNguoiNhan: SdtNguoiNhan,
+        VoucherId: voucherData?.id || null,
+        GhiChu: GhiChu,
+        TienShip: codFee || 0,
+        NgayNhanHang: NgayNhan,
+      };
+  
+      // Gọi API VNPayPayment và lấy URL thanh toán
+      const paymentResponse = await vnPayService.VNPayPayment(userId, orderData);
+       console.log("hhhhhhh", paymentResponse);
+       window.location.href = paymentResponse;
+    
+      await fetchCartData(userId); // Cập nhật giỏ hàng sau khi đặt hàng thành công
+      const orderId = userId
+      navigate(`/order/${orderId}`);
+    } catch (error) {
+      setLoading(false);
+      setError("Đã có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại!");
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  
   const handleOpenModal = () => {
     setIsModalVisible(true);
   };
@@ -349,7 +402,7 @@ useEffect(() => {
           const codFee = response.service_fee || 0;   // Giả sử phí COD có thể tương đương phí dịch vụ
 
           if (shippingFee) {
-              setShippingFee(shippingFee);  // Lưu phí vận chuyển
+             
               setCodFee(codFee);            // Lưu phí COD (nếu có)
           } else {
               console.error("Phí vận chuyển không tìm thấy trong phản hồi:", response);

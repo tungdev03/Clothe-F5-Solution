@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./Checkout.css";
+import { useNavigate } from 'react-router-dom';
 import { Button, message } from "antd";
 import Anh from "../Admin/Anh1.png";
 import CustomHeader from "../../Layouts/Header/Header";
@@ -11,7 +12,7 @@ import vnPayService from '../../../Service/VNpayServices';
 function Checkout() {
   const [deliveryMethod, setDeliveryMethod] = useState("Giao hàng");
 
-
+  const navigate = useNavigate();
   const [discount, setDiscount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
@@ -27,7 +28,7 @@ function Checkout() {
   const [voucherData, setVoucherData] = useState(null);
   const [voucherCode, setVoucherCode] = useState("");
 
-  const [codFee, setCodFee] = useState(null); // Phí COD
+  const [codFee, setCodFee] = useState(0); // Phí COD
   const [error, setError] = useState({
     TenNguoiNhan: "",
     SdtNguoiNhan: "",
@@ -210,6 +211,7 @@ useEffect(() => {
       SdtNguoiNhan: SdtNguoiNhan,
       VoucherId: voucherData?.id || null,
       GhiChu: GhiChu,
+      TienShip: codFee||0,
       NgayNhanHang: NgayNhan,
     };
 
@@ -219,6 +221,8 @@ useEffect(() => {
       message.success("Đặt hàng thành công!");
       console.log(response);
       await fetchCartData(userId); // Cập nhật giỏ hàng sau khi đặt hàng thành công
+      const orderId = userId
+      navigate(`/order/${orderId}`);
     } catch (error) {
       setLoading(false);
       message.error("Đặt hàng không thành công. Vui lòng thử lại!");
@@ -312,6 +316,7 @@ useEffect(() => {
         SdtNguoiNhan: SdtNguoiNhan,
         VoucherId: voucherData?.id || null,
         GhiChu: GhiChu,
+        TienShip: codFee || 0,
         NgayNhanHang: NgayNhan,
       };
   
@@ -321,6 +326,8 @@ useEffect(() => {
        window.location.href = paymentResponse;
     
       await fetchCartData(userId); // Cập nhật giỏ hàng sau khi đặt hàng thành công
+      const orderId = userId
+      navigate(`/order/${orderId}`);
     } catch (error) {
       setLoading(false);
       setError("Đã có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại!");

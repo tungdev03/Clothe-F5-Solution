@@ -231,6 +231,12 @@ const ProductDetail = () => {
     const handleAddToCart = async () => {
         if (!selectedColor || !selectedSize) {
             setErrorMessage("Vui lòng chọn màu sắc và size trước khi mua.");
+            message.warning("Vui lòng chọn màu sắc và size trước khi mua.");
+            return;
+        }
+        if (quantity>soLuong) {
+            setErrorMessage("Số lượng trong kho không đủ.");
+            message.warning("Số lượng trong kho không đủ.");
             return;
         }
         const addDto = {
@@ -274,10 +280,12 @@ const ProductDetail = () => {
     
         if (!selectedColor || !selectedSize) {
             setErrorMessage("Vui lòng chọn màu sắc và size trước khi mua.");
+            message.warning("Vui lòng chọn màu sắc và size trước khi mua.");
             return;
         }
         if (quantity>soLuong) {
             setErrorMessage("Số lượng trong kho không đủ.");
+            message.warning("Số lượng trong kho không đủ.");
             return;
         }
     

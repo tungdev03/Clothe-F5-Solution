@@ -205,7 +205,7 @@ const VoucherManagement = () => {
       key: 'actions',
       render: (text, record) => (
         <>
-          <Button type="link" onClick={() => showUpdateModal(record)}>Update</Button>
+          <Button type="link" onClick={() => showUpdateModal(record)}>Sửa</Button>
         </>
       ),
     },
@@ -224,7 +224,7 @@ const VoucherManagement = () => {
 
       {/* Modal for creating/updating voucher */}
       <Modal
-        title={isEditing ? "Update Voucher" : "Create New Voucher"}
+        title={isEditing ? "Sửa Voucher" : "Tạo Voucher"}
         visible={isModalVisible}
         onCancel={handleCancel}
         footer={null} // Remove default footer buttons
@@ -298,7 +298,7 @@ const VoucherManagement = () => {
           </Row>
           <Form.Item>
             <Button type="primary" htmlType="submit">
-              {isEditing ? "Update Voucher" : "Create Voucher"}
+              {isEditing ? "Sửa Voucher" : "Tạo Voucher"}
             </Button>
           </Form.Item>
         </Form>

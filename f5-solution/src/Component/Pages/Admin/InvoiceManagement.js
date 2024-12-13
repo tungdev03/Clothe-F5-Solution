@@ -24,11 +24,9 @@ const InvoiceManagement = () => {
 
     const fetchInvoices = async () => {
         try {
-<<<<<<< HEAD
-            const response = await axios.get("https://localhost:7030/api/HoaDon");
-=======
+
             const response = await axios.get("https://localhost:7030/api/HoaDon"); 
->>>>>>> defa63e94b0b6862f71e53c778e0540c26a81306
+
             const data = response.data;
             console.log(response);
             

@@ -5,8 +5,8 @@ const StatisticsService = {
   getTotalRevenue: async (startDate, endDate) => {
     try {
       const response = await http.get(`Statistics/total-revenue?startDate=${startDate}&endDate=${endDate}`);
-      console.log("Total Revenue Response:", response);
-      return response.data;  // Trả về dữ liệu tổng doanh thu
+      console.log("Total Revenue Response:", response);  // Kiểm tra dữ liệu trả về
+      return response.data;  // Đảm bảo trả về con số hoặc chuỗi, không phải đối tượng
     } catch (error) {
       console.error("Error fetching total revenue:", error);
       throw error.response?.data || "Lỗi không xác định";             
@@ -29,12 +29,12 @@ const StatisticsService = {
   getTotalProductsSold: async (startDate, endDate) => {
     try {
       const response = await http.get(`Statistics/total-products-sold?startDate=${startDate}&endDate=${endDate}`);
-      console.log("Total Products Sold Response:", response);
-      return response.data;  // Trả về dữ liệu tổng số sản phẩm đã bán
+      console.log("Total Products Sold Response:", response);  // Kiểm tra lại dữ liệu trả về
+      return response.data.totalProductsSold || 0;  // Trả về giá trị số, không phải đối tượng
     } catch (error) {
       console.error("Error fetching total products sold:", error);
-      throw error.response?.data || "Lỗi không xác định";             
-    }     
+      throw error.response?.data || "Lỗi không xác định";
+    }
   },
 
   // Hàm lấy số lượng đơn hàng theo trạng thái
@@ -59,6 +59,18 @@ const StatisticsService = {
       console.error("Error fetching monthly revenue:", error);
       throw error.response?.data || "Lỗi không xác định";
     }
+  },
+
+  // Hàm lấy tổng số khách hàng
+  getTotalCustomers: async () => {
+    try {
+      const response = await http.get(`Statistics/total-customers`);
+      console.log("Total Customers Response:", response);
+      return response.data;  // Trả về dữ liệu tổng số khách hàng
+    } catch (error) {
+      console.error("Error fetching total customers:", error);
+      throw error.response?.data || "Lỗi không xác định";             
+    }     
   },
 };
 

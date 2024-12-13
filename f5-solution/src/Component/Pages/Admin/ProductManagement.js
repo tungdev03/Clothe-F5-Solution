@@ -618,7 +618,8 @@ const ProductManagement = () => {
                                                             </Option>
                                                         ))}
                                                     </Select>
-                                                    <Form.Item
+                                                </Form.Item>
+                                                <Form.Item
                                                     {...field}
                                                     name={[field.name, 'options']}
                                                     label="Số Lượng Tồn"

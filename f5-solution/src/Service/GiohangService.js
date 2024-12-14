@@ -101,15 +101,7 @@ const GiohangService = {
       throw error; // Ném lỗi ra ngoài
     }
   }, 
-  VNPayPayment: async (customerId, orderInfo) => {
-    try {
-      const response = await http.post(`vnpay-payment?customerId=${customerId}`, orderInfo);
-      return response.data;
-    } catch (error) {
-      console.error("VNPay Payment Error:", error);
-      throw error.response?.data || "Lỗi khi gọi API thanh toán VNPay";
-    }
-  },
+ 
   
 };
 

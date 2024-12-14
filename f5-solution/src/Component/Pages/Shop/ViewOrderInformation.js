@@ -45,7 +45,6 @@ const ViewOrderInformation = () => {
         try {
           const response = await fetch(`https://localhost:7030/api/HoaDon/by-makh/${user.IdKhachhang}`);
           const data = await response.json();
-          console.log(data);
           
           if (response.ok) {
             setCartItems(data); // Set the fetched order data
@@ -141,8 +140,8 @@ const ViewOrderInformation = () => {
     },
     {
       title: 'Tổng tiền',
-      key: 'tongTien',
-      render: (_, record) => `${record.tongTien} VNĐ`,
+      key: 'thanhTien',
+      render: (_, record) => `${record.thanhTien} VNĐ`,
       align: 'center' // Center the column title
     },
     {
@@ -252,10 +251,10 @@ const ViewOrderInformation = () => {
                     <Text strong>Màu sắc</Text>
                   </Col>
                   <Col span={4}>
-                    <Text strong>Số lượng</Text>
+                    <Text strong>Số lượng và đơn giá</Text>
                   </Col>
                   <Col span={4}>
-                    <Text strong>Đơn giá</Text>
+                    <Text strong>Tính</Text>
                   </Col>
                 </Row>
                 {record.hoaDonChiTiets.map((detail) => (
@@ -277,19 +276,28 @@ const ViewOrderInformation = () => {
                       <Text>{detail.sanPham.mauSac}</Text>
                     </Col>
                     <Col span={4}>
-                      <Text>{detail.soLuong}</Text>
+                      <Text>{detail.soLuong} x {detail.donGia} </Text>
                     </Col>
                     <Col span={4}>
-                      <Text>{detail.donGia} VNĐ</Text>
-                    </Col>
+                    <Text>{detail.tongtien} VNĐ</Text>
+                  </Col>
                   </Row>
                 ))}
                 <Row gutter={16}>
-                  <Col span={16} />
-                  <Col span={8}>
-                    <Text strong>Tổng tiền: {record.tongTien} VNĐ</Text>
-                  </Col>
-                </Row>
+                <Col span={16} />
+                <Col span={8}>
+                  <Text strong>Số tiền giảm:  -{record.giaTriGiam} VNĐ</Text>
+                </Col>
+              </Row>
+              <Row gutter={16}>
+              <Col span={16} />
+              <Col span={8}>
+                <Text strong style={{ color: 'red' }}>
+                  Thành tiền: {record.thanhTien} VNĐ
+                </Text>
+              </Col>
+            </Row>
+            
               </div>
             )}
           />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Checkout.css";
 import { useNavigate } from 'react-router-dom';
-import { Button, message } from "antd";
+import { Button, message,notification } from "antd";
 import Anh from "../Admin/Anh1.png";
 import CustomHeader from "../../Layouts/Header/Header";
 import AddressFormModal from "../Shop/AddressForm";
@@ -96,32 +96,32 @@ useEffect(() => {
 
       // Kiểm tra nếu voucher chưa bắt đầu
       if (currentDate < ngayBatDau) {
-        message.warning("Voucher chưa đến ngày bắt đầu.");
+        notification.warning({ message: "Voucher chưa đến ngày bắt đầu."});
         return;
       }
 
       // Kiểm tra nếu voucher đã hết hạn
       if (currentDate > ngayKetThuc) {
-        message.warning("Voucher đã hết hạn.");
+        notification.warning({ message: "Voucher đã hết hạn."});
         return;
       }
 
       // Kiểm tra nếu số lượng mã nhỏ hơn hoặc bằng 0
       if (data.soLuongMa <= 0) {
-        message.warning("Voucher đã hết số lượng.");
+        notification.warning({ message: "Voucher đã hết số lượng."});
         return;
       }
 
       // Kiểm tra nếu subtotal không đủ điều kiện hóa đơn tối thiểu
       if (subtotal < data.dieuKienToiThieuHoaDon) {
-        message.warning(`Tổng giá trị đơn hàng phải lớn hơn hoặc bằng ${data.dieuKienToiThieuHoaDon}.`);
+        notification.warning({ message: `Tổng giá trị đơn hàng phải lớn hơn hoặc bằng ${data.dieuKienToiThieuHoaDon}.`});
         return;
       }
 
       // Nếu tất cả điều kiện hợp lệ, cập nhật voucher
       setVoucherData(data);
       console.log(data);
-      message.success("Áp dụng voucher thành công!");
+      notification.success({ message: "Áp dụng voucher thành công!"});
       const calculatedDiscount = data.hinhThucGiam === 1
         ? (subtotal * data.giaTriGiam) / 100 // Percentage discount
         : data.giaTriGiam; // Fixed amount discount
@@ -140,7 +140,7 @@ useEffect(() => {
       // Kiểm tra nếu giỏ hàng rỗng
       if (!data || data.length === 0) {
         setCartItems([]); // Đảm bảo giỏ hàng được đặt thành mảng trống
-        message.info("Giỏ hàng của bạn đang rỗng."); // Hiển thị thông báo
+       
         return;
       }
 
@@ -218,7 +218,7 @@ useEffect(() => {
     console.log(orderData);
     try {
       const response = await GioHangService.placeOrder(userId, orderData);
-      message.success("Đặt hàng thành công!");
+      notification.success({ message: "Đặt hàng thành công!"});
       console.log(response);
       await fetchCartData(userId); // Cập nhật giỏ hàng sau khi đặt hàng thành công
       const orderId = userId
@@ -274,11 +274,26 @@ useEffect(() => {
     };
   
     // Kiểm tra các trường nhập liệu bắt buộc
-    if (!TenNguoiNhan) {
+    if (!TenNguoiNhan || TenNguoiNhan.trim() === "") {
       formIsValid = false;
-      errorObj.TenNguoiNhan = "Vui lòng nhập tên!";
+      errorObj.TenNguoiNhan = "Tên không được để trống!";
+    } else if (/\d/.test(TenNguoiNhan)) {
+      formIsValid = false;
+      errorObj.TenNguoiNhan = "Tên không được chứa số!";
+    } else if (/[^a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/.test(TenNguoiNhan)) {
+      formIsValid = false;
+      errorObj.TenNguoiNhan = "Tên không được chứa ký tự đặc biệt!";
+    } else if (TenNguoiNhan.length < 2) {
+      formIsValid = false;
+      errorObj.TenNguoiNhan = "Tên phải có ít nhất 2 ký tự!";
+    } else if (TenNguoiNhan.length > 50) {
+      formIsValid = false;
+      errorObj.TenNguoiNhan = "Tên không được vượt quá 50 ký tự!";
+    } else if (TenNguoiNhan.trim() !== TenNguoiNhan || /\s{2,}/.test(TenNguoiNhan)) {
+      formIsValid = false;
+      errorObj.TenNguoiNhan = "Tên không được chứa khoảng trắng thừa!";
     }
-  
+    
     if (!SdtNguoiNhan) {
       formIsValid = false;
       errorObj.SdtNguoiNhan = "Vui lòng nhập số điện thoại!";

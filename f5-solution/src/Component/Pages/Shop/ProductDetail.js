@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Row, Col, Button, Layout, Menu, Dropdown, Input, Space, Card, Carousel, message } from 'antd';
+import { Row, Col, Button, Layout, Menu, Dropdown, Input, Space, Card, Carousel, message,notification } from 'antd';
 import {
     UpOutlined,
     DownOutlined,
@@ -211,7 +211,8 @@ const ProductDetail = () => {
                 setSoluong(filteredProductsWithSize[0].soLuongTon);
                 console.log('Updated selected product ID:', filteredProductsWithSize[0].sanPhamChiTietId);
             } else {
-                console.warn('No products found for the selected size and color.');
+                notification.warning({ message: "Vui lòng chọn màu sắc và size"})
+           
             }
         } else {
             console.warn('Color not selected or filteredSizes is not valid.');
@@ -231,12 +232,12 @@ const ProductDetail = () => {
     const handleAddToCart = async () => {
         if (!selectedColor || !selectedSize) {
             setErrorMessage("Vui lòng chọn màu sắc và size trước khi mua.");
-            message.warning("Vui lòng chọn màu sắc và size trước khi mua.");
+            notification.warning({ message: "Vui lòng chọn màu sắc và size trước khi mua."});
             return;
         }
         if (quantity>soLuong) {
             setErrorMessage("Số lượng trong kho không đủ.");
-            message.warning("Số lượng trong kho không đủ.");
+            notification.warning({ message: "Số lượng trong kho không đủ."});
             return;
         }
         const addDto = {
@@ -249,7 +250,8 @@ const ProductDetail = () => {
             console.log("Payload gửi lên API:", addDto);
             const result = await GioHangService.addGioHang(addDto); // Call the backend API
     
-            alert("Sản phẩm đã được thêm vào giỏ hàng!");
+            notification.success({ message: "Sản phẩm đã được thêm vào giỏ hàng"})
+           
             console.log("Kết quả trả về từ API:", result);
             setErrorMessage(""); // Clear the error message if everything is fine
         } catch (error) {
@@ -280,12 +282,12 @@ const ProductDetail = () => {
     
         if (!selectedColor || !selectedSize) {
             setErrorMessage("Vui lòng chọn màu sắc và size trước khi mua.");
-            message.warning("Vui lòng chọn màu sắc và size trước khi mua.");
+            notification.warning({ message: "Vui lòng chọn màu sắc và size trước khi mua."});
             return;
         }
         if (quantity>soLuong) {
             setErrorMessage("Số lượng trong kho không đủ.");
-            message.warning("Số lượng trong kho không đủ.");
+            notification.warning({ message: "Số lượng trong kho không đủ."});
             return;
         }
     
@@ -302,7 +304,8 @@ const ProductDetail = () => {
             const result = await GioHangService.addGioHang(addDto); // Call the backend API
             console.log("Kết quả trả về từ API:", result);
     
-            alert("Sản phẩm đã được thêm vào giỏ hàng!");
+            notification.success({ message: "Sản phẩm đã được thêm vào giỏ hàng"})
+           
             setErrorMessage(""); // Clear the error message if everything is fine
             navigate(`/cart/${storedUser.TaiKhoan}`);
         } catch (error) {

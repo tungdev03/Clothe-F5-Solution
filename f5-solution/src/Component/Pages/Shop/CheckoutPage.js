@@ -274,21 +274,26 @@ useEffect(() => {
     };
   
     // Kiểm tra các trường nhập liệu bắt buộc
-    if (!TenNguoiNhan) {
+    if (!TenNguoiNhan || TenNguoiNhan.trim() === "") {
       formIsValid = false;
-      errorObj.TenNguoiNhan = "Vui lòng nhập tên!";
-    } else if (/\d/.test(TenNguoiNhan)) { // Không chứa số
+      errorObj.TenNguoiNhan = "Tên không được để trống!";
+    } else if (/\d/.test(TenNguoiNhan)) {
       formIsValid = false;
       errorObj.TenNguoiNhan = "Tên không được chứa số!";
-    } else if (/[^a-zA-Z\s]/.test(TenNguoiNhan)) { // Không chứa ký tự đặc biệt
+    } else if (/[^a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/.test(TenNguoiNhan)) {
       formIsValid = false;
       errorObj.TenNguoiNhan = "Tên không được chứa ký tự đặc biệt!";
-    } else if (TenNguoiNhan.length < 2) { // Tên phải có ít nhất 2 ký tự
+    } else if (TenNguoiNhan.length < 2) {
       formIsValid = false;
-      errorObj.TenNguoiNhan = "Tên phải dài hơn 2 ký tự!";
+      errorObj.TenNguoiNhan = "Tên phải có ít nhất 2 ký tự!";
+    } else if (TenNguoiNhan.length > 50) {
+      formIsValid = false;
+      errorObj.TenNguoiNhan = "Tên không được vượt quá 50 ký tự!";
+    } else if (TenNguoiNhan.trim() !== TenNguoiNhan || /\s{2,}/.test(TenNguoiNhan)) {
+      formIsValid = false;
+      errorObj.TenNguoiNhan = "Tên không được chứa khoảng trắng thừa!";
     }
     
-  
     if (!SdtNguoiNhan) {
       formIsValid = false;
       errorObj.SdtNguoiNhan = "Vui lòng nhập số điện thoại!";

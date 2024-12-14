@@ -277,7 +277,17 @@ useEffect(() => {
     if (!TenNguoiNhan) {
       formIsValid = false;
       errorObj.TenNguoiNhan = "Vui lòng nhập tên!";
+    } else if (/\d/.test(TenNguoiNhan)) { // Không chứa số
+      formIsValid = false;
+      errorObj.TenNguoiNhan = "Tên không được chứa số!";
+    } else if (/[^a-zA-Z\s]/.test(TenNguoiNhan)) { // Không chứa ký tự đặc biệt
+      formIsValid = false;
+      errorObj.TenNguoiNhan = "Tên không được chứa ký tự đặc biệt!";
+    } else if (TenNguoiNhan.length < 2) { // Tên phải có ít nhất 2 ký tự
+      formIsValid = false;
+      errorObj.TenNguoiNhan = "Tên phải dài hơn 2 ký tự!";
     }
+    
   
     if (!SdtNguoiNhan) {
       formIsValid = false;

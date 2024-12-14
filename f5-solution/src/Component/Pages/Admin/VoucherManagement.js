@@ -205,7 +205,7 @@ const VoucherManagement = () => {
       key: 'actions',
       render: (text, record) => (
         <>
-          <Button type="link" onClick={() => showUpdateModal(record)}>Update</Button>
+          <Button type="link" onClick={() => showUpdateModal(record)}>Sửa</Button>
         </>
       ),
     },
@@ -224,7 +224,7 @@ const VoucherManagement = () => {
 
       {/* Modal for creating/updating voucher */}
       <Modal
-        title={isEditing ? "Update Voucher" : "Create New Voucher"}
+        title={isEditing ? "Sửa Voucher" : "Tạo Voucher"}
         visible={isModalVisible}
         onCancel={handleCancel}
         footer={null} // Remove default footer buttons
@@ -256,19 +256,55 @@ const VoucherManagement = () => {
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="soLuongMa" label="So Luong Ma">
+              <Form.Item name="soLuongMa" label="So Luong Ma" 
+              rules={[
+                {
+                    required: true,
+                    message: 'Vui lòng nhập So Luong Ma!',
+                },
+                {
+                    validator: (_, value) =>
+                        value < 0
+                            ? Promise.reject('So Luong Ma không được âm!')
+                            : Promise.resolve(),
+                },
+            ]}>
                 <InputNumber min={0} />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="giaTriGiam" label="Gia Tri Giam">
+              <Form.Item name="giaTriGiam" label="Gia Tri Giam"
+              rules={[
+                {
+                    required: true,
+                    message: 'Vui lòng nhập Gia Tri Giam!',
+                },
+                {
+                    validator: (_, value) =>
+                        value < 0
+                            ? Promise.reject('Gia Tri Giam không được âm!')
+                            : Promise.resolve(),
+                },
+            ]}>
                 <InputNumber min={0} />
               </Form.Item>
             </Col>
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="dieuKienToiThieuHoaDon" label="Dieu Kien Toi Thieu Hoa Don">
+              <Form.Item name="dieuKienToiThieuHoaDon" label="Dieu Kien Toi Thieu Hoa Don"
+              rules={[
+                {
+                    required: true,
+                    message: 'Dieu Kien Toi Thieu Hoa Don!',
+                },
+                {
+                    validator: (_, value) =>
+                        value < 0
+                            ? Promise.reject('Dieu Kien Toi Thieu Hoa Don không được âm!')
+                            : Promise.resolve(),
+                },
+            ]}>
                 <InputNumber min={0} />
               </Form.Item>
             </Col>
@@ -298,7 +334,7 @@ const VoucherManagement = () => {
           </Row>
           <Form.Item>
             <Button type="primary" htmlType="submit">
-              {isEditing ? "Update Voucher" : "Create Voucher"}
+              {isEditing ? "Sửa Voucher" : "Tạo Voucher"}
             </Button>
           </Form.Item>
         </Form>

@@ -461,13 +461,7 @@ const ProductManagement = () => {
                             layout="vertical"
                             onFinish={handleCreateOrUpdate}
                         >
-                            <Form.Item
-                                label="Mã Sản Phẩm"
-                                name="maSp"
-                                rules={[{ required: true, message: "Vui lòng nhập Mã Sản Phẩm" }]}
-                            >
-                                <Input placeholder="Nhập mã Sản Phẩm" />
-                            </Form.Item>
+
                             <Form.Item
                                 label="Hình Ảnh"
                                 name="imageDefaul"
@@ -503,13 +497,7 @@ const ProductManagement = () => {
                             >
                                 <Input placeholder="Nhập tên Sản Phẩm" />
                             </Form.Item>
-                            <Form.Item
-                                label="Thể Loại"
-                                name="theLoai"
-                                rules={[{ required: true, message: "Vui lòng nhập Thể loại của sản phẩm" }]}
-                            >
-                                <Input placeholder="Thể loại Nam hoặc Nữ" />
-                            </Form.Item>
+
                             <Form.Item
                                 label="Giá Bán"
                                 name="giaBan"

@@ -71,10 +71,6 @@ const Cart = () => {
         }
     };
 
-    const handleClearCart = () => {
-        setCartItems([]);
-        message.success('Đã xóa giỏ hàng');
-    };
     const handleClickViewOder = () => {
         setLoading(true);
         setTimeout(() => {
@@ -183,14 +179,11 @@ const Cart = () => {
                         <Button
                             type="primary"
                             onClick={handleClickViewOder}
-                            style={{ backgroundColor: 'black', borderColor: 'black', height: '50px', width: '200px', marginRight: '10px' }}
+                            style={{ backgroundColor: 'green', borderColor: 'black', height: '50px', width: '200px', marginRight: '10px' }}
                             disabled={loading}
                         >
                             {loading ? <Spin size="small" /> : 'Xem thông tin đơn hàng'}
                         </Button>
-                    </Col>
-                    <Col>
-                        <Button type="danger" onClick={handleClearCart} style={{ width: '150px' }}>Xóa giỏ hàng</Button>
                     </Col>
                 </Row>
 

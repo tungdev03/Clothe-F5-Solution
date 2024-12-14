@@ -1,11 +1,11 @@
-import React, {useState, useEffect} from 'react';
-import {Table, Button, message, Switch, Input, Row, Col, Drawer, Form, Space, Select} from 'antd';
-import {EditOutlined, DeleteOutlined} from '@ant-design/icons';
+import React, { useState, useEffect } from 'react';
+import { Table, Button, message, Switch, Input, Row, Col, Drawer, Form, Space, Select,Radio } from 'antd';
+import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import AdminService from '../../../Service/AdminService';
 import AuthService from '../../../Service/AuthService';
 
-const {Option} = Select;
+const { Option } = Select;
 
 const NhanVienPage = () => {
     const [loading, setLoading] = useState(false);
@@ -122,7 +122,7 @@ const NhanVienPage = () => {
             title: 'Hình Ảnh',
             dataIndex: 'image',
             key: 'image',
-            render: (text) => <img src={text} alt="Nhân viên" width="50"/>,
+            render: (text) => <img src={text} alt="Nhân viên" width="50" />,
         },
         {
             title: 'Trạng Thái',
@@ -140,7 +140,7 @@ const NhanVienPage = () => {
             key: 'action',
             render: (text, record) => (
                 <Space size="middle">
-                    <Button icon={<EditOutlined/>} onClick={() => handleEdit(record)}>Sửa</Button>
+                    <Button icon={<EditOutlined />} onClick={() => handleEdit(record)}>Sửa</Button>
                 </Space>
             ),
         },
@@ -210,7 +210,7 @@ const NhanVienPage = () => {
     };
     const handleChucVuChange = (value) => {
         const selectedChucVu = chucVuList.find(chucVu => chucVu.id === value);
-        form.setFieldsValue({tenChucVu: selectedChucVu ? selectedChucVu.tenChucVu : ''});
+        form.setFieldsValue({ tenChucVu: selectedChucVu ? selectedChucVu.tenChucVu : '' });
     };
     const handleDelete = async (record) => {
         try {
@@ -224,7 +224,7 @@ const NhanVienPage = () => {
     return (
         <div>
             <h1>Quản lý nhân viên</h1>
-            <Row gutter={16} style={{marginBottom: '20px'}}>
+            <Row gutter={16} style={{ marginBottom: '20px' }}>
                 <Col span={12}>
                     <Input.Search
                         placeholder="Nhập tên hoặc mã nhân viên"
@@ -261,7 +261,7 @@ const NhanVienPage = () => {
                 width={700}
             >
                 <Form form={form} layout="vertical">
-                    <Form.Item name="idCv" label="Chức Vụ" rules={[{required: true, message: "Chọn chức vụ"}]}>
+                    <Form.Item name="idCv" label="Chức Vụ" rules={[{ required: true, message: "Chọn chức vụ" }]}>
                         <Select placeholder="Chọn chức vụ" onChange={handleChucVuChange}>
                             {chucVuList.map((chucVu) => (
                                 <Option key={chucVu.id} value={chucVu.id}>
@@ -270,13 +270,11 @@ const NhanVienPage = () => {
                             ))}
                         </Select>
                     </Form.Item>
-                    <Form.Item name="maNv" label="Mã NV" rules={[{required: true, message: 'Nhập mã NV'}]}>
-                        <Input/>
+                   
+                    <Form.Item name="hoVaTenNv" label="Họ và Tên" rules={[{ required: true, message: 'Nhập họ và tên' }]}>
+                        <Input />
                     </Form.Item>
-                    <Form.Item name="hoVaTenNv" label="Họ và Tên" rules={[{required: true, message: 'Nhập họ và tên'}]}>
-                        <Input/>
-                    </Form.Item>
-                    <Form.Item name="gioiTinh" label="Giới Tính" rules={[{required: true, message: 'Chọn giới tính'}]}>
+                    <Form.Item name="gioiTinh" label="Giới Tính" rules={[{ required: true, message: 'Chọn giới tính' }]}>
                         <Select placeholder="Chọn giới tính">
                             <Option value="Nam">Nam</Option>
                             <Option value="Nữ">Nữ</Option>
@@ -285,40 +283,43 @@ const NhanVienPage = () => {
                     <Form.Item
                         name="ngaySinh"
                         label="Ngày Sinh"
-                        rules={[{required: true, message: 'Vui lòng chọn ngày sinh!'}]}
+                        rules={[{ required: true, message: 'Vui lòng chọn ngày sinh!' }]}
                     >
-                        <Input type="date" placeholder="Chọn ngày sinh"/>
+                        <Input type="date" placeholder="Chọn ngày sinh" />
                     </Form.Item>
                     <Form.Item name="soDienThoai" label="Số Điện Thoại"
-                               rules={[{required: true, message: 'Nhập số điện thoại'}]}>
-                        <Input/>
+                        rules={[{ required: true, message: 'Nhập số điện thoại' }]}>
+                        <Input />
                     </Form.Item>
-                    <Form.Item name="email" label="Email" rules={[{required: true, message: 'Nhập email'}]}>
-                        <Input/>
+                    <Form.Item name="email" label="Email" rules={[{ required: true, message: 'Nhập email' }]}>
+                        <Input />
                     </Form.Item>
                     {!editingNhanVien && (
                         <>
                             <Form.Item name="taiKhoan" label="Tài khoản nhân viên"
-                                       rules={[{required: true, message: 'Nhập tài khoản đăng nhập'}]}>
-                                <Input/>
+                                rules={[{ required: true, message: 'Nhập tài khoản đăng nhập' }]}>
+                                <Input />
                             </Form.Item>
                             <Form.Item name="matKhau" label="Mật khẩu"
-                                       rules={[{required: true, message: 'Nhập mật khẩu'}]}>
-                                <Input/>
+                                rules={[{ required: true, message: 'Nhập mật khẩu' }]}>
+                                <Input />
                             </Form.Item>
                         </>
                     )}
                     <Form.Item name="image" label="Hình Ảnh">
-                        <Input/>
+                        <Input />
                     </Form.Item>
                     <Form.Item name="diaChi" label="Địa Chỉ">
-                        <Input/>
+                        <Input />
                     </Form.Item>
                     <Form.Item name="moTa" label="Mô Tả">
-                        <Input/>
+                        <Input />
                     </Form.Item>
-                    <Form.Item name="trangThai" label="Trạng Thái">
-                        <Input/>
+                    <Form.Item label="Trạng thái" name="trangThai" initialValue={1}>
+                        <Radio.Group style={{ display: "flex", flexDirection: "row" }}>
+                            <Radio value={1}>Hoạt động</Radio>
+                            <Radio value={0}>Không hoạt động</Radio>
+                        </Radio.Group>
                     </Form.Item>
                 </Form>
                 <Button type="primary" onClick={handleModalOk}>

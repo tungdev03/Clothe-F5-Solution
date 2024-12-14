@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Row, Col, Button, Layout, Menu, Dropdown, Input, Space, Card, Carousel, message } from 'antd';
+import { Row, Col, Button, Layout, Menu, Dropdown, Input, Space, Card, Carousel, message,notification } from 'antd';
 import {
     UpOutlined,
     DownOutlined,
@@ -40,10 +40,12 @@ const ProductDetail = () => {
     const [quantity, setQuantity] = useState(1);
     const [availableSizes, setAvailableSizes] = useState([]);
     const [selectedProductId, setSelectedProductId] = useState('');
-    const [defaultData , setDefaultData] = useState(null)
+    const [errorMessage, setErrorMessage] = useState("");
     const [CartId, setCartId] = useState(null);
     const [userId, setUserId] = useState(null);
-    const [sLuong, setSPCt] = useState(null);
+    const [filteredSizes, setfilteredSizes] = useState('');
+    const [soLuong, setSoluong] = useState(0);
+   
     const visibleImages = 3;
     useEffect(() => {
         const storedUser = localStorage.getItem('user');
@@ -79,13 +81,13 @@ const ProductDetail = () => {
 
             try {
                 const data = await HomeView.ViewProductDetail(id);
+                console.log(data)
                 if (data) {
                     const convertData = {
                         ...data,
                       
                     }
                     setProduct(convertData);
-                    setDefaultData(convertData)
                     setMainImage(data.imageDefaul || '');
                 } else {
                     setProduct(null);
@@ -127,38 +129,96 @@ const ProductDetail = () => {
             setUsername(user.TaiKhoan);
         }
     }, []);
+    const [filteredProducts, setFilteredProducts] = useState([]);
     useEffect(() => {
-        if (selectedColor && product && Array.isArray(product.size) && Array.isArray(product.mauSac)) {
-            const sanPhamChiTietIds = product.mauSac
-                .filter(color => color.mauSacId === selectedColor)
-                .map(color => color.sanPhamChiTietId);
+        if (product && Array.isArray(product.size) && Array.isArray(product.mauSac)) {
+            // Nếu chưa chọn màu, bạn cần kết hợp tất cả các size mà không bị trùng lặp
+            if (!selectedColor) {
+                // Dùng Set để loại bỏ các size trùng lặp
+                const uniqueSizes = Array.from(new Set(product.size.map(size => size.sizeId)))
+                    .map(sizeId => product.size.find(size => size.sizeId === sizeId));
+                setAvailableSizes(uniqueSizes);
+            } else {
+                // Nếu đã chọn màu, lọc các size theo màu
+                const sanPhamChiTietIds = product.mauSac
+                    .filter(color => color.mauSacId === selectedColor)
+                    .map(color => color.sanPhamChiTietId);
 
-            const filteredSizes = product.size.filter(size =>
-                sanPhamChiTietIds.includes(size.sanPhamChiTietId)
-            );
+                // Lọc size dựa trên các sanPhamChiTietId đã lọc được
+                const filteredSizes = product.size.filter(size =>
+                    sanPhamChiTietIds.includes(size.sanPhamChiTietId)
+                );
 
-            setAvailableSizes(filteredSizes);
-        } else {
-            setAvailableSizes(product?.size || []);
+                // Loại bỏ các size trùng lặp
+                const uniqueSizes = Array.from(new Set(filteredSizes.map(size => size.sizeId)))
+                    .map(sizeId => filteredSizes.find(size => size.sizeId === sizeId));
+
+                setAvailableSizes(uniqueSizes);
+            }
         }
     }, [selectedColor, product]);
 
+    // Hàm xử lý khi người dùng chọn màu
     const handleSelectColor = (mauSac) => {
-        const mauSacId = mauSac.mauSacId
-        const idSanPham = mauSac.sanPhamChiTietId
+        const mauSacId = mauSac.mauSacId;
+       
+
         if (mauSacId === selectedColor) {
+            // Hủy chọn màu nếu đã chọn màu này
             setSelectedColor('');
+            setFilteredProducts([]); // Xóa sản phẩm đã lọc
+            setAvailableSizes([]); // Xóa size đã lọc
         } else {
+            // Lưu màu đã chọn
             setSelectedColor(mauSacId);
-            setSelectedProductId(idSanPham)
-            setSelectedSize('')
+            
+
+            // Lọc sản phẩm theo màu sắc đã chọn
+            const filteredProductsByColor = product.mauSac.filter(color => color.mauSacId === mauSacId);
+            setFilteredProducts(filteredProductsByColor);
+
+            // Lọc các size tương ứng với sanPhamChiTietId đã lọc
+            const sanPhamChiTietIds = filteredProductsByColor.map(item => item.sanPhamChiTietId);
+            const filteredSizes = product.size.filter(size =>
+                sanPhamChiTietIds.includes(size.sanPhamChiTietId)
+            );
+            setfilteredSizes(filteredSizes);
+            // Loại bỏ các size trùng lặp
+            const uniqueSizes = Array.from(new Set(filteredSizes.map(size => size.sizeId)))
+                .map(sizeId => filteredSizes.find(size => size.sizeId === sizeId));
+
+            // Cập nhật lại danh sách size có sẵn
+            setAvailableSizes(uniqueSizes);
         }
     };
-    console.log('selectedProductId', selectedProductId);
+
+    // Hàm xử lý khi người dùng chọn size
     const handleSelectSize = (sizeId) => {
-        setSelectedSize(sizeId)
-        setSPCt(sizeId.soLuongTon)
+        // Cập nhật size được chọn
+        setSelectedSize(sizeId);
+        console.log('Filtered sizes:', filteredSizes);
+        console.log('Selected size ID:', sizeId);
+    
+        // Kiểm tra điều kiện trước khi lọc
+        if (selectedColor && Array.isArray(filteredSizes)) {
+            const filteredProductsWithSize = filteredSizes.filter(product =>
+                product.sizeId === sizeId
+            );
+    
+            if (filteredProductsWithSize.length > 0) {
+                // Lấy ID sản phẩm đầu tiên từ kết quả lọc
+                setSelectedProductId(filteredProductsWithSize[0].sanPhamChiTietId);
+                setSoluong(filteredProductsWithSize[0].soLuongTon);
+                console.log('Updated selected product ID:', filteredProductsWithSize[0].sanPhamChiTietId);
+            } else {
+                notification.warning({ message: "Vui lòng chọn màu sắc và size"})
+           
+            }
+        } else {
+            console.warn('Color not selected or filteredSizes is not valid.');
+        }
     };
+    
     const handCart = async (userId) => {
         try {
             const data = await GioHangService.getByGioHang(userId);
@@ -171,14 +231,15 @@ const ProductDetail = () => {
     };
     const handleAddToCart = async () => {
         if (!selectedColor || !selectedSize) {
-            message.warning("Vui lòng chọn màu sắc và size trước khi mua.");
+            setErrorMessage("Vui lòng chọn màu sắc và size trước khi mua.");
+            notification.warning({ message: "Vui lòng chọn màu sắc và size trước khi mua."});
             return;
         }
-        if(quantity>sLuong)
-            {
-                message.warning("Số lượng trong kho không đủ.");
-                return;
-            }
+        if (quantity>soLuong) {
+            setErrorMessage("Số lượng trong kho không đủ.");
+            notification.warning({ message: "Số lượng trong kho không đủ."});
+            return;
+        }
         const addDto = {
             idGh: CartId,
             idSpCt: selectedProductId,
@@ -187,22 +248,32 @@ const ProductDetail = () => {
     
         try {
             console.log("Payload gửi lên API:", addDto);
-            const result = await GioHangService.addGioHang(addDto); // Thêm `await` để xử lý bất đồng bộ
-            alert("Sản phẩm đã được thêm vào giỏ hàng!");
+            const result = await GioHangService.addGioHang(addDto); // Call the backend API
+    
+            notification.success({ message: "Sản phẩm đã được thêm vào giỏ hàng"})
+           
             console.log("Kết quả trả về từ API:", result);
+            setErrorMessage(""); // Clear the error message if everything is fine
         } catch (error) {
             console.error("Không thể thêm sản phẩm vào giỏ hàng:", error);
     
+            // Handle specific errors from the backend API
             if (error.response) {
                 console.error("Chi tiết lỗi từ API:", error.response.data);
-                console.error("Status code:", error.response.status);
+                if (error.response.data && error.response.data.message) {
+                    // Show error message from backend (e.g. stock error)
+                    setErrorMessage(error.response.data.message);
+                } else {
+                    // Fallback to a generic error message
+                    setErrorMessage("Đã xảy ra lỗi khi thêm sản phẩm vào giỏ hàng.");
+                }
             } else if (error.request) {
                 console.error("Không nhận được phản hồi từ server:", error.request);
+                setErrorMessage("Không nhận được phản hồi từ server.");
             } else {
                 console.error("Lỗi khi gửi yêu cầu:", error.message);
+                setErrorMessage("Đã xảy ra lỗi khi gửi yêu cầu.");
             }
-    
-            alert("Đã xảy ra lỗi khi thêm vào giỏ hàng.");
         }
     };
     
@@ -210,14 +281,17 @@ const ProductDetail = () => {
         const storedUser = JSON.parse(localStorage.getItem('user'));
     
         if (!selectedColor || !selectedSize) {
-            message.warning("Vui lòng chọn màu sắc và size trước khi mua.");
+            setErrorMessage("Vui lòng chọn màu sắc và size trước khi mua.");
+            notification.warning({ message: "Vui lòng chọn màu sắc và size trước khi mua."});
             return;
         }
-        if(quantity>sLuong)
-        {
-            message.warning("Số lượng trong kho không đủ.");
+        if (quantity>soLuong) {
+            setErrorMessage("Số lượng trong kho không đủ.");
+            notification.warning({ message: "Số lượng trong kho không đủ."});
             return;
         }
+    
+        // Client-side check for available stoc
     
         const addDto = {
             idGh: CartId,
@@ -227,27 +301,36 @@ const ProductDetail = () => {
     
         try {
             console.log("Payload gửi lên API:", addDto);
-            const result = await GioHangService.addGioHang(addDto); // Thêm vào giỏ hàng
+            const result = await GioHangService.addGioHang(addDto); // Call the backend API
             console.log("Kết quả trả về từ API:", result);
-            alert("Sản phẩm đã được thêm vào giỏ hàng!");
+    
+            notification.success({ message: "Sản phẩm đã được thêm vào giỏ hàng"})
+           
+            setErrorMessage(""); // Clear the error message if everything is fine
             navigate(`/cart/${storedUser.TaiKhoan}`);
         } catch (error) {
             console.error("Không thể thêm sản phẩm vào giỏ hàng:", error);
     
+            // Handle specific errors from the backend API
             if (error.response) {
                 console.error("Chi tiết lỗi từ API:", error.response.data);
-                console.error("Status code:", error.response.status);
+                if (error.response.data && error.response.data.message) {
+                    // Show error message from backend (e.g. stock error)
+                    setErrorMessage(error.response.data.message);
+                } else {
+                    // Fallback to a generic error message
+                    setErrorMessage("Đã xảy ra lỗi khi mua sản phẩm.");
+                }
             } else if (error.request) {
                 console.error("Không nhận được phản hồi từ server:", error.request);
+                setErrorMessage("Không nhận được phản hồi từ server.");
             } else {
                 console.error("Lỗi khi gửi yêu cầu:", error.message);
+                setErrorMessage("Đã xảy ra lỗi khi gửi yêu cầu.");
             }
-    
-            alert("Đã xảy ra lỗi khi mua sản phẩm.");
         }
     };
     
-
     const handleViewMore = (id) => {
         navigate(`/Products/${id}`);
     };
@@ -261,10 +344,13 @@ const ProductDetail = () => {
             }
         });
     }
+    
     const uniqueSizesMap = new Map();
     if (product && Array.isArray(product.size)) {
         product.size.forEach(size => {
-            if (uniqueSizesMap.has(size.sizeId)) {
+        
+            // Nếu chưa có sizeId này trong map, thì thêm vào
+            if (!uniqueSizesMap.has(size.sizeId)) {
                 uniqueSizesMap.set(size.sizeId, size);
             }
         });
@@ -382,42 +468,42 @@ const ProductDetail = () => {
                                 <p style={{ margin: "0px 0px 0px 15px", fontWeight: 500, fontSize: "25px" }}>Giá bán: <span style={{ color: "red" }}>{product?.giaBan.toLocaleString() || 0}</span> VND</p>
                                 <p style={{ margin: "15px", fontWeight: 500 }}>Chất liệu: {product?.chatLieu?.tenChatLieu || 'Không rõ'}</p>
                                 <div className="product-detail">
-                                    {product && (
-                                        <>
-                                            <p>Màu sắc:</p>
-                                            <div className="color-options">
-                                                {uniqueColors.map((mauSac, index) => (
-                                                    <Button
-                                                        key={mauSac.mauSacId}
-                                                        className={`color-button ${selectedColor === mauSac.mauSacId ? 'selected' : ''}`}
-                                                        style={{ backgroundColor: mauSac.mauSacTen }}
-                                                        onClick={() => handleSelectColor(mauSac)}
-                                                    >
-                                                        {selectedColor === mauSac.mauSacId && <CheckOutlined />}
-                                                    </Button>
-                                                ))}
-                                            </div>
-                                            <div className="size-options" style={{ marginTop: '20px' }}>
-                                                <p>Size:</p>
-                                                {availableSizes.reduce((acc, item) =>{
-                                                    return acc.includes(item.sizeId) ? acc : [...acc, item]
-                                                }, []).map(size => (
-                                                    <Button
-                                                        key={size.sizeId}
-                                                        style={{
-                                                            marginRight: '10px',
-                                                            border: selectedSize === size.sizeId ? '2px solid black' : '1px solid #ddd',
-                                                        }}
-                                                        onClick={() => handleSelectSize(size.sizeId)}
-                                                    >
-                                                        {size.sizeTen}
-                                                    </Button>
-                                                ))}
-                                            </div>
-                                        </>
-                                    )}
-                                </div>
-                                <p style={{ margin: '15px', fontWeight: 500 }}>Số lượng:</p>
+                                {product && (
+                                    <>
+                                        <p>Màu sắc:</p>
+                                        <div className="color-options">
+                                            {uniqueColors.map((mauSac, index) => (
+                                                <Button
+                                                    key={mauSac.mauSacId}
+                                                    className={`color-button ${selectedColor === mauSac.mauSacId ? 'selected' : ''}`}
+                                                    style={{ backgroundColor: mauSac.mauSacTen }}
+                                                    onClick={() => handleSelectColor(mauSac)}
+                                                >
+                                                    {selectedColor === mauSac.mauSacId && <CheckOutlined />}
+                                                </Button>
+                                            ))}
+                                        </div>
+                            
+                                        <div className="size-options" style={{ marginTop: '20px' }}>
+                                            <p>Size:</p>
+                                            {availableSizes.map(size => (
+                                                <Button
+                                                    key={size.sizeId}
+                                                    style={{
+                                                        marginRight: '10px',
+                                                        border: selectedSize === size.sizeId ? '2px solid black' : '1px solid #ddd',
+                                                    }}
+                                                    onClick={() => handleSelectSize(size.sizeId)}
+                                                >
+                                                    {size.sizeTen}
+                                                </Button>
+                                            ))}
+                                        </div>
+                                    </>
+                                )}
+                            </div>
+                            
+                                <p style={{ margin: '15px', fontWeight: 500 }}>Số lượng trong kho: {soLuong}</p>
                                 <div style={{ margin: '15px', fontWeight: 500, display: 'flex', alignItems: 'center' }}>
                                     <Button onClick={decreaseQuantity} disabled={quantity <= 1}>
                                         <MinusOutlined />

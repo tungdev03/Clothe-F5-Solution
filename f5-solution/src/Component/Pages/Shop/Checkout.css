@@ -356,7 +356,7 @@ select:focus {
 /* Đơn Hàng Container */
 .order-summary {
   padding: 20px;
-  background-color: #fff;
+  background-color: #EEEEEE  ;
   border-radius: 10px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #f1f1f1;
@@ -428,7 +428,8 @@ button {
   cursor: pointer;
   width: auto; /* Chiều rộng tự động theo nội dung */
   display: block; /* Mỗi nút chiếm một dòng */
-  text-align: left; /* Căn chỉnh văn bản về bên trái */
+  text-align: left; 
+  font-size: 18px;/* Căn chỉnh văn bản về bên trái */
   border-radius: 4px; /* Tạo viền cong cho nút */
 }
 

@@ -635,6 +635,18 @@ const ProductManagement = () => {
                                                     {...field}
                                                     name={[field.name, 'options']}
                                                     label="Số Lượng Tồn"
+                                                    rules={[
+                                                        {
+                                                            required: true,
+                                                            message: 'Vui lòng nhập số lượng tồn!',
+                                                        },
+                                                        {
+                                                            validator: (_, value) =>
+                                                                value < 0
+                                                                    ? Promise.reject('Số lượng tồn không được âm!')
+                                                                    : Promise.resolve(),
+                                                        },
+                                                    ]}
                                                 >
                                                     <Input type="number" min={0} placeholder="Nhập số lượng tồn" />
                                                 </Form.Item>

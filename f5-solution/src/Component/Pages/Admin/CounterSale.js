@@ -746,7 +746,8 @@ const CounterSale = () => {
                         label="Số Điện Thoại"
                         rules={[
                             { required: true, message: 'Vui lòng nhập số điện thoại!' },
-                            { max: 11, message: 'Số điện thoại không được quá 1 ký tự!' },
+                            { len: 10, message: 'Số điện thoại phải có 10 chữ số!' },
+                            { max: 10, message: 'Số điện thoại không được quá 10 ký tự!' },
                             { pattern: /^[0-9]+$/, message: 'Số điện thoại chỉ được chứa số!' }
                         ]}
                     >

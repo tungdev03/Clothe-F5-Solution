@@ -583,7 +583,7 @@ const InvoiceManagement = () => {
     rules={[
         { required: true, message: 'Vui lòng nhập số điện thoại!' },
         { len: 10, message: 'Số điện thoại phải có 10 chữ số!' },
-        { max: 11, message: 'Số điện thoại không được quá 11 chữ số!' },
+        { max: 10, message: 'Số điện thoại không được quá 10 chữ số!' },
         { pattern: /^[0-9]+$/, message: 'Số điện thoại chỉ được chứa số và không được có ký tự đặc biệt!' } // Kiểm tra chỉ chứa số
     ]}
 >

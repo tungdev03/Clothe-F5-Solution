@@ -127,8 +127,7 @@ useEffect(() => {
         : data.giaTriGiam; // Fixed amount discount
       setDiscount(calculatedDiscount);
     } catch (error) {
-      console.error("Lỗi khi kiểm tra voucher:", error);
-      message.error("Đã xảy ra lỗi trong quá trình kiểm tra voucher.");
+      notification.warning({ message: "Mã voucher không tồn tại"});
     }
   };
 
@@ -660,7 +659,7 @@ const handleSelectAddress = (id) => {
                       </button>
                     ))
                   ) : (
-                    <button>Chưa có địa chỉ, Vui lòng thêm địa chỉ</button>
+                    <button onClick={handleOpenModal} >Chưa có địa chỉ, Vui lòng thêm địa chỉ</button>
                   )}
                 </div>
               </div>

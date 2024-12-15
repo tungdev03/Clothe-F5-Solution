@@ -26,19 +26,22 @@ const StatisticsPage = () => {
         // Lấy tổng doanh thu
         const revenue = await StatisticsService.getTotalRevenue(startDate, endDate);
         setTotalRevenue(revenue);
+console.log(revenue);
 
         // Lấy tổng số đơn hàng
         const orders = await StatisticsService.getTotalOrders(startDate, endDate);
         setTotalOrders(orders);
+console.log(orders);
 
         // Lấy tổng số sản phẩm đã bán
         const productsSold = await StatisticsService.getTotalProductsSold(startDate, endDate);
         setTotalProductsSold(productsSold);
+console.log(productsSold);
 
         // Lấy số lượng đơn hàng theo trạng thái
         const statusCounts = await StatisticsService.getOrderStatusCounts(startDate, endDate);
         setOrderStatusCounts(statusCounts);
-
+console.log(statusCounts)
         // Lấy doanh thu theo tháng
         const monthlyRevenueData = await StatisticsService.getMonthlyRevenue(year);
 

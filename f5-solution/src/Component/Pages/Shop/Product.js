@@ -30,7 +30,7 @@ const ProductPage = () => {
     const [selectedPrice, setSelectedPrice] = useState([0, 1000000]);
     const [categories, setCategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState('all');
-
+    // const [selectedHomeView, setSelectedHome] = useState('all');
     const productsPerPage = 8;
 
     useEffect(() => {
@@ -163,6 +163,9 @@ const ProductPage = () => {
             navigate(`/Profile/${user.MaKh}`);
         }
     };
+    const handleLayoutClicks = ({ key }) => {
+        navigate(key);
+    };
 
     const userMenu = (
         <Menu>
@@ -202,7 +205,7 @@ const ProductPage = () => {
                         <h2><span style={{ color: 'orange' }}>F5</span> Fashion</h2>
                     </span>
                 </div>
-                <Menu theme="light" mode="horizontal" defaultSelectedKeys={['/']} onClick={handleMenuClicks} items={items1} style={{ flex: 1, display: 'flex', justifyContent: 'center', lineHeight: '64px' }} />
+                <Menu theme="light" mode="horizontal" defaultSelectedKeys={items1} onClick={handleLayoutClicks} items={items1} style={{ flex: 1, display: 'flex', justifyContent: 'center', lineHeight: '64px' }} />
                 
                 <div>
                 <Input placeholder="Search" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />

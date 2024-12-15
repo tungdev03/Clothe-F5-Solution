@@ -24,10 +24,10 @@ const InvoiceManagement = () => {
 
     const fetchInvoices = async () => {
         try {
-            const response = await axios.get("https://localhost:7030/api/HoaDon"); 
+            const response = await axios.get("https://localhost:7030/api/HoaDon");
             const data = response.data;
             console.log(response);
-            
+
             setInvoices(data || []);
         } catch (error) {
             console.error("Lỗi khi lấy dữ liệu hóa đơn:", error);
@@ -428,7 +428,7 @@ const InvoiceManagement = () => {
     };
 
     //in hóa đơn
-    const handlePrintInvoice = () => {
+    const handlePrintInvoice = async () => {
         if (!selectedInvoiceDetails) return;
 
         const doc = new jsPDF({
@@ -436,7 +436,16 @@ const InvoiceManagement = () => {
             unit: 'mm',
             format: [80, 297]
         });
-        doc.setFont('helvetica', 'normal');
+
+        // Tải font từ thư mục assets
+        const fontUrl = '/assets/fonts/times.ttf';  // Đảm bảo font có trong thư mục public/assets/fonts
+        const fontData = await fetch(fontUrl).then(response => response.arrayBuffer());
+
+        // Thêm font vào jsPDF
+        doc.addFileToVFS("times.ttf", fontData);
+        doc.addFont("times.ttf", "TimesNewRoman", "normal");
+        doc.setFont("TimesNewRoman");
+
         doc.setFontSize(10);
 
         // Store details

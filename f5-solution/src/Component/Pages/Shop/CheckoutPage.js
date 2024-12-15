@@ -54,6 +54,7 @@ useEffect(() => {
   const fetchAddresses = async () => {
     if (userId) {
       try {
+        
         const data = await DiaChiService.getAddressById(userId);
         setAddresses(data); 
         console.log(data);
@@ -80,41 +81,51 @@ useEffect(() => {
 
   const handleVoucher = async () => {
     try {
-      // Gọi API để lấy dữ liệu voucher dựa trên mã voucher
+     
+
+      if (!voucherCode) {
+        setDiscount(0); 
+        notification.warning({ message: "Bạn chưa nhập mã voucher." });
+        return;
+      }
       const data = await GioHangService.getMaVouchers(voucherCode);
 
       // Kiểm tra nếu không tìm thấy voucher
       if (!data) {
         message.warning("Mã voucher không tồn tại."); 
-        return;
+        setDiscount(0);
+        return ;
       }
 
       // Lấy ngày bắt đầu và ngày kết thúc từ dữ liệu voucher
       const ngayBatDau = new Date(data.ngayBatDau);
       const ngayKetThuc = new Date(data.ngayKetThuc);
       const currentDate = new Date(); // Ngày hiện tại
-
       // Kiểm tra nếu voucher chưa bắt đầu
       if (currentDate < ngayBatDau) {
         notification.warning({ message: "Voucher chưa đến ngày bắt đầu."});
+        setDiscount(0);
         return;
       }
 
       // Kiểm tra nếu voucher đã hết hạn
-      if (currentDate > ngayKetThuc) {
+      if (currentDate > ngayKetThuc||data.trangThai==0) {
         notification.warning({ message: "Voucher đã hết hạn."});
+        setDiscount(0);
         return;
       }
 
       // Kiểm tra nếu số lượng mã nhỏ hơn hoặc bằng 0
       if (data.soLuongMa <= 0) {
         notification.warning({ message: "Voucher đã hết số lượng."});
+        setDiscount(0);
         return;
       }
 
       // Kiểm tra nếu subtotal không đủ điều kiện hóa đơn tối thiểu
       if (subtotal < data.dieuKienToiThieuHoaDon) {
         notification.warning({ message: `Tổng giá trị đơn hàng phải lớn hơn hoặc bằng ${data.dieuKienToiThieuHoaDon}.`});
+        setDiscount(0);
         return;
       }
 
@@ -127,8 +138,8 @@ useEffect(() => {
         : data.giaTriGiam; // Fixed amount discount
       setDiscount(calculatedDiscount);
     } catch (error) {
-      console.error("Lỗi khi kiểm tra voucher:", error);
-      message.error("Đã xảy ra lỗi trong quá trình kiểm tra voucher.");
+    notification.warning({message: "Voucher không tồn tại"});
+      setDiscount(0);
     }
   };
 
@@ -137,16 +148,16 @@ useEffect(() => {
     try {
       const data = await GioHangService.getAllGioHang(userId);
 
-      // Kiểm tra nếu giỏ hàng rỗng
+      
       if (!data || data.length === 0) {
-        setCartItems([]); // Đảm bảo giỏ hàng được đặt thành mảng trống
+        setCartItems([]); 
        
         return;
       }
 
-      // Chuyển đổi dữ liệu giỏ hàng thành cấu trúc mong muốn
+      
       const mappedData = data.map((item) => ({
-        Anh: item.hinhAnh || "/images/default-product.jpg", // Hình ảnh mặc định
+        Anh: item.hinhAnh || "/images/default-product.jpg", 
         TenSanPham: item.tenSp || "Sản phẩm không xác định",
         Size: item.tenSize || "Không có",
         Color: item.tenMauSac || "Không có",
@@ -154,7 +165,7 @@ useEffect(() => {
       }));
 
       console.log("Fetched Cart Data:", data);
-      setCartItems(mappedData); // Cập nhật dữ liệu giỏ hàng
+      setCartItems(mappedData);
     } catch (error) {
       console.error("Failed to fetch cart items:", error);
       message.error("Không thể tải giỏ hàng. Vui lòng thử lại.");
@@ -171,9 +182,24 @@ useEffect(() => {
     };
 
     // Kiểm tra các trường nhập liệu bắt buộc
-    if (!TenNguoiNhan) {
+    if (!TenNguoiNhan || TenNguoiNhan.trim() === "") {
       formIsValid = false;
-      errorObj.TenNguoiNhan = "Vui lòng nhập tên!";
+      errorObj.TenNguoiNhan = "Tên không được để trống!";
+    } else if (/\d/.test(TenNguoiNhan)) {
+      formIsValid = false;
+      errorObj.TenNguoiNhan = "Tên không được chứa số!";
+    } else if (/[^a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/.test(TenNguoiNhan)) {
+      formIsValid = false;
+      errorObj.TenNguoiNhan = "Tên không được chứa ký tự đặc biệt!";
+    } else if (TenNguoiNhan.length < 2) {
+      formIsValid = false;
+      errorObj.TenNguoiNhan = "Tên phải có ít nhất 2 ký tự!";
+    } else if (TenNguoiNhan.length > 50) {
+      formIsValid = false;
+      errorObj.TenNguoiNhan = "Tên không được vượt quá 50 ký tự!";
+    } else if (TenNguoiNhan.trim() !== TenNguoiNhan || /\s{2,}/.test(TenNguoiNhan)) {
+      formIsValid = false;
+      errorObj.TenNguoiNhan = "Tên không được chứa khoảng trắng thừa!";
     }
 
     if (!SdtNguoiNhan) {
@@ -193,10 +219,7 @@ useEffect(() => {
       errorObj.NgayNhan = "Vui lòng chọn ngày nhận hàng!";
     }
 
-    if (!GhiChu) {
-      formIsValid = false;
-      errorObj.GhiChu = "Vui lòng nhập !";
-    }
+    
 
     if (!formIsValid) {
       setError(errorObj);
@@ -311,11 +334,7 @@ useEffect(() => {
       errorObj.NgayNhan = "Vui lòng chọn ngày nhận hàng!";
     }
   
-    if (!GhiChu) {
-      formIsValid = false;
-      errorObj.GhiChu = "Vui lòng nhập ghi chú!";
-    }
-  
+    
     if (!formIsValid) {
       setError(errorObj);
       return; // Dừng lại nếu có lỗi
@@ -496,7 +515,7 @@ const getDistrictId = async (provinceId, quanHuyen) => {
     }
 };
 
-// Function to get Ward ID from GHN
+
 const getWardId = async (districtId, phuongXa) => {
     try {
         console.log('Searching for ward:', phuongXa);
@@ -519,14 +538,14 @@ const getWardId = async (districtId, phuongXa) => {
     }
 };
 
-// Function to handle address selection
+
 const handleSelectAddress = (id) => {
     const selected = addresses.find(address => address.id === id);
 
     if (selected) {
         const { diaChiChiTiet, phuongXa, quanHuyen, tinhThanh } = selected;
 
-        // Validate the selected address
+        
         if (!diaChiChiTiet || !phuongXa || !quanHuyen || !tinhThanh) {
             console.error("Thông tin địa chỉ không đầy đủ:", selected);
             setError("Địa chỉ không hợp lệ. Vui lòng chọn địa chỉ khác.");

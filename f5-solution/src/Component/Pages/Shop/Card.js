@@ -101,7 +101,7 @@ const Cart = () => {
             message.success("Cập nhật số lượng thành công");
         } catch (error) {
             console.error("Error updating cart item:", error);
-            message.error(error.response?.data?.Message || "Cập nhật số lượng thất bại");
+            message.error(error.response?.data?.Message || "Số lượng tồn kho không đủ! ");
         }
     };
 

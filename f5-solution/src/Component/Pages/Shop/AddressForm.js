@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Modal, Button, message } from "antd";
-import { getProvinces, getDistrictsByProvinceCode, getWardsByDistrictCode } from "vn-provinces";
-import  DiaChiService  from "../../../Service/DiaChiService"; // Import the addAddress function from your services
-import '../Shop/AddressForm.css'; // Ensure CSS file is properly imported
+import { Modal, message } from "antd";
+import {
+  getProvinces,
+  getDistrictsByProvinceCode,
+  getWardsByDistrictCode,
+} from "vn-provinces";
+import DiaChiService from "../../../Service/DiaChiService"; // Import the addAddress function from your services
+import "../Shop/AddressForm.css"; // Ensure CSS file is properly imported
 
 function AddressFormModal({ visible, onClose, onSave }) {
   const [provinces, setProvinces] = useState([]);
@@ -14,9 +18,12 @@ function AddressFormModal({ visible, onClose, onSave }) {
   const [selectedAddress, setSelectedAddress] = useState(""); // Detailed address
   const [userId, setUserId] = useState(null); // User ID to associate with the address
 
+  // Validation states
+  const [errors, setErrors] = useState({});
+
   // Fetch user information from localStorage
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
         const user = JSON.parse(storedUser);
@@ -60,25 +67,37 @@ function AddressFormModal({ visible, onClose, onSave }) {
     }
   }, [selectedDistrict]);
 
+  const validateField = (fieldName, value) => {
+    let error = "";
+    if (fieldName === "selectedProvince" && !value) error = "Vui lòng chọn tỉnh/thành phố.";
+    if (fieldName === "selectedDistrict" && !value) error = "Vui lòng chọn quận/huyện.";
+    if (fieldName === "selectedWard" && !value) error = "Vui lòng chọn xã/phường.";
+    if (fieldName === "selectedAddress" && !value.trim()) error = "Vui lòng nhập địa chỉ chi tiết.";
+    setErrors((prev) => ({ ...prev, [fieldName]: error }));
+  };
+
   const handleSave = async () => {
     if (!userId) {
       message.error("Không tìm thấy thông tin người dùng.");
       return;
     }
-  
+
+    // Check all fields before saving
+    const hasErrors = Object.values(errors).some((error) => error);
+    if (hasErrors) {
+      message.error("Vui lòng kiểm tra và nhập đầy đủ thông tin.");
+      return;
+    }
+
     const provinceName = provinces.find((p) => p.code === selectedProvince)?.name || "";
-    console.log("Selected Province:", provinceName);
-  
     const address = {
       IdKh: userId,
       DiaChiChiTiet: selectedAddress,
       PhuongXa: wards.find((w) => w.code === selectedWard)?.name || "",
       QuanHuyen: districts.find((d) => d.code === selectedDistrict)?.name || "",
-      TinhThanh: provinceName, // Ensure this is correctly mapped
+      TinhThanh: provinceName,
     };
-  
-    console.log("Address to Save:", address);
-  
+
     try {
       const newAddress = await DiaChiService.addAddress(address);
       message.success("Địa chỉ đã được thêm thành công.");
@@ -89,17 +108,24 @@ function AddressFormModal({ visible, onClose, onSave }) {
       message.error(error || "Lỗi khi thêm địa chỉ mới.");
     }
   };
-  
 
   return (
-    <Modal title="Chọn Địa Chỉ" visible={visible} onCancel={onClose} onOk={handleSave}>
+    <Modal
+      title="Chọn Địa Chỉ"
+      visible={visible}
+      onCancel={onClose}
+      onOk={handleSave}
+      okText="Lưu"
+      cancelText="Hủy"
+    >
       <div>
         <div className="form-group">
           <label>Tỉnh/Thành phố</label>
-          <select 
-            value={selectedProvince} 
-            onChange={(e) => setSelectedProvince(e.target.value)} 
-            className="select-custom-width"
+          <select
+            value={selectedProvince}
+            onChange={(e) => setSelectedProvince(e.target.value)}
+            onBlur={(e) => validateField("selectedProvince", e.target.value)}
+            className={`select-custom-width ${errors.selectedProvince ? "error" : ""}`}
           >
             <option value="">Chọn tỉnh/thành phố</option>
             {provinces.map((province) => (
@@ -108,15 +134,17 @@ function AddressFormModal({ visible, onClose, onSave }) {
               </option>
             ))}
           </select>
+          {errors.selectedProvince && <p className="error-message">{errors.selectedProvince}</p>}
         </div>
 
         <div className="form-group">
           <label>Quận/Huyện</label>
-          <select 
-            value={selectedDistrict} 
-            onChange={(e) => setSelectedDistrict(e.target.value)} 
-            disabled={!selectedProvince} 
-            className="select-custom-width"
+          <select
+            value={selectedDistrict}
+            onChange={(e) => setSelectedDistrict(e.target.value)}
+            onBlur={(e) => validateField("selectedDistrict", e.target.value)}
+            disabled={!selectedProvince}
+            className={`select-custom-width ${errors.selectedDistrict ? "error" : ""}`}
           >
             <option value="">Chọn quận/huyện</option>
             {districts.map((district) => (
@@ -125,15 +153,17 @@ function AddressFormModal({ visible, onClose, onSave }) {
               </option>
             ))}
           </select>
+          {errors.selectedDistrict && <p className="error-message">{errors.selectedDistrict}</p>}
         </div>
 
         <div className="form-group">
           <label>Xã/Phường</label>
-          <select 
-            value={selectedWard} 
-            onChange={(e) => setSelectedWard(e.target.value)} 
-            disabled={!selectedDistrict} 
-            className="select-custom-width"
+          <select
+            value={selectedWard}
+            onChange={(e) => setSelectedWard(e.target.value)}
+            onBlur={(e) => validateField("selectedWard", e.target.value)}
+            disabled={!selectedDistrict}
+            className={`select-custom-width ${errors.selectedWard ? "error" : ""}`}
           >
             <option value="">Chọn xã/phường</option>
             {wards.map((ward) => (
@@ -142,6 +172,7 @@ function AddressFormModal({ visible, onClose, onSave }) {
               </option>
             ))}
           </select>
+          {errors.selectedWard && <p className="error-message">{errors.selectedWard}</p>}
         </div>
 
         <div className="form-group">
@@ -150,9 +181,11 @@ function AddressFormModal({ visible, onClose, onSave }) {
             type="text"
             value={selectedAddress}
             onChange={(e) => setSelectedAddress(e.target.value)}
+            onBlur={(e) => validateField("selectedAddress", e.target.value)}
             placeholder="Nhập địa chỉ chi tiết"
-            className="select-custom-width"
+            className={`select-custom-width ${errors.selectedAddress ? "error" : ""}`}
           />
+          {errors.selectedAddress && <p className="error-message">{errors.selectedAddress}</p>}
         </div>
       </div>
     </Modal>

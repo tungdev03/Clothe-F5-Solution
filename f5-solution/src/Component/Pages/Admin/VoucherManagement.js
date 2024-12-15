@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Form, Input, Button, Table, message, DatePicker, InputNumber, Select, Modal, Switch, Row, Col } from 'antd';
-import axios from 'axios';
+import { Form, Input, Button, Table, notification, DatePicker, InputNumber, Select, Modal, Switch, Row, Col } from 'antd';
 import moment from 'moment';
+import voucherService from '../../../Service/VoucherManaService'; // Import voucherService
 
 const { Option } = Select;
 
@@ -12,7 +12,8 @@ const VoucherManagement = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [selectedVoucher, setSelectedVoucher] = useState(null);
   const [form] = Form.useForm();
-  
+  const [searchText, setSearchText] = useState(''); // State to hold the search input
+
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10; // Set number of vouchers per page
@@ -21,8 +22,8 @@ const VoucherManagement = () => {
   const fetchVouchers = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('https://localhost:7030/api/VouCher');
-      const updatedVouchers = response.data.map(voucher => {
+      const data = await voucherService.getVouchers();
+      const updatedVouchers = data.map(voucher => {
         const currentDate = moment(); // Get current date
         if (voucher.soLuongDung === voucher.soLuongMa || currentDate.isAfter(moment(voucher.ngayKetThuc))) {
           voucher.trangThai = 0; // Set status to inactive
@@ -32,7 +33,10 @@ const VoucherManagement = () => {
       });
       setVouchers(updatedVouchers);
     } catch (error) {
-      message.error('Failed to fetch vouchers.');
+      notification.error({
+        message: 'Lỗi',
+        description: 'Không thể tải danh sách voucher.',
+      });
     }
     setLoading(false);
   };
@@ -40,12 +44,15 @@ const VoucherManagement = () => {
   // Update voucher status in the backend
   const updateVoucherStatus = async (voucher) => {
     try {
-      await axios.put(`https://localhost:7030/api/VouCher/${voucher.id}`, {
+      await voucherService.updateVoucher(voucher.id, {
         ...voucher,
         trangThai: 0, // Set status to inactive
       });
     } catch (error) {
-      message.error('Failed to update voucher status.');
+      notification.error({
+        message: 'Lỗi',
+        description: 'Không thể cập nhật trạng thái voucher.',
+      });
     }
   };
 
@@ -93,18 +100,27 @@ const VoucherManagement = () => {
 
       if (isEditing && selectedVoucher) {
         // Update existing voucher
-        await axios.put(`https://localhost:7030/api/VouCher/${selectedVoucher.id}`, formattedValues);
-        message.success('Voucher updated successfully!');
+        await voucherService.updateVoucher(selectedVoucher.id, formattedValues);
+        notification.success({
+          message: 'Thành công',
+          description: 'Cập nhật voucher thành công!',
+        });
       } else {
         // Create new voucher
-        await axios.post('https://localhost:7030/api/VouCher', formattedValues);
-        message.success('Voucher created successfully!');
+        await voucherService.createVoucher(formattedValues);
+        notification.success({
+          message: 'Thành công',
+          description: 'Tạo voucher mới thành công!',
+        });
       }
 
       fetchVouchers(); // Refresh the voucher list
       handleCancel();  // Close the modal
     } catch (error) {
-      message.error(isEditing ? 'Failed to update voucher.' : 'Failed to create voucher.');
+      notification.error({
+        message: 'Lỗi',
+        description: isEditing ? 'Không thể cập nhật voucher.' : 'Không thể tạo voucher.',
+      });
     }
   };
 
@@ -115,11 +131,17 @@ const VoucherManagement = () => {
         ...voucher,
         trangThai: newStatus ? 1 : 0, // Update the status to 1 (active) or 0 (inactive)
       };
-      await axios.put(`https://localhost:7030/api/VouCher/${voucher.id}`, updatedVoucher);
-      message.success('Voucher status updated successfully!');
+      await voucherService.updateVoucher(voucher.id, updatedVoucher);
+      notification.success({
+        message: 'Thành công',
+        description: 'Cập nhật trạng thái voucher thành công!',
+      });
       fetchVouchers(); // Refresh the voucher list
     } catch (error) {
-      message.error('Failed to update voucher status.');
+      notification.error({
+        message: 'Lỗi',
+        description: 'Không thể cập nhật trạng thái voucher.',
+      });
     }
   };
 
@@ -216,11 +238,30 @@ const VoucherManagement = () => {
     setCurrentPage(pagination.current);
   };
 
+  // Handle search
+  const handleSearch = (e) => {
+    setSearchText(e.target.value); // Update the search text
+  };
+
+  // Filter vouchers based on search text
+  const filteredVouchers = vouchers.filter(voucher => {
+    return voucher.maVouCher.toLowerCase().includes(searchText.toLowerCase()) || 
+           voucher.tenVouCher.toLowerCase().includes(searchText.toLowerCase());
+  });
+
   return (
     <div>
-      <h1>Voucher Management</h1>
+      <h1>Quản Lý Voucher</h1>
 
-      <Button type="primary" onClick={showModal}>Create Voucher</Button>
+      {/* Search Input */}
+      <Input
+        placeholder="Tìm kiếm theo mã hoặc tên voucher"
+        value={searchText}
+        onChange={handleSearch}
+        style={{ width: 300, marginBottom: 20 }}
+      />
+
+      <Button type="primary" onClick={showModal}>Tạo Voucher</Button>
 
       {/* Modal for creating/updating voucher */}
       <Modal
@@ -232,84 +273,48 @@ const VoucherManagement = () => {
         <Form form={form} onFinish={onSubmit} layout="vertical">
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="maVouCher" label="Ma Voucher" rules={[{ required: true }]}>
+              <Form.Item name="maVouCher" label="Mã Voucher" rules={[{ required: true }]} >
                 <Input />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="tenVouCher" label="Ten Voucher" rules={[{ required: true }]}>
+              <Form.Item name="tenVouCher" label="Tên Voucher" rules={[{ required: true }]} >
                 <Input />
               </Form.Item>
             </Col>
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="ngayBatDau" label="Ngay Bat Dau">
+              <Form.Item name="ngayBatDau" label="Ngày Bắt Đầu">
                 <DatePicker />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="ngayKetThuc" label="Ngay Ket Thuc">
+              <Form.Item name="ngayKetThuc" label="Ngày Kết Thúc">
                 <DatePicker />
               </Form.Item>
             </Col>
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="soLuongMa" label="So Luong Ma" 
-              rules={[
-                {
-                    required: true,
-                    message: 'Vui lòng nhập So Luong Ma!',
-                },
-                {
-                    validator: (_, value) =>
-                        value < 0
-                            ? Promise.reject('So Luong Ma không được âm!')
-                            : Promise.resolve(),
-                },
-            ]}>
+              <Form.Item name="soLuongMa" label="Số Lượng Mã" rules={[{ required: true, message: 'Vui lòng nhập Số Lượng Mã!' }]} >
                 <InputNumber min={0} />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="giaTriGiam" label="Gia Tri Giam"
-              rules={[
-                {
-                    required: true,
-                    message: 'Vui lòng nhập Gia Tri Giam!',
-                },
-                {
-                    validator: (_, value) =>
-                        value < 0
-                            ? Promise.reject('Gia Tri Giam không được âm!')
-                            : Promise.resolve(),
-                },
-            ]}>
+              <Form.Item name="giaTriGiam" label="Giá Trị Giảm" rules={[{ required: true, message: 'Vui lòng nhập Giá Trị Giảm!' }]} >
                 <InputNumber min={0} />
               </Form.Item>
             </Col>
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="dieuKienToiThieuHoaDon" label="Dieu Kien Toi Thieu Hoa Don"
-              rules={[
-                {
-                    required: true,
-                    message: 'Dieu Kien Toi Thieu Hoa Don!',
-                },
-                {
-                    validator: (_, value) =>
-                        value < 0
-                            ? Promise.reject('Dieu Kien Toi Thieu Hoa Don không được âm!')
-                            : Promise.resolve(),
-                },
-            ]}>
+              <Form.Item name="dieuKienToiThieuHoaDon" label="Điều Kiện Tối Thiểu Hóa Đơn" rules={[{ required: true }]}>
                 <InputNumber min={0} />
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="hinhThucGiam" label="Hinh Thuc Giam">
+              <Form.Item name="hinhThucGiam" label="Hình Thức Giảm">
                 <Select>
                   <Option value={1}>Giảm Giá Theo Phần Trăm</Option>
                   <Option value={2}>Giảm Giá Theo Số Tiền</Option>
@@ -319,7 +324,7 @@ const VoucherManagement = () => {
           </Row>
           <Row gutter={16}>
             <Col span={12}>
-              <Form.Item name="loaiVouCher" label="Loai Voucher">
+              <Form.Item name="loaiVouCher" label="Loại Voucher">
                 <Select>
                   <Option value={1}>Giảm Giá</Option>
                   <Option value={2}>Miễn Phí Vận Chuyển</Option>
@@ -327,7 +332,7 @@ const VoucherManagement = () => {
               </Form.Item>
             </Col>
             <Col span={12}>
-              <Form.Item name="ghiChu" label="Ghi Chu">
+              <Form.Item name="ghiChu" label="Ghi Chú">
                 <Input.TextArea />
               </Form.Item>
             </Col>
@@ -343,13 +348,13 @@ const VoucherManagement = () => {
       {/* Table to display vouchers */}
       <Table
         columns={columns}
-        dataSource={vouchers}
+        dataSource={filteredVouchers} // Use filtered vouchers
         loading={loading}
         rowKey="id" // Assuming 'id' is the unique identifier for each voucher
         pagination={{
           current: currentPage,
           pageSize,
-          total: vouchers.length,
+          total: filteredVouchers.length, // Use filtered vouchers' length
           onChange: handleTableChange,
         }}
       />

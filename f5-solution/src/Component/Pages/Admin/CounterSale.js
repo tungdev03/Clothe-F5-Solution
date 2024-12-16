@@ -27,7 +27,7 @@ const CounterSale = () => {
                 customer: item.idKhNavigation?.hoVaTenKh || 'hệ thống',
                 dateCreated: item.ngayTao ? new Date(item.ngayTao).toLocaleString() : 'Chưa xác định',
                 staff: item.idNvNavigation?.HoVaTenNv || 'Không có',
-                TenNguoiNhan:item.TenNguoiNhan,
+                TenNguoiNhan: item.TenNguoiNhan,
                 type: item.loaiHoaDon,
                 status: item.trangThai,
             }));
@@ -36,7 +36,7 @@ const CounterSale = () => {
                     return a.status - b.status; // Sắp xếp theo trạng thái
                 }
                 // Sắp xếp theo ngày tạo (mới nhất lên trên)
-                return b.dateCreated - a.dateCreated; 
+                return b.dateCreated - a.dateCreated;
             });
             setInvoices(sortedData);
         } catch (error) {
@@ -62,7 +62,7 @@ const CounterSale = () => {
     const [paymentStatus, setPaymentStatus] = useState('Chờ thanh toán');
     const [showQRCode, setShowQRCode] = useState(false);
     const [amountInWords, setAmountInWords] = useState("");
-
+    const [searchCustomerText, setSearchCustomerText] = useState("");
     const [productList, setProductList] = useState([]);
     const [cart, setCart] = useState([]);
     const showProductModal = () => {
@@ -75,7 +75,7 @@ const CounterSale = () => {
 
     const handleModalClose = () => {
         setIsModalVisible(false); // Đặt trạng thái Modal về `false` để đóng Modal
-      };
+    };
 
     const handleFormSubmit = async () => {
         try {
@@ -90,10 +90,11 @@ const CounterSale = () => {
                 soDienThoai: values.soDienThoai,
                 email: values.email,
                 trangThai: 0, // Trạng thái mặc định là 0
-              };
-              await AuthService.registerCustomer(newCustomer); // Ensure this is awaited
+            };
+            await AuthService.registerCustomer(newCustomer); // Ensure this is awaited
             message.success("Thêm mới khách hàng thành công");
             handleModalClose();
+            form.resetFields();
             await fetchCustomers();
 
         } catch (error) {
@@ -105,7 +106,7 @@ const CounterSale = () => {
             }
         }
     };
-            
+
     // Hàm lấy dữ liệu sản phẩm từ API
     useEffect(() => {
         let isMounted = true;
@@ -120,7 +121,7 @@ const CounterSale = () => {
                             key: chiTiet.id,
                             id: item.id,
                             idSpct: chiTiet.id,
-                            name: `${item.tenSp} - ${'size ' +chiTiet.size?.tenSize || 'Chưa có kích thước'} - ${chiTiet.mauSac?.tenMauSac || 'Chưa có màu'}`,
+                            name: `${item.tenSp} - ${'size ' + chiTiet.size?.tenSize || 'Chưa có kích thước'} - ${chiTiet.mauSac?.tenMauSac || 'Chưa có màu'}`,
                             price: item.giaBan,
                             image: item.imageDefaul,
                             soLuongTon: chiTiet.soLuongTon,
@@ -170,56 +171,6 @@ const CounterSale = () => {
         setTotalAmount(total);
     }, [invoiceDetails]);
 
-    // Hàm chuyển đổi số thành chữ (tiếng Việt)
-    const convertNumberToWords = (num) => {
-        const units = ["", "một", "hai", "ba", "bốn", "năm", "sáu", "bảy", "tám", "chín"];
-        const tens = ["", "mười", "hai mươi", "ba mươi", "bốn mươi", "năm mươi", "sáu mươi", "bảy mươi", "tám mươi", "chín mươi"];
-        const scales = ["", "nghìn", "triệu", "tỷ"];
-
-        if (num === 0) return "không đồng";
-
-        let words = "";
-        let scaleIndex = 0;
-
-        while (num > 0) {
-            let part = num % 1000;
-            if (part > 0) {
-                let partWords = "";
-
-                // Xử lý hàng trăm
-                const hundreds = Math.floor(part / 100);
-                const remainder = part % 100;
-                if (hundreds > 0) {
-                    partWords += `${units[hundreds]} trăm`;
-                }
-
-                // Xử lý hàng chục và đơn vị
-                if (remainder > 0) {
-                    if (remainder < 10) {
-                        partWords += `lẻ ${units[remainder]}`;
-                    } else {
-                        const tensPart = Math.floor(remainder / 10);
-                        const unitsPart = remainder % 10;
-                        partWords += `${tens[tensPart]} ${units[unitsPart]}`.trim();
-                    }
-                }
-
-                words = `${partWords} ${scales[scaleIndex]} ${words}`.trim();
-            }
-
-            num = Math.floor(num / 1000);
-            scaleIndex++;
-        }
-
-        return words + " đồng";
-    };
-
-
-    // Cập nhật số tiền thành chữ khi amountPaid thay đổi
-    useEffect(() => {
-        setAmountInWords(convertNumberToWords(amountPaid));
-    }, [amountPaid]);
-
     const handlePaymentMethodChange = (e) => {
         setPaymentMethod(e.target.value);
         setShowQRCode(e.target.value === 'transfer');
@@ -265,39 +216,47 @@ const CounterSale = () => {
 
     const handleSelectProduct = (product) => {
         // Kiểm tra xem sản phẩm đã tồn tại trong invoiceDetails chưa
-    const existingProductIndex = invoiceDetails.findIndex(detail => 
-        detail.idSpct === product.idSpct // So sánh theo idSpct (kích thước)
-    );
+        const existingProductIndex = invoiceDetails.findIndex(detail =>
+            detail.idSpct === product.idSpct // So sánh theo idSpct (kích thước)
+        );
 
-    if (existingProductIndex !== -1) {
-        // Nếu sản phẩm đã tồn tại, tăng số lượng
-        const updatedProduct = {
-            ...invoiceDetails[existingProductIndex],
-            quantity: invoiceDetails[existingProductIndex].quantity + 1,
-            totalPrice: (invoiceDetails[existingProductIndex].unitPrice * (invoiceDetails[existingProductIndex].quantity + 1)),
-        };
+        if (existingProductIndex !== -1) {
+            // Nếu sản phẩm đã tồn tại, tăng số lượng
+            const updatedProduct = {
+                ...invoiceDetails[existingProductIndex],
+                quantity: invoiceDetails[existingProductIndex].quantity + 1,
+                totalPrice: (invoiceDetails[existingProductIndex].unitPrice * (invoiceDetails[existingProductIndex].quantity + 1)),
+            };
 
-        const updatedInvoiceDetails = [...invoiceDetails];
-        updatedInvoiceDetails[existingProductIndex] = updatedProduct; // Cập nhật sản phẩm trong danh sách
+            const updatedInvoiceDetails = [...invoiceDetails];
+            updatedInvoiceDetails[existingProductIndex] = updatedProduct; // Cập nhật sản phẩm trong danh sách
 
-        setInvoiceDetails(updatedInvoiceDetails); // Cập nhật state
-    } else {
-        // Nếu sản phẩm chưa tồn tại, thêm mới
-        const newProduct = {
-            key: invoiceDetails.length + 1,
-            id: product.id,
-            idSpct: product.idSpct,
-            product: product.name,
-            image: product.image,
-            quantity: 1,
-            unitPrice: product.price,
-            totalPrice: product.price,
-        };
-        setInvoiceDetails([...invoiceDetails, newProduct]); // Thêm sản phẩm mới
-    }
+            setInvoiceDetails(updatedInvoiceDetails); // Cập nhật state
+        } else {
+            // Nếu sản phẩm chưa tồn tại, thêm mới
+            const newProduct = {
+                key: invoiceDetails.length + 1,
+                id: product.id,
+                idSpct: product.idSpct,
+                product: product.name,
+                image: product.image,
+                quantity: 1,
+                unitPrice: product.price,
+                totalPrice: product.price,
+            };
+            setInvoiceDetails([...invoiceDetails, newProduct]); // Thêm sản phẩm mới
+        }
 
-    setIsProductSelectVisible(false);
+        setIsProductSelectVisible(false);
     };
+    const [searchProductText, setSearchProductText] = useState("");
+    const filteredProductList = productList.filter(product =>
+        product.name.toLowerCase().includes(searchProductText.toLowerCase())
+    );
+    const filteredCustomerList = customerList.filter(customer =>
+        (customer.name && customer.name.toLowerCase().includes(searchCustomerText.toLowerCase())) ||
+        (customer.phone && customer.phone.includes(searchCustomerText))
+    );
 
     const [customerFormData, setCustomerFormData] = useState(null); // Dữ liệu khách hàng
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(''); // Phương thức thanh toán
@@ -346,11 +305,11 @@ const CounterSale = () => {
 
                 const invoiceData = {
                     idKh: selectedCustomer.key,
-                    idNv: IdNhanVien || null, 
-                    TenNguoiNhan: selectedCustomer ? selectedCustomer.name : '', 
-                    SdtnguoiNhan:selectedCustomer.phone,
-                    TienKhachTra:amountPaid,
-                    loaiHoaDon: 1, 
+                    idNv: IdNhanVien || null,
+                    TenNguoiNhan: selectedCustomer ? selectedCustomer.name : '',
+                    SdtnguoiNhan: selectedCustomer.phone,
+                    TienKhachTra: amountPaid,
+                    loaiHoaDon: 1,
                     trangThai: 5,
                     hoaDonChiTiets: invoiceDetails.map(detail => ({
                         idSpct: detail.idSpct, // Sử dụng idSpct thay vì productId
@@ -371,12 +330,12 @@ const CounterSale = () => {
                 const response = await axios.post('https://localhost:7030/api/HoaDon', invoiceData);
                 // Kiểm tra nếu trả về status 201 thì là thành công
                 if (response.status === 200) {
-                    notification.success({ 
+                    notification.success({
                         message: 'Thanh toán thành công!',
                         description: 'Hóa đơn đã được tạo thành công.',
                         duration: 3 // Hiển thị thông báo trong 3 giây
                     });
-            
+
                     setInvoices([...invoices, response.data]);
                     setPaymentStatus('Đã thanh toán');
                     // Reset form sau khi thanh toán thành công
@@ -423,11 +382,13 @@ const CounterSale = () => {
 
     const columnsInvoices = [
         { title: 'Mã Hóa Đơn', dataIndex: 'code', key: 'code', align: "center", },
-       // { title: 'Nhân Viên', dataIndex: 'staff', key: 'staff', align: "center", },
+        // { title: 'Nhân Viên', dataIndex: 'staff', key: 'staff', align: "center", },
         { title: 'Ngày Tạo', dataIndex: 'dateCreated', key: 'dateCreated', align: "center", },
-        { title: 'Khách Hàng', dataIndex: 'customer', key: 'customer', align: "center",render: (customer, record) => {
-            return customer ? customer : record.TenNguoiNhan;
-        }, },
+        {
+            title: 'Khách Hàng', dataIndex: 'customer', key: 'customer', align: "center", render: (customer, record) => {
+                return customer ? customer : record.TenNguoiNhan;
+            },
+        },
         {
             title: 'Loại Đơn', dataIndex: 'type', key: 'type',
             render: (type) => {
@@ -548,7 +509,7 @@ const CounterSale = () => {
 
     const handleModalOpen = () => {
         setIsModalVisible(true); // Đặt trạng thái Modal về `true` để mở Modal
-      };
+    };
     return (
 
         <div className="counter-sale-container">
@@ -576,7 +537,7 @@ const CounterSale = () => {
                             </Form.Item>
                             <div style={{ display: "flex" }}>
                                 <Form.Item><Button onClick={() => setIsCustomerSelectVisible(true)}>Chọn khách hàng</Button></Form.Item>
-                                <Form.Item><Button  onClick={handleModalOpen}>Thêm khách hàng mới</Button></Form.Item>
+                                <Form.Item><Button onClick={handleModalOpen}>Thêm khách hàng mới</Button></Form.Item>
                             </div>
                         </Form>
                     </Card>
@@ -609,11 +570,35 @@ const CounterSale = () => {
                                     </Space>
                                 </Form.Item>
 
-                                <Form.Item label="Số tiền khách trả">
-                                    <Input type="number" value={amountPaid} onChange={e => setAmountPaid(Number(e.target.value))} />
+                                <Form.Item
+                                    label="Số tiền khách trả"
+                                    rules={[
+                                        { required: true, message: 'Vui lòng nhập số tiền khách trả!' },
+                                        { type: 'number', message: 'Số tiền phải là một số!' },
+                                        { max: 10000000000, message: 'Số tiền không được vượt quá 10 tỷ VNĐ!' },
+                                        {
+                                            validator: (_, value) => {
+                                                if (value && value < 0) {
+                                                    return Promise.reject(new Error('Số tiền không được âm!'));
+                                                }
+                                                return Promise.resolve();
+                                            }
+                                        },
+                                    ]}
+                                >
+                                    <Input
+                                        type="number"
+                                        value={amountPaid}
+                                        onChange={e => {
+                                            const value = Number(e.target.value);
+                                            // Chỉ cập nhật giá trị nếu nó nhỏ hơn hoặc bằng 10 tỷ
+                                            if (value <= 10000000000) {
+                                                setAmountPaid(value);
+                                            }
+                                        }}
+                                        placeholder="Nhập số tiền khách trả"
+                                    />
                                 </Form.Item>
-
-                                <p>Thành chữ: {amountInWords}</p>
                             </>
                         )}
                         {showQRCode && (
@@ -655,8 +640,14 @@ const CounterSale = () => {
                     footer={null}
                     width={1000}
                 >
+                    <Input
+                        placeholder="Tìm kiếm sản phẩm..."
+                        value={searchProductText}
+                        onChange={e => setSearchProductText(e.target.value)} // Cập nhật trạng thái tìm kiếm
+                        style={{ marginBottom: 20 }}
+                    />
                     <List
-                        dataSource={productList} // Dữ liệu sản phẩm từ API
+                        dataSource={filteredProductList} // Dữ liệu sản phẩm đã lọc
                         renderItem={item => (
                             <List.Item>
                                 <Image src={item.image} alt={item.name} width={50} style={{ marginRight: 10 }} />
@@ -679,10 +670,12 @@ const CounterSale = () => {
             >
                 <Input.Search
                     placeholder="Tìm kiếm theo tên hoặc số điện thoại"
-                    onSearch={value => console.log(value)}
+                    onSearch={value => setSearchCustomerText(value)} // Cập nhật trạng thái tìm kiếm
+                    enterButton
+                    style={{ marginBottom: 20 }}
                 />
                 <List
-                    dataSource={customerList}
+                    dataSource={filteredCustomerList} // Sử dụng danh sách đã lọc
                     renderItem={item => (
                         <List.Item>
                             <Button onClick={() => handleSelectCustomer(item)}>
@@ -701,18 +694,15 @@ const CounterSale = () => {
                 width={720}
             >
                 <Form form={form} layout="vertical" onFinish={handleFormSubmit}>
-                    <Form.Item
-                        name="maKh"
-                        label="Mã KH"
-                        rules={[{ required: true, message: 'Vui lòng nhập mã khách hàng!' }]}
-                    >
-                        <Input placeholder="Nhập mã khách hàng" />
-                    </Form.Item>
+
 
                     <Form.Item
                         name="hoVaTenKh"
                         label="Họ và Tên"
-                        rules={[{ required: true, message: 'Vui lòng nhập họ và tên!' }]}
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập họ và tên!' },
+                            { pattern: /^[a-zA-Z0-9\s]+$/, message: 'Tên không được chứa ký tự đặc biệt!' }
+                        ]}
                     >
                         <Input placeholder="Nhập họ và tên" />
                     </Form.Item>
@@ -731,7 +721,22 @@ const CounterSale = () => {
                     <Form.Item
                         name="ngaySinh"
                         label="Ngày Sinh"
-                        rules={[{ required: true, message: 'Vui lòng chọn ngày sinh!' }]}
+                        rules={[
+                            { required: true, message: 'Vui lòng chọn ngày sinh!' },
+                            {
+                                validator: (_, value) => {
+                                    if (value) {
+                                        const today = new Date();
+                                        const birthDate = new Date(value);
+                                        if (birthDate > today) {
+                                            return Promise.reject(new Error('Ngày sinh không được lớn hơn ngày hiện tại!'));
+                                        }
+                                        return Promise.resolve();
+                                    }
+                                    return Promise.resolve();
+                                }
+                            },
+                        ]}
                     >
                         <Input type="date" placeholder="Chọn ngày sinh" />
                     </Form.Item>
@@ -739,7 +744,12 @@ const CounterSale = () => {
                     <Form.Item
                         name="soDienThoai"
                         label="Số Điện Thoại"
-                        rules={[{ required: true, message: 'Vui lòng nhập số điện thoại!' }]}
+                        rules={[
+                            { required: true, message: 'Vui lòng nhập số điện thoại!' },
+                            { len: 10, message: 'Số điện thoại phải có 10 chữ số!' },
+                            { max: 10, message: 'Số điện thoại không được quá 10 ký tự!' },
+                            { pattern: /^[0-9]+$/, message: 'Số điện thoại chỉ được chứa số!' }
+                        ]}
                     >
                         <Input placeholder="Nhập số điện thoại" />
                     </Form.Item>

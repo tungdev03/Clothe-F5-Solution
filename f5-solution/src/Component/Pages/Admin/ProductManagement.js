@@ -486,7 +486,7 @@ const ProductManagement = () => {
                                             ]
                                             : []
                                     }
-                                >
+                                > 
                                     <Button icon={<UploadOutlined />}>Chọn Ảnh</Button>
                                 </Upload>
                             </Form.Item>

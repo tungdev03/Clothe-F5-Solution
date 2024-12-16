@@ -41,6 +41,7 @@ const ImageManagement = () => {
   };
 
   const handleSaveImageDetail = async (fieldData) => {
+
     if (!fieldData) {
       message.error('Dữ liệu hình ảnh không xác định.');
       return;
@@ -61,13 +62,14 @@ const ImageManagement = () => {
           idSp: editingImage.id, // Gửi idSp của sản phẩm vào
           ...fieldData
         });
-  
+        fetchImages();
         message.success("Hình ảnh đã được cập nhật thành công");
       } else {
         await ImageService.addorupdateImage({
           idSp: editingImage.id, // Gửi idSp khi thêm hình ảnh mới
           ...fieldData
         });
+        fetchImages();
         message.success("Hình ảnh mới đã được tạo thành công");
       }
 

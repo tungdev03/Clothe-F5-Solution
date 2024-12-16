@@ -122,7 +122,7 @@ const NhanVienPage = () => {
             title: 'Hình Ảnh',
             dataIndex: 'image',
             key: 'image',
-            render: (text) => <img src={text} alt="Nhân viên" width="50" />,
+            render: (text) => <img src={text} alt="Nhân viên" style={{ width: 80, height: 80 }} />,
         },
         {
             title: 'Trạng Thái',
@@ -177,7 +177,7 @@ const NhanVienPage = () => {
             const nhanVienData = {
                 ...editingNhanVien,
                 ...values,
-                maNv: values.maNv,
+                maNv: editingNhanVien ? editingNhanVien.maNv : undefined,
                 gioiTinh: values.gioiTinh === 'Nam',
                 MatKhau: values.matKhau,
                 IdCv: values.idCv,
@@ -188,7 +188,7 @@ const NhanVienPage = () => {
                 MoTa: values.moTa,
                 TrangThai: values.trangThai,
             };
-
+            
             if (editingNhanVien) {
                 await AuthService.registerNhanVien(nhanVienData); // Cập nhật nhân viên
                 message.success('Cập nhật nhân viên thành công!');
@@ -199,7 +199,7 @@ const NhanVienPage = () => {
             handleDrawerClose();
             fetchNhanViens();
         } catch (error) {
-            message.error('Lỗi khi cập nhật dữ liệu nhân viên.');
+            message.error('Lỗi khi cập nhật dữ liệu nhân viên.', error);
         }
     };
 
@@ -266,7 +266,10 @@ const NhanVienPage = () => {
                         label="Họ và Tên"
                         rules={[
                             { required: true, message: 'Nhập họ và tên' },
-                            { pattern: /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơĂĐĨŨƠƯƯăđĩũơưĂĐĨŨƠƯăđĩũơƯĂĐĨŨƠƯƯ ]+$/, message: 'Tên không được chứa số hoặc ký tự đặc biệt' }
+                            {
+                                pattern: /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂÊÔêôơƯÁÉÍÓÚÝáéíóúýĂÂÊÔƯàáầấẩẫậèéềếểễệìíòóồốổỗộùúừứửữựỳýỷỹđịạọụờăư\s]+$/,
+                                message: 'Tên không được chứa số hoặc ký tự đặc biệt'
+                            }
                         ]}
                     >
                         <Input />
@@ -278,8 +281,8 @@ const NhanVienPage = () => {
                         rules={[{ required: true, message: 'Chọn giới tính' }]}
                     >
                         <Select placeholder="Chọn giới tính">
-                            <Option value={1}>Nam</Option>
-                            <Option value={0}>Nữ</Option>
+                            <Option value={"Nam"}>Nam</Option>
+                            <Option value={"Nữ"}>Nữ</Option>
                         </Select>
                     </Form.Item>
 

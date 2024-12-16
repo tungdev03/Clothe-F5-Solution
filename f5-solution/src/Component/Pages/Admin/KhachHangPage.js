@@ -271,7 +271,10 @@ const KhachHangPage = () => {
             label="Họ và Tên"
             rules={[
               { required: true, message: 'Nhập họ và tên' },
-              { pattern: /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơĂĐĨŨƠƯƯăđĩũơưĂĐĨŨƠƯăđĩũơƯĂĐĨŨƠƯƯ ]+$/, message: 'Tên không được chứa số hoặc ký tự đặc biệt' }
+              {
+                pattern: /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂÊÔêôơƯÁÉÍÓÚÝáéíóúýĂÂÊÔƯàáầấẩẫậèéềếểễệìíòóồốổỗộùúừứửữựỳýỷỹđịạọụờăưễảứ\s]+$/,
+                message: 'Tên không được chứa số hoặc ký tự đặc biệt'
+              }
             ]}
           >
             <Input placeholder="Nhập họ và tên" />

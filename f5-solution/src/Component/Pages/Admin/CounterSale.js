@@ -701,7 +701,10 @@ const CounterSale = () => {
                         label="Họ và Tên"
                         rules={[
                             { required: true, message: 'Vui lòng nhập họ và tên!' },
-                            { pattern: /^[a-zA-Z0-9\s]+$/, message: 'Tên không được chứa ký tự đặc biệt!' }
+                            {
+                                pattern: /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂÊÔêôơƯÁÉÍÓÚÝáéíóúýĂÂÊÔƯàáầấẩẫậèéềếểễệìíòóồốổỗộùúừứửữựỳýỷỹđịạọụờăưễảứ\s]+$/,
+                                message: 'Tên không được chứa số hoặc ký tự đặc biệt'
+                            }
                         ]}
                     >
                         <Input placeholder="Nhập họ và tên" />

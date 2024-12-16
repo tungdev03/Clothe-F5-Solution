@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Checkout.css";
 import { useNavigate } from 'react-router-dom';
-import { Button, message,notification,Modal } from "antd";
+import { Button, message,notification } from "antd";
 import Anh from "../Admin/Anh1.png";
 import CustomHeader from "../../Layouts/Header/Header";
 import AddressFormModal from "../Shop/AddressForm";
@@ -27,14 +27,7 @@ function Checkout() {
   const [GhiChu, setGhiChu] = useState("");
   const [voucherData, setVoucherData] = useState(null);
   const [voucherCode, setVoucherCode] = useState("");
- 
-  const [paymentResult, setPaymentResult] = useState({
-    status: '',
-    transactionId: '',
-    message: '',
-    error: ''
-  });
-  
+
   const [codFee, setCodFee] = useState(0); // Phí COD
   const [error, setError] = useState({
     TenNguoiNhan: "",
@@ -61,7 +54,6 @@ useEffect(() => {
   const fetchAddresses = async () => {
     if (userId) {
       try {
-        
         const data = await DiaChiService.getAddressById(userId);
         setAddresses(data); 
         console.log(data);
@@ -88,51 +80,41 @@ useEffect(() => {
 
   const handleVoucher = async () => {
     try {
-     
-
-      if (!voucherCode) {
-        setDiscount(0); 
-        notification.warning({ message: "Bạn chưa nhập mã voucher." });
-        return;
-      }
+      // Gọi API để lấy dữ liệu voucher dựa trên mã voucher
       const data = await GioHangService.getMaVouchers(voucherCode);
 
       // Kiểm tra nếu không tìm thấy voucher
       if (!data) {
         message.warning("Mã voucher không tồn tại."); 
-        setDiscount(0);
-        return ;
+        return;
       }
 
       // Lấy ngày bắt đầu và ngày kết thúc từ dữ liệu voucher
       const ngayBatDau = new Date(data.ngayBatDau);
       const ngayKetThuc = new Date(data.ngayKetThuc);
       const currentDate = new Date(); // Ngày hiện tại
+
       // Kiểm tra nếu voucher chưa bắt đầu
       if (currentDate < ngayBatDau) {
         notification.warning({ message: "Voucher chưa đến ngày bắt đầu."});
-        setDiscount(0);
         return;
       }
 
       // Kiểm tra nếu voucher đã hết hạn
-      if (currentDate > ngayKetThuc||data.trangThai==0) {
+      if (currentDate > ngayKetThuc) {
         notification.warning({ message: "Voucher đã hết hạn."});
-        setDiscount(0);
         return;
       }
 
       // Kiểm tra nếu số lượng mã nhỏ hơn hoặc bằng 0
       if (data.soLuongMa <= 0) {
         notification.warning({ message: "Voucher đã hết số lượng."});
-        setDiscount(0);
         return;
       }
 
       // Kiểm tra nếu subtotal không đủ điều kiện hóa đơn tối thiểu
       if (subtotal < data.dieuKienToiThieuHoaDon) {
         notification.warning({ message: `Tổng giá trị đơn hàng phải lớn hơn hoặc bằng ${data.dieuKienToiThieuHoaDon}.`});
-        setDiscount(0);
         return;
       }
 
@@ -145,8 +127,7 @@ useEffect(() => {
         : data.giaTriGiam; // Fixed amount discount
       setDiscount(calculatedDiscount);
     } catch (error) {
-    notification.warning({message: "Voucher không tồn tại"});
-      setDiscount(0);
+      notification.warning({ message: "Mã voucher không tồn tại"});
     }
   };
 
@@ -155,16 +136,16 @@ useEffect(() => {
     try {
       const data = await GioHangService.getAllGioHang(userId);
 
-      
+      // Kiểm tra nếu giỏ hàng rỗng
       if (!data || data.length === 0) {
-        setCartItems([]); 
+        setCartItems([]); // Đảm bảo giỏ hàng được đặt thành mảng trống
        
         return;
       }
 
-      
+      // Chuyển đổi dữ liệu giỏ hàng thành cấu trúc mong muốn
       const mappedData = data.map((item) => ({
-        Anh: item.hinhAnh || "/images/default-product.jpg", 
+        Anh: item.hinhAnh || "/images/default-product.jpg", // Hình ảnh mặc định
         TenSanPham: item.tenSp || "Sản phẩm không xác định",
         Size: item.tenSize || "Không có",
         Color: item.tenMauSac || "Không có",
@@ -172,7 +153,7 @@ useEffect(() => {
       }));
 
       console.log("Fetched Cart Data:", data);
-      setCartItems(mappedData);
+      setCartItems(mappedData); // Cập nhật dữ liệu giỏ hàng
     } catch (error) {
       console.error("Failed to fetch cart items:", error);
       message.error("Không thể tải giỏ hàng. Vui lòng thử lại.");
@@ -189,24 +170,9 @@ useEffect(() => {
     };
 
     // Kiểm tra các trường nhập liệu bắt buộc
-    if (!TenNguoiNhan || TenNguoiNhan.trim() === "") {
+    if (!TenNguoiNhan) {
       formIsValid = false;
-      errorObj.TenNguoiNhan = "Tên không được để trống!";
-    } else if (/\d/.test(TenNguoiNhan)) {
-      formIsValid = false;
-      errorObj.TenNguoiNhan = "Tên không được chứa số!";
-    } else if (/[^a-zA-Z\sàáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]/.test(TenNguoiNhan)) {
-      formIsValid = false;
-      errorObj.TenNguoiNhan = "Tên không được chứa ký tự đặc biệt!";
-    } else if (TenNguoiNhan.length < 2) {
-      formIsValid = false;
-      errorObj.TenNguoiNhan = "Tên phải có ít nhất 2 ký tự!";
-    } else if (TenNguoiNhan.length > 50) {
-      formIsValid = false;
-      errorObj.TenNguoiNhan = "Tên không được vượt quá 50 ký tự!";
-    } else if (TenNguoiNhan.trim() !== TenNguoiNhan || /\s{2,}/.test(TenNguoiNhan)) {
-      formIsValid = false;
-      errorObj.TenNguoiNhan = "Tên không được chứa khoảng trắng thừa!";
+      errorObj.TenNguoiNhan = "Vui lòng nhập tên!";
     }
 
     if (!SdtNguoiNhan) {
@@ -226,7 +192,10 @@ useEffect(() => {
       errorObj.NgayNhan = "Vui lòng chọn ngày nhận hàng!";
     }
 
-    
+    if (!GhiChu) {
+      formIsValid = false;
+      errorObj.GhiChu = "Vui lòng nhập !";
+    }
 
     if (!formIsValid) {
       setError(errorObj);
@@ -323,7 +292,7 @@ useEffect(() => {
       formIsValid = false;
       errorObj.TenNguoiNhan = "Tên không được chứa khoảng trắng thừa!";
     }
-  
+    
     if (!SdtNguoiNhan) {
       formIsValid = false;
       errorObj.SdtNguoiNhan = "Vui lòng nhập số điện thoại!";
@@ -339,6 +308,11 @@ useEffect(() => {
     if (!NgayNhan) {
       formIsValid = false;
       errorObj.NgayNhan = "Vui lòng chọn ngày nhận hàng!";
+    }
+  
+    if (!GhiChu) {
+      formIsValid = false;
+      errorObj.GhiChu = "Vui lòng nhập ghi chú!";
     }
   
     if (!formIsValid) {
@@ -362,42 +336,20 @@ useEffect(() => {
   
       // Gọi API VNPayPayment và lấy URL thanh toán
       const paymentResponse = await vnPayService.VNPayPayment(userId, orderData);
-      console.log("Payment URL:", paymentResponse);
-  
-      if (paymentResponse) {
-        window.location.href = paymentResponse;  // Chuyển hướng đến trang thanh toán VNPay
-      } else {
-        throw new Error("Không có URL thanh toán từ VNPay.");
-      }
-  
-      // Lấy các tham số callback từ URL sau khi người dùng quay lại
-      const queryParams = new URLSearchParams(window.location.search);
-      const callbackResult = await vnPayService.handlePaymentCallback(queryParams);
-  
-      setPaymentResult({
-        status: callbackResult.success ? 'success' : 'error',
-        transactionId: callbackResult.transactionId,
-        message: callbackResult.message,
-        error: callbackResult.error || '',
-      });
-  
-      setIsModalVisible(true); // Mở modal kết quả
-  
+       console.log("hhhhhhh", paymentResponse);
+       window.location.href = paymentResponse;
+    
+      await fetchCartData(userId); // Cập nhật giỏ hàng sau khi đặt hàng thành công
+      const orderId = userId
+      navigate(`/order/${orderId}`);
     } catch (error) {
-      setPaymentResult({
-        status: 'error',
-        transactionId: '',
-        message: 'Có lỗi xảy ra khi thanh toán.',
-        error: error.message || 'Không xác định',
-      });
-      setIsModalVisible(true); // Mở modal lỗi
+      setLoading(false);
+      setError("Đã có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại!");
+      console.error(error);
     } finally {
       setLoading(false);
     }
-     navigate(`/order/${userId}`); 
   };
-  
- 
   
   const handleOpenModal = () => {
     setIsModalVisible(true);
@@ -543,7 +495,7 @@ const getDistrictId = async (provinceId, quanHuyen) => {
     }
 };
 
-
+// Function to get Ward ID from GHN
 const getWardId = async (districtId, phuongXa) => {
     try {
         console.log('Searching for ward:', phuongXa);
@@ -566,14 +518,14 @@ const getWardId = async (districtId, phuongXa) => {
     }
 };
 
-
+// Function to handle address selection
 const handleSelectAddress = (id) => {
     const selected = addresses.find(address => address.id === id);
 
     if (selected) {
         const { diaChiChiTiet, phuongXa, quanHuyen, tinhThanh } = selected;
 
-        
+        // Validate the selected address
         if (!diaChiChiTiet || !phuongXa || !quanHuyen || !tinhThanh) {
             console.error("Thông tin địa chỉ không đầy đủ:", selected);
             setError("Địa chỉ không hợp lệ. Vui lòng chọn địa chỉ khác.");
@@ -685,7 +637,6 @@ const handleSelectAddress = (id) => {
                       value={GhiChu}
                       onChange={(e) => setGhiChu(e.target.value)}
                       placeholder="Khung giờ thuận tiện"
-                      required
                     />
                     {error.GhiChu && <span className="error-message">{error.GhiChu}</span>}
                   </div>
@@ -707,7 +658,7 @@ const handleSelectAddress = (id) => {
                       </button>
                     ))
                   ) : (
-                    <button>Chưa có địa chỉ, Vui lòng thêm địa chỉ</button>
+                    <button onClick={handleOpenModal} >Chưa có địa chỉ, Vui lòng thêm địa chỉ</button>
                   )}
                 </div>
               </div>
@@ -776,20 +727,8 @@ const handleSelectAddress = (id) => {
             disabled={loading}>
             Thanh toán VNPay
           </Button>
-          
         </div>
-        
       </div>
-      <Modal 
-      visible={isModalVisible} 
-      onCancel={() => setIsModalVisible(false)} 
-      footer={null}
-    >
-      <h2>{paymentResult.status === 'success' ? 'Thanh toán thành công' : 'Thanh toán thất bại'}</h2>
-      <p>Transaction ID: {paymentResult.transactionId}</p>
-      <p>{paymentResult.message}</p>
-      {paymentResult.error && <p style={{ color: 'red' }}>{paymentResult.error}</p>}
-    </Modal>
     </div>
   );
 }

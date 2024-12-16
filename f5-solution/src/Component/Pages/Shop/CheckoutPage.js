@@ -618,7 +618,7 @@ const handleSelectAddress = (id) => {
               <div className="input-fields">
                 <div className="input-row">
                   <div className="input-group">
-                    <label>Ngày giao hàng</label>
+                    <label>Ngày nhận hàng mong muốn</label>
                     <input
                       type="date"
                       value={NgayNhan}

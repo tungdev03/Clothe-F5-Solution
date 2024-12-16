@@ -493,7 +493,17 @@ const ProductManagement = () => {
                             <Form.Item
                                 label="Tên Sản Phẩm"
                                 name="tenSp"
-                                rules={[{ required: true, message: "Vui lòng nhập tên Sản Phẩm" }]}
+                                rules={[
+                                    {
+                                        required: true,     
+                                        validator: (_, value) => {
+                                            if (!value || value.trim() === "") {
+                                                return Promise.reject("Vui lòng nhập tên Sản Phẩm");
+                                            }
+                                            return Promise.resolve();
+                                        },
+                                    },
+                                ]}
                             >
                                 <Input placeholder="Nhập tên Sản Phẩm" />
                             </Form.Item>

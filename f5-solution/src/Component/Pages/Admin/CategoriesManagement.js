@@ -231,7 +231,17 @@ const CategoriesManagement = () => {
                             <Form.Item
                                 label="Tên Danh Mục"
                                 name="tenDanhMuc"
-                                rules={[{ required: true, message: "Vui lòng nhập tên Danh Mục" }]}
+                                rules={[
+                                    {
+                                        required: true,     
+                                        validator: (_, value) => {
+                                            if (!value || value.trim() === "") {
+                                                return Promise.reject("Vui lòng nhập tên Danh Mục");
+                                            }
+                                            return Promise.resolve();
+                                        },
+                                    },
+                                ]}
                             >
                                 <Input placeholder="Nhập tên danh mục" />
                             </Form.Item>

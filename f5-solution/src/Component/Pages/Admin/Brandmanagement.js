@@ -234,7 +234,18 @@ const Brandmanagement = () => {
                             <Form.Item
                                 label="Tên Thương Hiệu"
                                 name="tenThuongHieu"
-                                rules={[{ required: true, message: "Vui lòng nhập tên Thương Hiệu" }]}
+                                rules={[
+                                    
+                                    {
+                                        required: true,                              
+                                        validator: (_, value) => {
+                                            if (!value || value.trim() === "") {
+                                                return Promise.reject("Vui lòng nhập tên Thương Hiệu");
+                                            }
+                                            return Promise.resolve();
+                                        },
+                                    },
+                                ]}
                             >
                                 <Input placeholder="Nhập tên thương hiệu" />
                             </Form.Item>

@@ -228,7 +228,17 @@ const OriginalManagement = () => {
                             <Form.Item
                                 label="Xuất Xứ"
                                 name="tenXuatXu"
-                                rules={[{ required: true, message: "Vui lòng nhập Xuất Xứ" }]}
+                                rules={[
+                                    {
+                                        required: true,     
+                                        validator: (_, value) => {
+                                            if (!value || value.trim() === "") {
+                                                return Promise.reject("Vui lòng nhập tên Xuất Xứ");
+                                            }
+                                            return Promise.resolve();
+                                        },
+                                    },
+                                ]}
                             >
                                 <Input placeholder="Nhập Xuất Xứ" />
                             </Form.Item>

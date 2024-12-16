@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./Checkout.css";
 import { useNavigate } from 'react-router-dom';
-import { Button, message,notification } from "antd";
+import { Button, message,notification,Modal } from "antd";
 import Anh from "../Admin/Anh1.png";
 import CustomHeader from "../../Layouts/Header/Header";
 import AddressFormModal from "../Shop/AddressForm";
@@ -27,7 +27,14 @@ function Checkout() {
   const [GhiChu, setGhiChu] = useState("");
   const [voucherData, setVoucherData] = useState(null);
   const [voucherCode, setVoucherCode] = useState("");
-
+ 
+  const [paymentResult, setPaymentResult] = useState({
+    status: '',
+    transactionId: '',
+    message: '',
+    error: ''
+  });
+  
   const [codFee, setCodFee] = useState(0); // Phí COD
   const [error, setError] = useState({
     TenNguoiNhan: "",
@@ -316,7 +323,7 @@ useEffect(() => {
       formIsValid = false;
       errorObj.TenNguoiNhan = "Tên không được chứa khoảng trắng thừa!";
     }
-    
+  
     if (!SdtNguoiNhan) {
       formIsValid = false;
       errorObj.SdtNguoiNhan = "Vui lòng nhập số điện thoại!";
@@ -334,7 +341,6 @@ useEffect(() => {
       errorObj.NgayNhan = "Vui lòng chọn ngày nhận hàng!";
     }
   
-    
     if (!formIsValid) {
       setError(errorObj);
       return; // Dừng lại nếu có lỗi
@@ -356,20 +362,42 @@ useEffect(() => {
   
       // Gọi API VNPayPayment và lấy URL thanh toán
       const paymentResponse = await vnPayService.VNPayPayment(userId, orderData);
-       console.log("hhhhhhh", paymentResponse);
-       window.location.href = paymentResponse;
-    
-      await fetchCartData(userId); // Cập nhật giỏ hàng sau khi đặt hàng thành công
-      const orderId = userId
-      navigate(`/order/${orderId}`);
+      console.log("Payment URL:", paymentResponse);
+  
+      if (paymentResponse) {
+        window.location.href = paymentResponse;  // Chuyển hướng đến trang thanh toán VNPay
+      } else {
+        throw new Error("Không có URL thanh toán từ VNPay.");
+      }
+  
+      // Lấy các tham số callback từ URL sau khi người dùng quay lại
+      const queryParams = new URLSearchParams(window.location.search);
+      const callbackResult = await vnPayService.handlePaymentCallback(queryParams);
+  
+      setPaymentResult({
+        status: callbackResult.success ? 'success' : 'error',
+        transactionId: callbackResult.transactionId,
+        message: callbackResult.message,
+        error: callbackResult.error || '',
+      });
+  
+      setIsModalVisible(true); // Mở modal kết quả
+  
     } catch (error) {
-      setLoading(false);
-      setError("Đã có lỗi xảy ra trong quá trình thanh toán. Vui lòng thử lại!");
-      console.error(error);
+      setPaymentResult({
+        status: 'error',
+        transactionId: '',
+        message: 'Có lỗi xảy ra khi thanh toán.',
+        error: error.message || 'Không xác định',
+      });
+      setIsModalVisible(true); // Mở modal lỗi
     } finally {
       setLoading(false);
     }
+     navigate(`/order/${userId}`); 
   };
+  
+ 
   
   const handleOpenModal = () => {
     setIsModalVisible(true);
@@ -748,8 +776,20 @@ const handleSelectAddress = (id) => {
             disabled={loading}>
             Thanh toán VNPay
           </Button>
+          
         </div>
+        
       </div>
+      <Modal 
+      visible={isModalVisible} 
+      onCancel={() => setIsModalVisible(false)} 
+      footer={null}
+    >
+      <h2>{paymentResult.status === 'success' ? 'Thanh toán thành công' : 'Thanh toán thất bại'}</h2>
+      <p>Transaction ID: {paymentResult.transactionId}</p>
+      <p>{paymentResult.message}</p>
+      {paymentResult.error && <p style={{ color: 'red' }}>{paymentResult.error}</p>}
+    </Modal>
     </div>
   );
 }

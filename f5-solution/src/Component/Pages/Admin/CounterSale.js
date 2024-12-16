@@ -544,9 +544,9 @@ const CounterSale = () => {
                 </Col>
                 <Col span={12}>
                     <Card title="Dịch vụ khác" className="info-card">
-                        <Form layout="vertical">
+                        {/* <Form layout="vertical">
                             <Form.Item label="Dịch vụ giao hàng"><Switch checkedChildren="Có" unCheckedChildren="Không" /></Form.Item>
-                        </Form>
+                        </Form> */}
                     </Card>
                 </Col>
             </Row>

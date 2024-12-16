@@ -354,7 +354,7 @@ const InvoiceManagement = () => {
                 <Space size="middle">
                     <Button icon={<EditOutlined />} onClick={() => handleEditStatus(record)}>Sửa Trạng Thái</Button>
                     <Button icon={<EyeOutlined />} onClick={() => handleViewDetails(record)}>Xem chi tiết</Button>
-                    <Button icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} danger>Xóa</Button>
+                    {/* <Button icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} danger>Xóa</Button> */}
                 </Space>
             ),
         },

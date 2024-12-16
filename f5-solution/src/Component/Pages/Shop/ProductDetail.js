@@ -230,6 +230,12 @@ const ProductDetail = () => {
        
     };
     const handleAddToCart = async () => {
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        if (!storedUser) {
+            notification.warning({ message: "Vui lòng đăng nhập trước khi mua hàng!" });
+            navigate('/Login'); // Điều hướng đến trang đăng nhập
+            return;
+        }
         if (!selectedColor || !selectedSize) {
             setErrorMessage("Vui lòng chọn màu sắc và size trước khi mua.");
             notification.warning({ message: "Vui lòng chọn màu sắc và size trước khi mua."});
@@ -240,6 +246,7 @@ const ProductDetail = () => {
             notification.warning({ message: "Số lượng trong kho không đủ."});
             return;
         }
+
         const addDto = {
             idGh: CartId,
             idSpCt: selectedProductId,
@@ -248,6 +255,11 @@ const ProductDetail = () => {
     
         try {
             console.log("Payload gửi lên API:", addDto);
+            if (addDto.idGh == null) {
+                notification.warning({ message: "Vui lòng đăng nhập trước khi mua hàng!" });
+                navigate('/Login');
+                return;
+            }
             const result = await GioHangService.addGioHang(addDto); // Call the backend API
     
             notification.success({ message: "Sản phẩm đã được thêm vào giỏ hàng"})
@@ -280,19 +292,28 @@ const ProductDetail = () => {
     const handleBuyNow = async () => {
         const storedUser = JSON.parse(localStorage.getItem('user'));
     
+        // Kiểm tra nếu chưa đăng nhập
+        if (!storedUser) {
+            notification.warning({ message: "Vui lòng đăng nhập trước khi mua hàng!" });
+            navigate('/Login'); // Điều hướng đến trang đăng nhập
+            return;
+        }
+    
+        // Kiểm tra nếu chưa chọn màu sắc và size
         if (!selectedColor || !selectedSize) {
             setErrorMessage("Vui lòng chọn màu sắc và size trước khi mua.");
-            notification.warning({ message: "Vui lòng chọn màu sắc và size trước khi mua."});
+            notification.warning({ message: "Vui lòng chọn màu sắc và size trước khi mua." });
             return;
         }
-        if (quantity>soLuong) {
+    
+        // Kiểm tra số lượng vượt quá số lượng trong kho
+        if (quantity > soLuong) {
             setErrorMessage("Số lượng trong kho không đủ.");
-            notification.warning({ message: "Số lượng trong kho không đủ."});
+            notification.warning({ message: "Số lượng trong kho không đủ." });
             return;
         }
     
-        // Client-side check for available stoc
-    
+        // Tạo dữ liệu payload để gửi đến API
         const addDto = {
             idGh: CartId,
             idSpCt: selectedProductId,
@@ -301,32 +322,39 @@ const ProductDetail = () => {
     
         try {
             console.log("Payload gửi lên API:", addDto);
-            const result = await GioHangService.addGioHang(addDto); // Call the backend API
-            console.log("Kết quả trả về từ API:", result);
     
-            notification.success({ message: "Sản phẩm đã được thêm vào giỏ hàng"})
-           
-            setErrorMessage(""); // Clear the error message if everything is fine
-            navigate(`/cart/${storedUser.TaiKhoan}`);
+            // Kiểm tra nếu giỏ hàng (`idGh`) chưa được khởi tạo
+            if (addDto.idGh == null) {
+                notification.warning({ message: "Vui lòng đăng nhập trước khi mua hàng!" });
+                navigate('/Login');
+                return;
+            }
+    
+            // Gọi API thêm vào giỏ hàng
+            const result = await GioHangService.addGioHang(addDto);
+    
+            console.log("Kết quả trả về từ API:", result);
+            notification.success({ message: "Sản phẩm đã được thêm vào giỏ hàng" });
+    
+            setErrorMessage(""); // Xóa thông báo lỗi nếu mọi thứ ổn
+            navigate(`/cart/${storedUser.TaiKhoan}`); // Điều hướng về trang giỏ hàng
         } catch (error) {
             console.error("Không thể thêm sản phẩm vào giỏ hàng:", error);
     
-            // Handle specific errors from the backend API
+            // Xử lý các lỗi từ API
             if (error.response) {
                 console.error("Chi tiết lỗi từ API:", error.response.data);
                 if (error.response.data && error.response.data.message) {
-                    // Show error message from backend (e.g. stock error)
-                    setErrorMessage(error.response.data.message);
+                    setErrorMessage(error.response.data.message); // Hiển thị thông báo lỗi cụ thể từ server
                 } else {
-                    // Fallback to a generic error message
-                    setErrorMessage("Đã xảy ra lỗi khi mua sản phẩm.");
+                    setErrorMessage("Đã xảy ra lỗi khi mua sản phẩm."); // Thông báo lỗi chung
                 }
             } else if (error.request) {
                 console.error("Không nhận được phản hồi từ server:", error.request);
-                setErrorMessage("Không nhận được phản hồi từ server.");
+                setErrorMessage("Không nhận được phản hồi từ server."); // Thông báo lỗi phản hồi server
             } else {
                 console.error("Lỗi khi gửi yêu cầu:", error.message);
-                setErrorMessage("Đã xảy ra lỗi khi gửi yêu cầu.");
+                setErrorMessage("Đã xảy ra lỗi khi gửi yêu cầu."); // Thông báo lỗi gửi yêu cầu
             }
         }
     };

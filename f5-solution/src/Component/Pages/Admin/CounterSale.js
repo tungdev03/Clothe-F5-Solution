@@ -32,11 +32,7 @@ const CounterSale = () => {
                 status: item.trangThai,
             }));
             const sortedData = filteredData.sort((a, b) => {
-                if (a.status !== b.status) {
-                    return a.status - b.status; // Sắp xếp theo trạng thái
-                }
-                // Sắp xếp theo ngày tạo (mới nhất lên trên)
-                return b.dateCreated - a.dateCreated;
+                return Date.parse(b.dateCreated) - Date.parse(a.dateCreated);
             });
             setInvoices(sortedData);
         } catch (error) {

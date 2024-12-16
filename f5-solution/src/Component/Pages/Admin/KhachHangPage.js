@@ -62,7 +62,7 @@ const KhachHangPage = () => {
         // id: values.id,
         // maKh: values.maKh,
         hoVaTenKh: values.hoVaTenKh,
-        gioiTinh: values.gioiTinh === 'Nam', 
+        gioiTinh: values.gioiTinh === 'Nam',
         ngaySinh: values.ngaySinh,
         taiKhoan: values.taiKhoan || 'string',
         matKhau: values.matKhau || 'string',
@@ -75,7 +75,7 @@ const KhachHangPage = () => {
         await AuthService.registerCustomer(userValues);
         message.success('Cập nhật khách hàng thành công!');
       }
-      else{
+      else {
         await AuthService.registerCustomer(userValues);
         message.success('Thêm khách hàng mới thành công');
       }
@@ -144,7 +144,7 @@ const KhachHangPage = () => {
       title: 'Hình Ảnh',
       dataIndex: 'image',
       key: 'image',
-      render: (text) => <img src={text} alt="Khách hàng" width="20px" />,
+      render: (text) => <img src={text} alt="Khách hàng" style={{ width: 80, height: 80 }} />,
     },
     {
       title: 'Trạng Thái',
@@ -176,7 +176,7 @@ const KhachHangPage = () => {
     setLoading(true)
     try {
       const data = await AdminService.SearchCustomer(Keyword)
-      
+
       if (Array.isArray(data)) {
         setKhachHangs(data);
         message.success('Tìm kiếm khách hàng thành công!');
@@ -269,7 +269,10 @@ const KhachHangPage = () => {
           <Form.Item
             name="hoVaTenKh"
             label="Họ và Tên"
-            rules={[{ required: true, message: 'Vui lòng nhập họ và tên!' }]}
+            rules={[
+              { required: true, message: 'Nhập họ và tên' },
+              { pattern: /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơĂĐĨŨƠƯƯăđĩũơưĂĐĨŨƠƯăđĩũơƯĂĐĨŨƠƯƯ ]+$/, message: 'Tên không được chứa số hoặc ký tự đặc biệt' }
+            ]}
           >
             <Input placeholder="Nhập họ và tên" />
           </Form.Item>
@@ -296,7 +299,10 @@ const KhachHangPage = () => {
           <Form.Item
             name="soDienThoai"
             label="Số Điện Thoại"
-            rules={[{ required: false, message: 'Vui lòng nhập số điện thoại!' }]}
+            rules={[
+              { required: true, message: 'Nhập số điện thoại' },
+              { pattern: /^[0-9]+$/, message: 'Số điện thoại không được chứa chữ hoặc ký tự đặc biệt' },
+            ]}
           >
             <Input placeholder="Nhập số điện thoại" />
           </Form.Item>
@@ -304,7 +310,10 @@ const KhachHangPage = () => {
           <Form.Item
             name="email"
             label="Email"
-            rules={[{ required: false, message: 'Vui lòng nhập email!' }]}
+            rules={[
+              { required: false, message: 'Nhập email' },
+              { type: 'email', message: 'Email không đúng định dạng' },
+            ]}
           >
             <Input type="email" placeholder="Nhập email" />
           </Form.Item>

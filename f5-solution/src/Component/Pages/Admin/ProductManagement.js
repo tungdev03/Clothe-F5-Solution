@@ -150,7 +150,7 @@ const ProductManagement = () => {
     const handleOpenDetailsModal = async (value = null) => {
         try {
             setDetailsModalVisible(true);
-            setEditingProductDetail(null);  // Đặt editingProductDetail về null hoặc phụ thuộc vào trường hợp sử dụng
+            setEditingProductDetail(null);
             setLoading(true);
             setError("");
 

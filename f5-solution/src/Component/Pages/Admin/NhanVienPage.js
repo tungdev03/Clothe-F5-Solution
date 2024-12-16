@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Button, message, Switch, Input, Row, Col, Drawer, Form, Space, Select,Radio } from 'antd';
+import { Table, Button, message, Switch, Input, Row, Col, Drawer, Form, Space, Select, Radio } from 'antd';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import moment from 'moment';
 import AdminService from '../../../Service/AdminService';
@@ -261,25 +261,28 @@ const NhanVienPage = () => {
                 width={700}
             >
                 <Form form={form} layout="vertical">
-                    <Form.Item name="idCv" label="Chức Vụ" rules={[{ required: true, message: "Chọn chức vụ" }]}>
-                        <Select placeholder="Chọn chức vụ" onChange={handleChucVuChange}>
-                            {chucVuList.map((chucVu) => (
-                                <Option key={chucVu.id} value={chucVu.id}>
-                                    {chucVu.tenChucVu}
-                                </Option>
-                            ))}
-                        </Select>
-                    </Form.Item>
-                   
-                    <Form.Item name="hoVaTenNv" label="Họ và Tên" rules={[{ required: true, message: 'Nhập họ và tên' }]}>
+                    <Form.Item
+                        name="hoVaTenNv"
+                        label="Họ và Tên"
+                        rules={[
+                            { required: true, message: 'Nhập họ và tên' },
+                            { pattern: /^[a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơĂĐĨŨƠƯƯăđĩũơưĂĐĨŨƠƯăđĩũơƯĂĐĨŨƠƯƯ ]+$/, message: 'Tên không được chứa số hoặc ký tự đặc biệt' }
+                        ]}
+                    >
                         <Input />
                     </Form.Item>
-                    <Form.Item name="gioiTinh" label="Giới Tính" rules={[{ required: true, message: 'Chọn giới tính' }]}>
+
+                    <Form.Item
+                        name="gioiTinh"
+                        label="Giới Tính"
+                        rules={[{ required: true, message: 'Chọn giới tính' }]}
+                    >
                         <Select placeholder="Chọn giới tính">
-                            <Option value="Nam">Nam</Option>
-                            <Option value="Nữ">Nữ</Option>
+                            <Option value={1}>Nam</Option>
+                            <Option value={0}>Nữ</Option>
                         </Select>
                     </Form.Item>
+
                     <Form.Item
                         name="ngaySinh"
                         label="Ngày Sinh"
@@ -287,41 +290,72 @@ const NhanVienPage = () => {
                     >
                         <Input type="date" placeholder="Chọn ngày sinh" />
                     </Form.Item>
-                    <Form.Item name="soDienThoai" label="Số Điện Thoại"
-                        rules={[{ required: true, message: 'Nhập số điện thoại' }]}>
+
+                    <Form.Item
+                        name="soDienThoai"
+                        label="Số Điện Thoại"
+                        rules={[
+                            { required: true, message: 'Nhập số điện thoại' },
+                            { pattern: /^[0-9]+$/, message: 'Số điện thoại không được chứa chữ hoặc ký tự đặc biệt' },
+                        ]}
+                    >
                         <Input />
                     </Form.Item>
-                    <Form.Item name="email" label="Email" rules={[{ required: true, message: 'Nhập email' }]}>
+
+                    <Form.Item
+                        name="email"
+                        label="Email"
+                        rules={[
+                            { required: true, message: 'Nhập email' },
+                            { type: 'email', message: 'Email không đúng định dạng' },
+                        ]}
+                    >
                         <Input />
                     </Form.Item>
+
                     {!editingNhanVien && (
                         <>
-                            <Form.Item name="taiKhoan" label="Tài khoản nhân viên"
-                                rules={[{ required: true, message: 'Nhập tài khoản đăng nhập' }]}>
+                            <Form.Item
+                                name="taiKhoan"
+                                label="Tài khoản nhân viên"
+                                rules={[{ required: true, message: 'Nhập tài khoản đăng nhập' }]}
+                            >
                                 <Input />
                             </Form.Item>
-                            <Form.Item name="matKhau" label="Mật khẩu"
-                                rules={[{ required: true, message: 'Nhập mật khẩu' }]}>
+                            <Form.Item
+                                name="matKhau"
+                                label="Mật khẩu"
+                                rules={[{ required: true, message: 'Nhập mật khẩu' }]}
+                            >
                                 <Input />
                             </Form.Item>
                         </>
                     )}
+
                     <Form.Item name="image" label="Hình Ảnh">
                         <Input />
                     </Form.Item>
+
                     <Form.Item name="diaChi" label="Địa Chỉ">
                         <Input />
                     </Form.Item>
+
                     <Form.Item name="moTa" label="Mô Tả">
                         <Input />
                     </Form.Item>
-                    <Form.Item label="Trạng thái" name="trangThai" initialValue={1}>
+
+                    <Form.Item
+                        label="Trạng thái"
+                        name="trangThai"
+                        initialValue={1}
+                    >
                         <Radio.Group style={{ display: "flex", flexDirection: "row" }}>
                             <Radio value={1}>Hoạt động</Radio>
                             <Radio value={0}>Không hoạt động</Radio>
                         </Radio.Group>
                     </Form.Item>
                 </Form>
+
                 <Button type="primary" onClick={handleModalOk}>
                     {editingNhanVien ? "Cập nhật" : "Thêm"}
                 </Button>

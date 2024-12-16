@@ -22,6 +22,7 @@ const ImageManagement = () => {
     setLoading(true);
     try {
       const data = await ImageService.getAllImages();
+      console.log(data)
       setImages(data);
     } catch (error) {
       message.error("Lỗi khi lấy danh sách hình ảnh");
@@ -30,7 +31,6 @@ const ImageManagement = () => {
     }
   };
 
-  // Lấy danh sách sản phẩm từ API
   const fetchProducts = async () => {
     try {
       const productsData = await ProductService.getAllProduct();
@@ -39,82 +39,65 @@ const ImageManagement = () => {
       message.error("Lỗi khi lấy danh sách sản phẩm");
     }
   };
+
   const handleSaveImageDetail = async (fieldData) => {
     if (!fieldData) {
-        message.error('Dữ liệu chi tiết sản phẩm không xác định.');
-        return;
+      message.error('Dữ liệu hình ảnh không xác định.');
+      return;
     }
-
+  
+    const imageFile = fieldData?.images?.[0]?.file;
+    if (imageFile) {
+      const imageUrl = imageFile?.url || URL.createObjectURL(imageFile.originFileObj);
+      fieldData.tenImage = imageUrl;
+    } else if (fieldData?.imageUrl) {
+      fieldData.tenImage = fieldData.imageUrl;
+    }
+  console.log(fieldData)
     try {
-        if (fieldData.Id) {  // Ensure the check is on fieldData not productDetails
-            await ProductService.addorupdateImage({
-               
-                ...fieldData
-            });
-            message.success("Sản phẩm chi tiết đã được cập nhật thành công");
-        } else {
-            await ProductService.addorupdateImage({
-            
-                ...fieldData
-            });
-            message.success("Sản phẩm chi tiết mới đã được tạo thành công");
-        }
-        form.resetFields();
-        console.log('Kết quả:', fieldData);
-        openModal(); // Refresh details
+      if (fieldData.Id) { 
+        await ImageService.addorupdateImage({
+          Id: fieldData.Id,
+          idSp: editingImage.id, // Gửi idSp của sản phẩm vào
+          ...fieldData
+        });
+  
+        message.success("Hình ảnh đã được cập nhật thành công");
+      } else {
+        await ImageService.addorupdateImage({
+          idSp: editingImage.id, // Gửi idSp khi thêm hình ảnh mới
+          ...fieldData
+        });
+        message.success("Hình ảnh mới đã được tạo thành công");
+      }
+
     } catch (error) {
-        console.error("Lỗi khi thêm hoặc cập nhật chi tiết sản phẩm:", error);
-        message.error(`Thêm hoặc cập nhật chi tiết sản phẩm thất bại: ${error}`);
+      console.error("Lỗi khi thêm hoặc cập nhật hình ảnh sản phẩm:", error);
+      message.error(`Thêm hoặc cập nhật hình ảnh thất bại: ${error.message}`);
     }
-};
+  };
+  
 
   useEffect(() => {
     fetchImages();
     fetchProducts();
   }, []);
 
-  // Hàm lấy tên sản phẩm theo id
-  const getProductNameById = (idSp) => {
-    const product = products.find((p) => p.id === idSp);
-    return product ? product.tenSp : "Không tìm thấy sản phẩm";
-  };
-
   const openModal = (record) => {
     setEditingImage(record);
     form.setFieldsValue({
-      idSp: record?.idSp || undefined,
+      idSp: record?.Id || undefined,
       images: record?.images || [],
+      imageUrl: record?.images?.[0]?.tenImage || ""  // Thêm trường imageUrl
     });
+    console.log(record)
     setModalVisible(true);
   };
 
-  const handleFormSubmit = (values) => {
-    const imageData = {
-      ...values,
-      id: editingImage ? editingImage.id : undefined,
-    };
-
-    if (editingImage) {
-      ImageService.updateImage(editingImage.id, imageData)
-        .then(() => {
-          message.success('Cập nhật hình ảnh thành công');
-          setModalVisible(false);
-          fetchImages();
-        })
-        .catch(() => {
-          message.error('Lỗi khi cập nhật hình ảnh');
-        });
-    } else {
-      ImageService.createImage(imageData)
-        .then(() => {
-          message.success('Thêm mới hình ảnh thành công');
-          setModalVisible(false);
-          fetchImages();
-        })
-        .catch(() => {
-          message.error('Lỗi khi thêm mới hình ảnh');
-        });
-    }
+  // Hàm tìm tên sản phẩm
+  const getProductNameById = (idSp) => {
+    const product = products.find((p) => p.id === idSp);
+    return product ? product.tenSp : "Không tìm thấy sản phẩm";
   };
 
   // Hàm xóa hình ảnh
@@ -160,7 +143,7 @@ const ImageManagement = () => {
     },
     {
       title: "Hình Ảnh",
-      key: "image",
+      key: "images",
       render: (record) => (
         <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
           {record.images.map((image) => (
@@ -228,16 +211,16 @@ const ImageManagement = () => {
       >
         <Form
           form={form}
-          onFinish={handleFormSubmit}
           layout="vertical"
+          onFinish={handleSaveImageDetail}  // Submit form
         >
           <Form.Item
-            label="Sản Phẩm"
+            label="Chọn Sản Phẩm"
             name="idSp"
-            rules={[{ required: true, message: 'Vui lòng chọn sản phẩm' }]}
+            rules={[{ required: true, message: "Vui lòng chọn sản phẩm!" }]}
           >
             <Select placeholder="Chọn sản phẩm">
-              {products.map(product => (
+              {products.map((product) => (
                 <Option key={product.id} value={product.id}>
                   {product.tenSp}
                 </Option>
@@ -248,15 +231,7 @@ const ImageManagement = () => {
           <Form.List
             name="images"
             initialValue={editingImage ? editingImage.images : []}
-            rules={[
-              {
-                validator: async (_, names) => {
-                  if (!names || names.length < 1) {
-                    return Promise.reject(new Error('Cần ít nhất một hình ảnh'));
-                  }
-                },
-              },
-            ]}
+            rules={[{ validator: async (_, names) => { if (!names || names.length < 1) { return Promise.reject(new Error('Cần ít nhất một hình ảnh')); } } }]}
           >
             {(fields, { add, remove }) => (
               <>
@@ -269,20 +244,18 @@ const ImageManagement = () => {
                         defaultFileList={
                           form.getFieldValue('images')[name]?.tenImage
                             ? [
-                              {
-                                uid: key,
-                                name: `Hình Ảnh ${key + 1}`,
-                                url: form.getFieldValue('images')[name]?.tenImage,
-                              },
-                            ]
+                                {
+                                  uid: key,
+                                  name: `Hình Ảnh ${key + 1}`,
+                                  url: form.getFieldValue('images')[name]?.tenImage,
+                                },
+                              ]
                             : []
                         }
                         showUploadList={{ showPreviewIcon: false }}
                         onChange={(info) => {
                           const updatedImages = form.getFieldValue('images');
-                          const file = info.fileList[0];  // Get the file from the info
-
-                          // Update the image with new url (or file)
+                          const file = info.fileList[0];
                           updatedImages[name] = { ...file, tenImage: file?.url || file.originFileObj };
 
                           form.setFieldsValue({ images: updatedImages });
@@ -294,12 +267,14 @@ const ImageManagement = () => {
                         </div>
                       </Upload>
                     </Form.Item>
+
+                    <Form.Item label="Link hình ảnh" name={[name, 'imageUrl']}>
+                      <Input placeholder="Nhập URL hình ảnh" />
+                    </Form.Item>
+
                     <Button
                       type="dashed"
-                      onClick={() => {
-                        const fieldData = form.getFieldValue('fields')[key.name];
-                        handleSaveImageDetail(fieldData); // Gọi hàm đã gộp xử lý thêm/cập nhật
-                      }}
+                      onClick={() => handleSaveImageDetail(form.getFieldValue('images')[name], name)}
                       style={{ marginRight: 8 }}
                     >
                       Add/Update
@@ -324,8 +299,6 @@ const ImageManagement = () => {
               </>
             )}
           </Form.List>
-
-
 
           <Form.Item>
             <Button type="primary" htmlType="submit">

@@ -226,7 +226,17 @@ const ColorManagement = () => {
                             <Form.Item
                                 label="Tên Màu Sắc"
                                 name="tenMauSac"
-                                rules={[{ required: true, message: "Vui lòng nhập tên Màu sắc" }]}
+                                rules={[
+                                    {
+                                        required: true,     
+                                        validator: (_, value) => {
+                                            if (!value || value.trim() === "") {
+                                                return Promise.reject("Vui lòng nhập tên Màu Sắc");
+                                            }
+                                            return Promise.resolve();
+                                        },
+                                    },
+                                ]}
                             >
                                 <Input placeholder="Nhập tên màu sắc" />
                             </Form.Item>

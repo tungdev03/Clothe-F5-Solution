@@ -140,7 +140,7 @@ const Home = () => {
         <div className="logo-brand" style={{ display: 'flex', alignItems: 'center' }}>
           <img src={logo_v1} alt="logo" style={{ height: '150px', marginRight: '3px' }} />
           <span className="brand" style={{ fontSize: '18px', fontWeight: 'bold' }}>
-            <h2><span style={{ color: 'orange' }}>F5</span> Fashion</h2>
+            <a href='http://localhost:3000/'><h2><span style={{ color: 'orange' }}>F5</span> Fashion</h2></a>
           </span>
         </div>
 

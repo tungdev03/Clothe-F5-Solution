@@ -22,13 +22,12 @@ const InvoiceManagement = () => {
     const [isStatusModalVisible, setIsStatusModalVisible] = useState(false);
     const [form] = Form.useForm();
 
-    // Lấy dữ liệu hóa đơn từ API
     const fetchInvoices = async () => {
         try {
-            const response = await axios.get("https://localhost:7030/api/HoaDon"); 
+            const response = await axios.get("https://localhost:7030/api/HoaDon");
             const data = response.data;
-            console.log(response);
-            
+            console.log("Đây là dữ liệu hóa đơn:", JSON.stringify(data, null, 2));
+
             setInvoices(data || []);
         } catch (error) {
             console.error("Lỗi khi lấy dữ liệu hóa đơn:", error);
@@ -99,6 +98,7 @@ const InvoiceManagement = () => {
             updatedInvoiceDetails[existingProductIndex] = updatedProduct; // Cập nhật sản phẩm trong danh sách
 
             setInvoiceDetails(updatedInvoiceDetails); // Cập nhật state
+            form.resetFields();
         } else {
             // Nếu sản phẩm chưa tồn tại, thêm mới
             const newProduct = {
@@ -147,8 +147,6 @@ const InvoiceManagement = () => {
                 // Use PUT method for updating existing invoice
                 try {
                     const response = await axios.put(`https://localhost:7030/api/HoaDon/${editingInvoice.id}`, invoiceData);
-
-                    // Update local state
                     setInvoices(invoices.map((invoice) =>
                         invoice.id === editingInvoice.id ? response.data : invoice
                     ));
@@ -288,6 +286,12 @@ const InvoiceManagement = () => {
             key: 'maHoaDon',
             render: (text) => <a>{text}</a>,
         },
+        // {
+        //     title: 'Nhân viên tạo',
+        //     dataIndex: 'idNvNavigation',
+        //     key: 'staff',
+        //     render: (idNvNavigation) => idNvNavigation?.hoVaTenNv  || 'Hệ thống'
+        // },
         {
             title: 'Khách hàng',
             dataIndex: 'idKhNavigation',
@@ -350,7 +354,7 @@ const InvoiceManagement = () => {
                 <Space size="middle">
                     <Button icon={<EditOutlined />} onClick={() => handleEditStatus(record)}>Sửa Trạng Thái</Button>
                     <Button icon={<EyeOutlined />} onClick={() => handleViewDetails(record)}>Xem chi tiết</Button>
-                    <Button icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} danger>Xóa</Button>
+                    {/* <Button icon={<DeleteOutlined />} onClick={() => handleDelete(record.id)} danger>Xóa</Button> */}
                 </Space>
             ),
         },
@@ -574,15 +578,24 @@ const InvoiceManagement = () => {
                         <Input />
                     </Form.Item>
                     <Form.Item
-                        label="Số điện thoại người nhận"
-                        name="sdtnguoiNhan"
-                        rules={[
-                            { required: true, message: 'Vui lòng nhập số điện thoại!' },
-                            { len: 10, message: 'Số điện thoại phải có 10 chữ số!' } // Điều chỉnh theo yêu cầu của bạn
-                        ]}
-                    >
-                        <Input />
-                    </Form.Item>
+    label="Số điện thoại người nhận"
+    name="sdtnguoiNhan"
+    rules={[
+        { required: true, message: 'Vui lòng nhập số điện thoại!' },
+        { len: 10, message: 'Số điện thoại phải có 10 chữ số!' },
+        { max: 10, message: 'Số điện thoại không được quá 10 chữ số!' },
+        { pattern: /^[0-9]+$/, message: 'Số điện thoại chỉ được chứa số và không được có ký tự đặc biệt!' } // Kiểm tra chỉ chứa số
+    ]}
+>
+    <Input 
+        onChange={(e) => {
+            const value = e.target.value;
+            if (/^[0-9]*$/.test(value) || value === '') {
+                form.setFieldsValue({ sdtnguoiNhan: value });
+            }
+        }} 
+    />
+</Form.Item>
                     <Form.Item label="Địa chỉ người nhận" name="diaChiNhanHang" rules={[{ required: true, message: 'Vui lòng nhập địa chỉ!' }]}>
                         <Input />
                     </Form.Item>
@@ -615,7 +628,20 @@ const InvoiceManagement = () => {
                         />
 
                     </Form.Item>
-                    <Form.Item label="tiền khách trả" name="tienKhachTra" rules={[{ required: true, message: 'Vui lòng số tiền khách trả!' }]}>
+                    <Form.Item label="Tiền khách trả" name="tienKhachTra" rules={[
+                        { required: true, message: 'Vui lòng nhập số tiền khách trả!' },
+                        {
+                            validator: (rule, value) => {
+                                if (value < 0) {
+                                    return Promise.reject('Tiền khách trả không được âm.');
+                                }
+                                if (value < totalAmount) {
+                                    return Promise.reject('Tiền khách trả phải lớn hơn tổng tiền.');
+                                }
+                                return Promise.resolve();
+                            }
+                        }
+                    ]}>
                         <Input />
                     </Form.Item>
                     <div className="product-details-section">

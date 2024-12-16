@@ -230,7 +230,17 @@ const SizeManagement = () => {
                             <Form.Item
                                 label="Size"
                                 name="tenSize"
-                                rules={[{ required: true, message: "Vui lòng nhập Size" }]}
+                                rules={[
+                                    {
+                                        required: true,     
+                                        validator: (_, value) => {
+                                            if (!value || value.trim() === "") {
+                                                return Promise.reject("Vui lòng nhập Size");
+                                            }
+                                            return Promise.resolve();
+                                        },
+                                    },
+                                ]}
                             >
                                 <Input placeholder="Nhập size" />
                             </Form.Item>

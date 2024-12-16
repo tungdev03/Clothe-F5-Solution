@@ -28,6 +28,7 @@ const Cart = () => {
             } catch (error) {
                 console.error("Error parsing stored user data:", error);
                 setIsFetching(false);
+                console.log(userId)
             }
         }
     }, []);
@@ -70,18 +71,14 @@ const Cart = () => {
         }
     };
 
-    const handleClearCart = () => {
-        setCartItems([]);
-        message.success('Đã xóa giỏ hàng');
-    };
     const handleClickViewOder = () => {
         setLoading(true);
         setTimeout(() => {
             setLoading(false);
             message.success('Đang chuyển đến trang thông tin đơn hàng');
-            const orderId = 123;  // Giả sử đây là ID đơn hàng bạn muốn hiển thị
-            navigate(`/order/${orderId}`);  // Điều hướng đến route /order/{orderId}
-        }, 2000);
+            const orderId = userId
+            navigate(`/order/${orderId}`);
+        }, 1000);
     };
     const handleQuantityChange = async (value, record) => {
         if (value <= 0) {
@@ -182,14 +179,11 @@ const Cart = () => {
                         <Button
                             type="primary"
                             onClick={handleClickViewOder}
-                            style={{ backgroundColor: 'black', borderColor: 'black', height: '50px', width: '200px', marginRight: '10px' }}
+                            style={{ backgroundColor: 'green', borderColor: 'black', height: '50px', width: '200px', marginRight: '10px' }}
                             disabled={loading}
                         >
                             {loading ? <Spin size="small" /> : 'Xem thông tin đơn hàng'}
                         </Button>
-                    </Col>
-                    <Col>
-                        <Button type="danger" onClick={handleClearCart} style={{ width: '150px' }}>Xóa giỏ hàng</Button>
                     </Col>
                 </Row>
 

@@ -150,7 +150,7 @@ const ProductManagement = () => {
     const handleOpenDetailsModal = async (value = null) => {
         try {
             setDetailsModalVisible(true);
-            setEditingProductDetail(null);  // Đặt editingProductDetail về null hoặc phụ thuộc vào trường hợp sử dụng
+            setEditingProductDetail(null);
             setLoading(true);
             setError("");
 
@@ -461,13 +461,7 @@ const ProductManagement = () => {
                             layout="vertical"
                             onFinish={handleCreateOrUpdate}
                         >
-                            <Form.Item
-                                label="Mã Sản Phẩm"
-                                name="maSp"
-                                rules={[{ required: true, message: "Vui lòng nhập Mã Sản Phẩm" }]}
-                            >
-                                <Input placeholder="Nhập mã Sản Phẩm" />
-                            </Form.Item>
+
                             <Form.Item
                                 label="Hình Ảnh"
                                 name="imageDefaul"
@@ -492,24 +486,28 @@ const ProductManagement = () => {
                                             ]
                                             : []
                                     }
-                                >
+                                > 
                                     <Button icon={<UploadOutlined />}>Chọn Ảnh</Button>
                                 </Upload>
                             </Form.Item>
                             <Form.Item
                                 label="Tên Sản Phẩm"
                                 name="tenSp"
-                                rules={[{ required: true, message: "Vui lòng nhập tên Sản Phẩm" }]}
+                                rules={[
+                                    {
+                                        required: true,     
+                                        validator: (_, value) => {
+                                            if (!value || value.trim() === "") {
+                                                return Promise.reject("Vui lòng nhập tên Sản Phẩm");
+                                            }
+                                            return Promise.resolve();
+                                        },
+                                    },
+                                ]}
                             >
                                 <Input placeholder="Nhập tên Sản Phẩm" />
                             </Form.Item>
-                            <Form.Item
-                                label="Thể Loại"
-                                name="theLoai"
-                                rules={[{ required: true, message: "Vui lòng nhập Thể loại của sản phẩm" }]}
-                            >
-                                <Input placeholder="Thể loại Nam hoặc Nữ" />
-                            </Form.Item>
+
                             <Form.Item
                                 label="Giá Bán"
                                 name="giaBan"
@@ -635,6 +633,18 @@ const ProductManagement = () => {
                                                     {...field}
                                                     name={[field.name, 'options']}
                                                     label="Số Lượng Tồn"
+                                                    rules={[
+                                                        {
+                                                            required: true,
+                                                            message: 'Vui lòng nhập số lượng tồn!',
+                                                        },
+                                                        {
+                                                            validator: (_, value) =>
+                                                                value < 0
+                                                                    ? Promise.reject('Số lượng tồn không được âm!')
+                                                                    : Promise.resolve(),
+                                                        },
+                                                    ]}
                                                 >
                                                     <Input type="number" min={0} placeholder="Nhập số lượng tồn" />
                                                 </Form.Item>

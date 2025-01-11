@@ -230,7 +230,17 @@ const MaterialManagement = () => {
                             <Form.Item
                                 label="Tên Chất Liệu"
                                 name="tenChatLieu"
-                                rules={[{ required: true, message: "Vui lòng nhập tên Chất Liệu" }]}
+                                rules={[
+                                    {
+                                        required: true,     
+                                        validator: (_, value) => {
+                                            if (!value || value.trim() === "") {
+                                                return Promise.reject("Vui lòng nhập tên Chất Liệu");
+                                            }
+                                            return Promise.resolve();
+                                        },
+                                    },
+                                ]}
                             >
                                 <Input placeholder="Nhập tên chất liệu" />
                             </Form.Item>

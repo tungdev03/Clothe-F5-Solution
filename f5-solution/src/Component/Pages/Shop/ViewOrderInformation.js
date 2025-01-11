@@ -29,7 +29,10 @@ const ViewOrderInformation = () => {
     { value: 5, label: 'Đã hoàn tất' },
     { value: 6, label: 'Đã hủy đơn' }
   ]);
-
+  const [statusPay] = useState([
+    { value: 0, label: 'Chưa thanh toán' },
+    { value: 1, label: 'Đã thanh toán' }
+  ]);
   const [orderDetailsVisible, setOrderDetailsVisible] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [form] = Form.useForm();
@@ -45,6 +48,8 @@ const ViewOrderInformation = () => {
         try {
           const response = await fetch(`https://localhost:7030/api/HoaDon/by-makh/${user.IdKhachhang}`);
           const data = await response.json();
+          console.log(data);
+          
           if (response.ok) {
             setCartItems(data); // Set the fetched order data
           } else {
@@ -139,8 +144,8 @@ const ViewOrderInformation = () => {
     },
     {
       title: 'Tổng tiền',
-      key: 'tongTien',
-      render: (_, record) => `${record.tongTien} VNĐ`,
+      key: 'thanhTien',
+      render: (_, record) => `${record.thanhTien} VNĐ`,
       align: 'center' // Center the column title
     },
     {
@@ -148,9 +153,23 @@ const ViewOrderInformation = () => {
       key: 'tinhTrangThanhToan',
       render: (_, record) => {
         const status = statusOptions.find(option => option.value === record.tinhTrangThanhToan);
+       
         return (
           <Tag color={getStatusColor(record.tinhTrangThanhToan)}>
             {status ? status.label : 'Chưa xác định'}
+          </Tag>
+        );
+      },
+      align: 'center' // Center the column title
+    },
+    {
+      title: 'Trạng thái thanh toán',
+      key: 'trangThaiThanhToan',
+      render: (_, record) => {
+        const pay = statusPay.find(option => option.value === record.trangThaiThanhToan);
+        return (
+          <Tag color={getStatusColor(record.trangThaiThanhToan)}>
+            {pay ? pay.label : 'Chưa xác định'}
           </Tag>
         );
       },
@@ -160,6 +179,7 @@ const ViewOrderInformation = () => {
 
   const getStatusColor = (status) => {
     switch (status) {
+      case 0: return 'red';
       case 1: return 'orange';
       case 2: return 'green';
       case 3: return 'blue';
@@ -237,45 +257,66 @@ const ViewOrderInformation = () => {
             expandedRowRender={record => (
               <div>
                 <Row gutter={24}>
-                  <Col span={6}>
+                  <Col span={4}>
                     <Text strong>Hình ảnh</Text>
                   </Col>
-                  <Col span={6}>
+                  <Col span={4}>
                     <Text strong>Sản phẩm</Text>
                   </Col>
-                  <Col span={6}>
-                    <Text strong>Số lượng</Text>
+                  <Col span={4}>
+                    <Text strong>Size</Text>
                   </Col>
-                  <Col span={6}>
-                    <Text strong>Đơn giá</Text>
+                  <Col span={4}>
+                    <Text strong>Màu sắc</Text>
+                  </Col>
+                  <Col span={4}>
+                    <Text strong>Số lượng và đơn giá</Text>
+                  </Col>
+                  <Col span={4}>
+                    <Text strong>Tính</Text>
                   </Col>
                 </Row>
                 {record.hoaDonChiTiets.map((detail) => (
                   <Row key={detail.id} gutter={24}>
-                    <Col span={6}>
+                    <Col span={4}>
                       <Image
                         src={detail.sanPham.anh}
                         width={50}
                         height={50}
                       />
                     </Col>
-                    <Col span={6}>
+                    <Col span={4}>
                       <Text>{detail.sanPham.tenSanPham}</Text>
                     </Col>
-                    <Col span={6}>
-                      <Text>{detail.soLuong}</Text>
+                    <Col span={4}>
+                      <Text>{detail.sanPham.size}</Text>
                     </Col>
-                    <Col span={6}>
-                      <Text>{detail.donGia} VNĐ</Text>
+                    <Col span={4}>
+                      <Text>{detail.sanPham.mauSac}</Text>
                     </Col>
+                    <Col span={4}>
+                      <Text>{detail.soLuong} x {detail.donGia} </Text>
+                    </Col>
+                    <Col span={4}>
+                    <Text>{detail.tongtien} VNĐ</Text>
+                  </Col>
                   </Row>
                 ))}
                 <Row gutter={16}>
-                  <Col span={16} />
-                  <Col span={8}>
-                    <Text strong>Tổng tiền: {record.tongTien} VNĐ</Text>
-                  </Col>
-                </Row>
+                <Col span={16} />
+                <Col span={8}>
+                  <Text strong>Số tiền giảm:  -{record.giaTriGiam} VNĐ</Text>
+                </Col>
+              </Row>
+              <Row gutter={16}>
+              <Col span={16} />
+              <Col span={8}>
+                <Text strong style={{ color: 'red' }}>
+                  Thành tiền: {record.thanhTien} VNĐ
+                </Text>
+              </Col>
+            </Row>
+            
               </div>
             )}
           />

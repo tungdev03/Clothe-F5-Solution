@@ -15,7 +15,11 @@
     border-radius: 4px;
     margin-bottom: 20px;
 }
-
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
 .invoice-section, .product-details-section, .info-card, .add-product-btn {
     background-color: #fff;
     padding: 16px;

@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
-import { Table, Button, Switch, Modal, Form, Input, message, Select } from "antd";
-import { EditOutlined, PlusOutlined } from "@ant-design/icons";
+import React, { useState, useEffect } from "react";
+import { Table, Button, Modal, Form, Input, message, Select, Upload } from "antd";
+import { EditOutlined, PlusOutlined, DeleteOutlined } from "@ant-design/icons";
+import { UploadOutlined } from "@ant-design/icons";
 import ImageService from "../../../Service/ImageService";
 import ProductService from "../../../Service/ProductService";
 
@@ -8,32 +9,21 @@ const { Option } = Select;
 
 const ImageManagement = () => {
   const [images, setImages] = useState([]);
-  const [products, setProducts] = useState([]); // Lưu trữ danh sách sản phẩm
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [modalVisible, setModalVisible] = useState(false);
   const [editingImage, setEditingImage] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
   const [form] = Form.useForm();
   const pageSize = 10;
 
   // Lấy danh sách hình ảnh từ API
-  const fetchImages = async (search = "", status = "all") => {
+  const fetchImages = async () => {
     setLoading(true);
     try {
       const data = await ImageService.getAllImages();
-      const filteredData = data.filter(image => {
-        const matchesSearch = image.tenImage
-          ? image.tenImage.toLowerCase().includes(search.toLowerCase())
-          : false;
-        const matchesStatus =
-          status === "all" ||
-          (status === "active" && image.trangThai === 1) ||
-          (status === "inactive" && image.trangThai === 0);
-        return matchesSearch && matchesStatus;
-      });
-      setImages(filteredData);
+      console.log(data)
+      setImages(data);
     } catch (error) {
       message.error("Lỗi khi lấy danh sách hình ảnh");
     } finally {
@@ -41,7 +31,6 @@ const ImageManagement = () => {
     }
   };
 
-  // Lấy danh sách sản phẩm từ API
   const fetchProducts = async () => {
     try {
       const productsData = await ProductService.getAllProduct();
@@ -51,45 +40,69 @@ const ImageManagement = () => {
     }
   };
 
+  const handleSaveImageDetail = async (fieldData) => {
+
+    if (!fieldData) {
+      message.error('Dữ liệu hình ảnh không xác định.');
+      return;
+    }
+  
+    const imageFile = fieldData?.images?.[0]?.file;
+    if (imageFile) {
+      const imageUrl = imageFile?.url || URL.createObjectURL(imageFile.originFileObj);
+      fieldData.tenImage = imageUrl;
+    } else if (fieldData?.imageUrl) {
+      fieldData.tenImage = fieldData.imageUrl;
+    }
+  console.log(fieldData)
+    try {
+      if (fieldData.Id) { 
+        await ImageService.addorupdateImage({
+          Id: fieldData.Id,
+          idSp: editingImage.id, // Gửi idSp của sản phẩm vào
+          ...fieldData
+        });
+        fetchImages();
+        message.success("Hình ảnh đã được cập nhật thành công");
+      } else {
+        await ImageService.addorupdateImage({
+          idSp: editingImage.id, // Gửi idSp khi thêm hình ảnh mới
+          ...fieldData
+        });
+        fetchImages();
+        message.success("Hình ảnh mới đã được tạo thành công");
+      }
+
+    } catch (error) {
+      console.error("Lỗi khi thêm hoặc cập nhật hình ảnh sản phẩm:", error);
+      message.error(`Thêm hoặc cập nhật hình ảnh thất bại: ${error.message}`);
+    }
+  };
+  
+
   useEffect(() => {
     fetchImages();
-    fetchProducts(); // Lấy danh sách sản phẩm khi component mount
+    fetchProducts();
   }, []);
-
-  // Hàm chuyển đổi id sản phẩm thành tên sản phẩm
-  const getProductNameById = (idSp) => {
-    const product = products.find(p => p.id === idSp);
-    return product ? product.tenSp : "Không tìm thấy sản phẩm";
-  };
-
-  const handleStatusChange = (record, checked) => {
-    const updatedImage = { ...record, trangThai: checked ? 1 : 0 };
-    ImageService.updateImage(updatedImage.id, updatedImage)
-      .then(() => {
-        message.success('Trạng thái hình ảnh đã được cập nhật');
-        fetchImages();
-      })
-      .catch((error) => {
-        message.error('Lỗi khi cập nhật trạng thái hình ảnh');
-      });
-  };
 
   const openModal = (record) => {
     setEditingImage(record);
-  
-    // Nếu là thêm mới thì reset form, nếu chỉnh sửa thì điền giá trị vào form
     form.setFieldsValue({
-      idSp: record?.idSp || undefined,  // ID sản phẩm
-      tenImage: record?.tenImage || "", // Tên hình ảnh
-      moTa: record?.moTa || "",         // Mô tả
-      trangThai: record?.trangThai || 0 // Trạng thái
+      idSp: record?.Id || undefined,
+      images: record?.images || [],
+      imageUrl: record?.images?.[0]?.tenImage || ""  // Thêm trường imageUrl
     });
-  
+    console.log(record)
     setModalVisible(true);
   };
-  
-  
-  
+
+  // Hàm tìm tên sản phẩm
+  const getProductNameById = (idSp) => {
+    const product = products.find((p) => p.id === idSp);
+    return product ? product.tenSp : "Không tìm thấy sản phẩm";
+  };
+
+  // Hàm xóa hình ảnh
   const handleDelete = (id) => {
     Modal.confirm({
       title: "Xác nhận",
@@ -98,7 +111,7 @@ const ImageManagement = () => {
         ImageService.deleteImage(id)
           .then(() => {
             message.success("Xóa hình ảnh thành công");
-            fetchImages();
+            fetchImages();  // Sau khi xóa, gọi lại API để làm mới danh sách hình ảnh
           })
           .catch(() => {
             message.error("Lỗi khi xóa hình ảnh");
@@ -107,34 +120,6 @@ const ImageManagement = () => {
     });
   };
 
-  const handleFormSubmit = (values) => {
-    const imageData = {
-      ...values,
-      id: editingImage ? editingImage.id : undefined,
-    };
-
-    if (editingImage) {
-      ImageService.updateImage(editingImage.id, imageData)
-        .then(() => {
-          message.success('Cập nhật hình ảnh thành công');
-          setModalVisible(false);
-          fetchImages();
-        })
-        .catch((error) => {
-          message.error('Lỗi khi cập nhật hình ảnh');
-        });
-    } else {
-      ImageService.createImage(imageData)
-        .then(() => {
-          message.success('Thêm mới hình ảnh thành công');
-          setModalVisible(false);
-          fetchImages();
-        })
-        .catch((error) => {
-          message.error('Lỗi khi thêm mới hình ảnh');
-        });
-    }
-  };
   const columns = [
     {
       title: "STT",
@@ -146,28 +131,34 @@ const ImageManagement = () => {
     },
     {
       title: "Tên Sản Phẩm",
-      dataIndex: "productName",
-      key: "productName",
+      dataIndex: "tenSp",
+      key: "tenSp",
       align: "center",
       render: (productName) => productName || "Không tìm thấy",
     },
     {
-      title: "Tên Hình Ảnh",
-      dataIndex: "tenImage",
-      key: "tenImage",
+      title: "Hình ảnh mặc định",
+      dataIndex: "imageDefaul",
+      key: "imageDefaul",
+      render: (text) => <img src={text} alt="Product" style={{ width: 80, height: 90 }} />,
       align: "center",
     },
     {
-      title: "Trạng Thái",
-      dataIndex: "trangThai",
-      key: "trangThai",
-      align: "center",
-      render: (trangThai, record) => (
-        <Switch
-          checked={trangThai === 1}
-          onChange={(checked) => handleStatusChange(record, checked)}
-        />
+      title: "Hình Ảnh",
+      key: "images",
+      render: (record) => (
+        <div style={{ display: "flex", gap: "10px", justifyContent: "center" }}>
+          {record.images.map((image) => (
+            <img
+              key={image.id}
+              src={image.tenImage}
+              alt={"Image"}
+              style={{ width: 100, height: 100, objectFit: "cover" }}
+            />
+          ))}
+        </div>
       ),
+      align: "center",
     },
     {
       title: "Hành Động",
@@ -198,12 +189,12 @@ const ImageManagement = () => {
       >
         Thêm Hình Ảnh
       </Button>
-  
+
       <Table
         columns={columns}
         dataSource={images.map((image) => ({
           ...image,
-          productName: getProductNameById(image.idSp), // Hiển thị tên sản phẩm
+          productName: getProductNameById(image.idSp),
         }))}
         rowKey="id"
         loading={loading}
@@ -213,7 +204,7 @@ const ImageManagement = () => {
           onChange: (page) => setCurrentPage(page),
         }}
       />
-  
+
       <Modal
         title={editingImage ? "Chỉnh Sửa Hình Ảnh" : "Thêm Hình Ảnh"}
         visible={modalVisible}
@@ -222,45 +213,95 @@ const ImageManagement = () => {
       >
         <Form
           form={form}
-          onFinish={handleFormSubmit}
           layout="vertical"
+          onFinish={handleSaveImageDetail}  // Submit form
         >
           <Form.Item
-            label="Sản Phẩm"
+            label="Chọn Sản Phẩm"
             name="idSp"
-            rules={[{ required: true, message: 'Vui lòng chọn sản phẩm' }]}
+            rules={[{ required: true, message: "Vui lòng chọn sản phẩm!" }]}
           >
             <Select placeholder="Chọn sản phẩm">
-              {products.map(product => (
+              {products.map((product) => (
                 <Option key={product.id} value={product.id}>
                   {product.tenSp}
                 </Option>
               ))}
             </Select>
           </Form.Item>
-          <Form.Item
-            label="Tên Hình Ảnh"
-            name="tenImage"
-            rules={[{ required: true, message: 'Vui lòng nhập tên hình ảnh' }]}
+
+          <Form.List
+            name="images"
+            initialValue={editingImage ? editingImage.images : []}
+            rules={[{ validator: async (_, names) => { if (!names || names.length < 1) { return Promise.reject(new Error('Cần ít nhất một hình ảnh')); } } }]}
           >
-            <Input />
-          </Form.Item>
-          <Form.Item
-            label="Mô Tả"
-            name="moTa"
-          >
-            <Input.TextArea />
-          </Form.Item>
-          <Form.Item
-            label="Trạng Thái"
-            name="trangThai"
-            rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
-          >
-            <Select>
-              <Option value={1}>Hoạt Động</Option>
-              <Option value={0}>Không Hoạt Động</Option>
-            </Select>
-          </Form.Item>
+            {(fields, { add, remove }) => (
+              <>
+                {fields.map(({ key, name }) => (
+                  <div key={key} style={{ marginBottom: 16 }}>
+                    <Form.Item label={`Hình Ảnh ${key + 1}`} name={[name, 'file']}>
+                      <Upload
+                        listType="picture-card"
+                        maxCount={1}
+                        defaultFileList={
+                          form.getFieldValue('images')[name]?.tenImage
+                            ? [
+                                {
+                                  uid: key,
+                                  name: `Hình Ảnh ${key + 1}`,
+                                  url: form.getFieldValue('images')[name]?.tenImage,
+                                },
+                              ]
+                            : []
+                        }
+                        showUploadList={{ showPreviewIcon: false }}
+                        onChange={(info) => {
+                          const updatedImages = form.getFieldValue('images');
+                          const file = info.fileList[0];
+                          updatedImages[name] = { ...file, tenImage: file?.url || file.originFileObj };
+
+                          form.setFieldsValue({ images: updatedImages });
+                        }}
+                      >
+                        <div>
+                          <UploadOutlined />
+                          <div style={{ marginTop: 8 }}>Tải lên</div>
+                        </div>
+                      </Upload>
+                    </Form.Item>
+
+                    <Form.Item label="Link hình ảnh" name={[name, 'imageUrl']}>
+                      <Input placeholder="Nhập URL hình ảnh" />
+                    </Form.Item>
+
+                    <Button
+                      type="dashed"
+                      onClick={() => handleSaveImageDetail(form.getFieldValue('images')[name], name)}
+                      style={{ marginRight: 8 }}
+                    >
+                      Add/Update
+                    </Button>
+
+                    <Button
+                      onClick={() => remove(name)}
+                      type="danger"
+                      icon={<DeleteOutlined />}
+                      style={{ marginTop: 8 }}
+                    >
+                      Xóa
+                    </Button>
+                  </div>
+                ))}
+
+                <Form.Item>
+                  <Button type="dashed" onClick={() => add()} icon={<PlusOutlined />}>
+                    Thêm hình ảnh
+                  </Button>
+                </Form.Item>
+              </>
+            )}
+          </Form.List>
+
           <Form.Item>
             <Button type="primary" htmlType="submit">
               {editingImage ? "Cập Nhật" : "Thêm"}

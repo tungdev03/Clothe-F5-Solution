@@ -21,7 +21,7 @@ const ImageService = {
 
   getAllImages: async () => {
     try {
-      const response = await http.get('Image');
+      const response = await http.get('SanPham/Image');
       return response.data;
     } catch (error) {
       throw error.response?.data || "Lỗi không xác định";
@@ -45,6 +45,15 @@ const ImageService = {
       throw error.response?.data || "Lỗi không xác định";
     }
   },
+
+  addorupdateImage: async (imageData) => {
+    try {
+      const response = await http.post('SanPham/AddOrUpdateImage', imageData);
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || "Lỗi không xác định";
+    }
+  }
 };
 
 export default ImageService;
